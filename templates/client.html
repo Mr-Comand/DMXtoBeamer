@@ -43,6 +43,11 @@
         background: url('/Monitor-Calibration.avif');
         position: absolute;
       }
+      #animation{
+        transform: perspective(var(--perspective)) scale(var(--scale)) rotateX(var(--rotateX)) rotateY(var(--rotateY)) rotateZ(var(--rotateZ));
+
+      }
+
     </style>
   </head>
   <body>
@@ -77,6 +82,12 @@
         changeSettings(flipX, flipY, disabled)
         console.log(flipX, flipY, disabled)
       })
+      socket.on('chang_transform', (data) => {
+        const { rotateX, rotateY, rotateZ, perspective, scale } = data
+        // Run the specified JavaScript function
+        changetransform(rotateX, rotateY, rotateZ, perspective, scale)
+        console.log(rotateX, rotateY, rotateZ, perspective, scale)
+      })
       function test() {
         console.log('test')
       }
@@ -90,6 +101,18 @@
         }, 2000)
       }
       var disabled = false
+      function changetransform(rotateX, rotateY, rotateZ, perspective, scale){
+        
+        //document.getElementById("identifier").style.webkitTransform = transformString;
+        //document.getElementById("identifier").style.msTransform =   transformString;
+        document.getElementById("animation").style.setProperty("--perspective",   perspective+"px");
+        document.getElementById("animation").style.setProperty("--rotateX",   rotateX+"deg");
+        document.getElementById("animation").style.setProperty("--rotateY",   rotateY+"deg");
+        document.getElementById("animation").style.setProperty("--rotateZ",   rotateZ+"deg");
+        document.getElementById("animation").style.setProperty("--scale",   scale);
+
+        //document.getElementById("identifier").style.transform = "scale("+scale+")";
+      }
       function changeSettings(flipX, flipY, disabled_in) {
         const bodyElement = document.getElementById('animation')
         const transformValue = `scaleX(${flipX ? -1 : 1}) scaleY(${flipY ? -1 : 1})`

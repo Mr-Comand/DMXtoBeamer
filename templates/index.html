@@ -18,6 +18,14 @@
       th {
         background-color: #f2f2f2;
       }
+      .popup-container {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        background: black;
+        color: rebeccapurple;
+      }
+      
     </style>
   </head>
   <body>
@@ -158,30 +166,30 @@
           universeInput.onchange = () => updateClientData(clientId, 'universe', universeInput.value)
           universeCell.appendChild(universeInput)
           row.appendChild(universeCell)
-
-           // Editable disabled
-           const disabledCell = document.createElement('td')
-           const disabledInput = document.createElement('input')
-           disabledInput.type = 'checkbox'
-           disabledInput.checked = client['disabled'] =="True";
-           disabledInput.onchange = () => updateClientData(clientId, 'disabled', disabledInput.checked)
-           disabledCell.appendChild(disabledInput)
-           row.appendChild(disabledCell)
-
+      
+          // Editable disabled
+          const disabledCell = document.createElement('td')
+          const disabledInput = document.createElement('input')
+          disabledInput.type = 'checkbox'
+          disabledInput.checked = client['disabled'] == 'True'
+          disabledInput.onchange = () => updateClientData(clientId, 'disabled', disabledInput.checked)
+          disabledCell.appendChild(disabledInput)
+          row.appendChild(disabledCell)
+      
           // Editable flipX
           const flipXCell = document.createElement('td')
           const flipXInput = document.createElement('input')
           flipXInput.type = 'checkbox'
-          flipXInput.checked = client['flipX'] =="True"
+          flipXInput.checked = client['flipX'] == 'True'
           flipXInput.onchange = () => updateClientData(clientId, 'flipX', flipXInput.checked)
           flipXCell.appendChild(flipXInput)
           row.appendChild(flipXCell)
-
+      
           // Editable flipY
           const flipYCell = document.createElement('td')
           const flipYInput = document.createElement('input')
           flipYInput.type = 'checkbox'
-          flipYInput.checked = client['flipY'] =="True"
+          flipYInput.checked = client['flipY'] == 'True'
           flipYInput.onchange = () => updateClientData(clientId, 'flipY', flipYInput.checked)
           flipYCell.appendChild(flipYInput)
           row.appendChild(flipYCell)
@@ -197,6 +205,13 @@
             identifyButton.onclick = () => identifyClient(client['client_id'])
             actionCell.appendChild(identifyButton)
           }
+          const configureButton = document.createElement('button')
+          configureButton.textContent = 'Configure Transformation'
+          configureButton.onclick = () => showConfigPopup(clientId)
+          actionCell.appendChild(configureButton)
+      
+          row.appendChild(actionCell)
+      
           row.appendChild(actionCell)
           // Append the row to the table body
           tableBody.appendChild(row)
@@ -278,6 +293,75 @@
       }
       
       fetchConfig()
+    </script>
+
+    <script>
+      // 3d transform popup
+      function showConfigPopup(clientId) {
+        // Get the client data based on clientId
+        const clientData = getClientDataById(clientId)
+      
+        // Create a popup container
+        const popupContainer = document.createElement('div')
+        popupContainer.classList.add('popup-container')
+      
+        // Create input fields for transformation properties
+        const rotateXInput = createConfigInput('Rotate X:', 'number', clientData.transform.rotateX, clientId, "rotateX")
+        const rotateYInput = createConfigInput('Rotate Y:', 'number', clientData.transform.rotateY, clientId, "rotateY")
+        const rotateZInput = createConfigInput('Rotate Z:', 'number', clientData.transform.rotateZ, clientId, "rotateZ")
+        const perspectiveInput = createConfigInput('Perspective:', 'number', clientData.transform.perspective, clientId, "perspective")
+        const scaleXInput = createConfigInput('Scale:', 'number', clientData.transform.scaleX, clientId, "scale")
+      
+        // Create a save button
+        const saveButton = document.createElement('button')
+        saveButton.textContent = 'Close'
+        saveButton.onclick = () => {
+          // Close the popup
+          popupContainer.remove()
+        }
+      
+        // Append input fields and save button to the popup container
+        popupContainer.appendChild(rotateXInput)
+        popupContainer.appendChild(rotateYInput)
+        popupContainer.appendChild(rotateZInput)
+        popupContainer.appendChild(perspectiveInput)
+        popupContainer.appendChild(scaleXInput)
+        popupContainer.appendChild(saveButton)
+      
+        // Append the popup container to the body
+        document.body.appendChild(popupContainer)
+      }
+      
+      function createConfigInput(label, type, value, clientId, name) {
+        const inputContainer = document.createElement('div')
+      
+        const labelElement = document.createElement('label')
+        labelElement.textContent = label
+        inputContainer.appendChild(labelElement)
+      
+        const inputElement = document.createElement('input')
+        inputElement.type = type
+        inputElement.value = value
+        inputElement.onchange = () => updateClientData(clientId, "transform."+name, inputElement.value)
+        inputContainer.appendChild(inputElement)
+      
+        return inputContainer
+      }
+      
+      function getClientDataById(clientId) {
+        // Replace this with your actual logic to get client data based on clientId
+        const clientData = {
+          transform: {
+            rotateX: 0,
+            rotateY: 0,
+            rotateZ: 0,
+            perspective: 0,
+            scaleX: 1
+          }
+        }
+      
+        return clientData
+      }
     </script>
   </body>
 </html>

@@ -6,6 +6,11 @@ import webserver
 class Client():
     dimmer, hueshift, animation, fx1, fx2, fx3, fx4 = 0, 0, 0, 0, 0, 0, 0
     listener_id = None
+    _transform = {"rotateX": 0,
+                 "rotateY": 0,
+                 "rotateZ": 0,
+                 "perspective": 0,
+                 "scale": 1 }
 
     def __init__(self, id,  client_id=None, name=None, addresse=0, universe=None, disabled=False, flipY=False, flipX=False):
         self._id = id
@@ -22,7 +27,11 @@ class Client():
 
     def __str__(self):
         return f"Client(ID={self.id}, client_id={self.client_id}, Name={self.name}, Addresse={self.addresse}, Universe={self.universe} , disabled= {self.disabled}, flipX= {self.flipX}, flipY={self.flipY})"
-
+    def transform(self, property, value):
+        self._transform[property]=value
+        print(property, value,  self._transform)
+        webserver.socketio.emit('chang_transform', {
+                                'rotateX': self._transform["rotateX"], 'rotateY': self._transform["rotateY"],'rotateZ': self._transform["rotateZ"],'perspective': self._transform["perspective"],'scale': self._transform["scale"],}, room=self._client_id, namespace="/client")
     @property
     def id(self):
         return self._id
