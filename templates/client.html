@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebSocket Example</title>
+    <style>
+      :root {
+        --dimmer: 1;
+        --hue-rotate: 0deg;
+      }
+      body {
+        background-color: #000;
+        margin: 000;
+      }
+      #dimmer {
+        background-color: rgba(0, 0, 0, var(--dimmer));
+        height: 100vh;
+        width: 100vw;
+        position: absolute;
+        top: 00;
+        left: 0;
+      }
+      #animation {
+        filter: hue-rotate(var(--hue-rotate));
+        height: 100vh;
+        width: 100vw;
+        position: absolute;
+        top: 0;
+        left: 00;
+      }
+      #animation.disabled {
+        display: None;
+      }
+      #identifier:not(.identify) {
+        display: none;
+      }
+      
+      #identifier.identify {
+        height: 100vh;
+        width: 100vw;
+        background: url('/Monitor-Calibration.avif');
+        position: absolute;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="animation">
+      <div style="height: 50vh;width: 50vw;background: url(https://tse4.mm.bing.net/th?id=OIP.lWWcMYdmh4kM4P8tYY9S4QHaE8&amp;pid=Api);"></div>
+      <h1>hello</h1>
+    </div>
+    <div id="dimmer"></div>
+    <div id="identifier"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
+    <script>
+      // Connect to the WebSocket server
+      const socket = io.connect('https://' + document.domain + ':' + location.port + '/client')
+      
+      // Function to handle the WebSocket event
+      socket.on('run_function', (data) => {
+        const { function_name } = data
+      
+        // Run the specified JavaScript function
+        if (function_name && window[function_name] && typeof window[function_name] === 'function') {
+          window[function_name]()
+        }
+      })
+      socket.on('update_artnet', (data) => {
+        const { dimmer, hueshift, animation, fx1, fx2, fx3, fx4 } = data
+        // Run the specified JavaScript function
+        update_artnet(dimmer, hueshift, animation, fx1, fx2, fx3, fx4)
+      })
+      socket.on('chang_settings', (data) => {
+        const { flipX, flipY, disabled } = data
+        // Run the specified JavaScript function
+        changeSettings(flipX, flipY, disabled)
+        console.log(flipX, flipY, disabled)
+      })
+      function test() {
+        console.log('test')
+      }
+      function identify() {
+        console.log('identify')
+        const identifier = document.getElementById('identifier')
+        identifier.classList.add('identify')
+        //dely by 2 seconse
+        setTimeout(() => {
+          identifier.classList.remove('identify')
+        }, 2000)
+      }
+      var disabled = false
+      function changeSettings(flipX, flipY, disabled_in) {
+        const bodyElement = document.getElementById('animation')
+        const transformValue = `scaleX(${flipX ? -1 : 1}) scaleY(${flipY ? -1 : 1})`
+        bodyElement.style.transform = transformValue
+        disabled = disabled_in
+        if (disabled) {
+          bodyElement.classList.add('disabled')
+        } else {
+          bodyElement.classList.remove('disabled')
+        }
+      }
+      var current_animation = -1
+      var fx1, fx2
+      function update_artnet(dimmer, hueshift, animation, fx1_in, fx2_in, fx3_in, fx4_in) {
+        console.log('Received values:', dimmer, hueshift, animation, fx1_in, fx2_in, fx3_in, fx4_in)
+        document.body.style.setProperty('--dimmer', 1 - dimmer / 255)
+        if (animation != current_animation) {
+          load_new_adnimation(animation)
+        }
+        console.log(animation != current_animation, animation, current_animation)
+        document.body.style.setProperty('--hue-rotate', (hueshift / 255) * 360 + 'deg')
+        fx1 = fx1_in
+        fx2 = fx2_in
+        fx3 = fx3_in
+        fx4 = fx4_in
+      }
+      function load_new_adnimation(animation) {
+        const animationElement = document.getElementById('animation')
+      
+        // Fetch the content from the specified URL
+        fetch('/animations/' + animation)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok')
+            }
+            return response.text()
+          })
+          .then((data) => {
+            // Put the content into the "animation" element
+            animationElement.innerHTML = data
+            const scripts = animationElement.querySelectorAll('script')
+            scripts.forEach((script) => {
+              eval(script.innerHTML)
+            })
+            current_animation = animation
+          })
+          .catch((error) => {
+            console.error('There was a problem with the fetch operation:', error)
+          })
+      
+        console.log('loadad ' + animation)
+      }
+    </script>
+  </body>
+</html>

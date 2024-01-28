@@ -1,0 +1,139 @@
+<style>
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+main {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+  > div {
+    display: inline-block;
+    width: 3px;
+    height: 100px;
+    margin: 0 7px;
+    background: red;
+    transform: scaleY( .5 );
+    opacity: .25;
+  }
+  
+  &.error {
+    color: #f7451d;
+    min-width: 20em;
+    max-width: 30em;
+    margin: 0 auto;
+    white-space: pre-line;
+  }
+}
+</style>
+<main></main>
+<script>
+  function generateDictionary(start, end, steps) {
+  const resultDict = {};
+
+  for (let i = 0; i <= end; i++) {
+    resultDict[i] = Math.abs(start);
+    start -= steps[i % steps.length]; // Use modulo to repeat steps if they run out
+    
+  }
+  console.log(resultDict)
+  return resultDict;
+}
+
+// Example with variable steps
+const variableSteps = [2,3];
+
+class AudioVisualizer {
+  constructor( audioContext, processFrame, processError ) {
+    this.audioContext = audioContext;
+    this.processFrame = processFrame;
+    this.connectStream = this.connectStream.bind( this );
+    navigator.mediaDevices.getUserMedia( { audio: true, video: false } )
+      .then( this.connectStream )
+      .catch( ( error ) => {
+        if ( processError ) {
+          processError( error );
+        }
+      } );
+  }
+
+  connectStream( stream ) {
+    this.analyser = this.audioContext.createAnalyser();
+    const source = this.audioContext.createMediaStreamSource( stream );
+    source.connect( this.analyser );
+    this.analyser.smoothingTimeConstant = 0.5;
+    this.analyser.fftSize = 2048;
+
+    this.initRenderLoop( this.analyser );
+  }
+
+  initRenderLoop() {
+    const frequencyData = new Uint8Array( this.analyser.frequencyBinCount );
+    const processFrame = this.processFrame || ( () => {} );
+
+    const renderFrame = () => {
+      this.analyser.getByteFrequencyData( frequencyData );
+      processFrame( frequencyData );
+
+      requestAnimationFrame( renderFrame );
+    };
+    requestAnimationFrame( renderFrame );
+  }
+}
+
+const visualMainElement = document.querySelector( 'main' );
+const visualValueCount = 100;
+let visualElements;
+const createDOMElements = () => {
+  let i;
+  for ( i = 0; i < visualValueCount; ++i ) {
+    const elm = document.createElement( 'div' );
+    visualMainElement.appendChild( elm );
+  }
+
+  visualElements = document.querySelectorAll( 'main div' );
+};
+createDOMElements();
+
+const init = () => {
+  // Creating initial DOM elements
+  const audioContext = new AudioContext();
+  const initDOM = () => {
+    visualMainElement.innerHTML = '';
+    createDOMElements();
+  };
+  initDOM();
+
+  // Swapping values around for a better visual effect
+  const dataMap = generateDictionary(100,100, variableSteps); //{    0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10, 11: 11, 12: 12, 13: 13, 14: 14, 15: 15};
+    /*
+  0:  1,  1:  2, 2:  3, 3:  4, 4:  5, 5:  6, 6:  7, 7:  8,
+  8:  9, 9:  10, 10: 11, 11: 12, 12: 13, 13: 14, 14: 15, 15: 16,
+  16: 17, 17: 18, 18: 19, 19: 20, 20: 21, 21: 22, 22: 23, 23: 24,
+  24: 25, 25: 26, 26: 27, 27: 28, 28: 29, 29: 30, 30: 31, 31: 32,
+  32: 33, 33: 34, 34: 35, 35: 180, 36: 185, 37: 190, 38: 195, 39: 200,
+  40: 205, 41: 210, 42: 215, 43: 220, 44: 225, 45: 230, 46: 235, 47: 240,
+  48: 245, 49: 250, 50: 255, 51: 260, 52: 265, 53: 270, 54: 275, 55: 280,
+  56: 285, 57: 290, 58: 295, 59: 300, 60: 305, 61: 310, 62: 315, 63: 320,
+};*/
+  const processFrame = ( data ) => {
+    const values = Object.values( data );
+    let i;
+    for ( i = 0; i < visualValueCount; ++i ) {
+      const value = values[ dataMap[ i ] ] / 255;
+      const elmStyles = visualElements[ i ].style;
+      elmStyles.transform = `scaleY( ${ value } )`;
+      elmStyles.opacity = Math.max( .25, value );
+    }
+  };
+
+  const processError = () => {
+    visualMainElement.classList.add( 'error' );
+    visualMainElement.innerText = 'Please allow access to your microphone in order to see this demo.\nNothing bad is going to happen... hopefully :P';
+  }
+
+  const a = new AudioVisualizer( audioContext, processFrame, processError );
+};
+init();
+</script>

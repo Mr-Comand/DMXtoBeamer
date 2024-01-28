@@ -1,0 +1,4 @@
+Flask==3.0.1
+Flask-SocketIO==5.3.6
+stupidArtnet==1.4.0
+cryptography==42.0.1

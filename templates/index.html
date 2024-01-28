@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Client Information</title>
+    <style>
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th,
+      td {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Client Information</h2>
+
+    <!-- Add button to add a new client -->
+    <button onclick="addNewClient()">Add New Client</button>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Internal ID</th>
+          <th>Client ID</th>
+          <th>Name</th>
+          <th>Address</th>
+          <th>Universe</th>
+          <th>Disabled</th>
+          <th>Flip X</th>
+          <th>Flip Y</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="clientTableBody">
+        <!-- Table content will be dynamically added here -->
+      </tbody>
+    </table>
+
+    <!-- Display unassigned clients -->
+    <h3>Unassigned Clients</h3>
+    <ul id="unassignedList">
+      <!-- List content will be dynamically added here -->
+    </ul>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
+
+    <script>
+      function addNewClient() {
+        const newClientId = prompt('Enter a new client ID:')
+        if (newClientId !== null && newClientId.trim() !== '') {
+          // Send an API request to add a new client
+          fetch(`/api/add/${newClientId}`, {
+            method: 'POST'
+            // You may need to add headers or additional options based on your API
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error('Failed to add a new client')
+              }
+              fetchConfig() // Refresh the data after adding a new client
+            })
+            .catch((error) => console.error('Error adding a new client:', error))
+        }
+      }
+      
+      function removeClient(clientId) {
+        // Send an API request to remove the client
+        fetch(`/api/remove/${clientId}`, {
+          method: 'DELETE'
+          // You may need to add headers or additional options based on your API
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error('Failed to remove the client')
+            }
+            fetchConfig() // Refresh the data after removing the client
+          })
+          .catch((error) => console.error('Error removing the client:', error))
+      }
+      function identifyClient(clientId) {
+        // Send an API request to identify the client
+        fetch(`/api/identify/${clientId}`, {
+          method: 'POST'
+          // You may need to add headers or additional options based on your API
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error('Failed to identify the client')
+            }
+            // Handle success if needed
+            console.log(`Client ${clientId} identified successfully`)
+          })
+          .catch((error) => console.error('Error identifying the client:', error))
+      }
+      var unassignedIds = []
+      function updateTable(data) {
+        // Get the table body element
+        const tableBody = document.getElementById('clientTableBody')
+      
+        // Clear existing table content
+        tableBody.innerHTML = ''
+        unassignedIds = data['unassigned']
+        // Iterate over the data and populate the table
+        Object.entries(data['clients']).forEach(([clientId, client]) => {
+          const row = document.createElement('tr')
+      
+          // Internal ID
+          const internalIdCell = document.createElement('td')
+          internalIdCell.textContent = clientId
+          row.appendChild(internalIdCell)
+      
+          // Client ID (editable dropdown)
+          const clientIdCell = document.createElement('td')
+          const clientIdDropdown = createClientIdDropdown(client['client_id'])
+          clientIdDropdown.value = client['client_id']
+          clientIdDropdown.onchange = () => updateClientData(clientId, 'clientId', clientIdDropdown.value)
+          clientIdCell.appendChild(clientIdDropdown)
+          row.appendChild(clientIdCell)
+      
+          // Editable Name
+          const nameCell = document.createElement('td')
+          const nameInput = document.createElement('input')
+          nameInput.type = 'text'
+          nameInput.value = client['name']
+          nameInput.onchange = () => updateClientData(clientId, 'name', nameInput.value)
+          nameCell.appendChild(nameInput)
+          row.appendChild(nameCell)
+      
+          // Editable Address
+          const addressCell = document.createElement('td')
+          const addressInput = document.createElement('input')
+          addressInput.type = 'number'
+          addressInput.min = 0
+          addressInput.step = 1
+          addressInput.max = 511
+          addressInput.value = client['addresse']
+          addressInput.onchange = () => updateClientData(clientId, 'address', addressInput.value)
+          addressCell.appendChild(addressInput)
+          row.appendChild(addressCell)
+      
+          // Editable Universe
+          const universeCell = document.createElement('td')
+          const universeInput = document.createElement('input')
+          universeInput.type = 'number'
+          addressInput.min = 0
+          addressInput.step = 1
+          addressInput.max = 32767
+          universeInput.value = client['universe']
+          universeInput.onchange = () => updateClientData(clientId, 'universe', universeInput.value)
+          universeCell.appendChild(universeInput)
+          row.appendChild(universeCell)
+
+           // Editable disabled
+           const disabledCell = document.createElement('td')
+           const disabledInput = document.createElement('input')
+           disabledInput.type = 'checkbox'
+           disabledInput.checked = client['disabled'] =="True";
+           disabledInput.onchange = () => updateClientData(clientId, 'disabled', disabledInput.checked)
+           disabledCell.appendChild(disabledInput)
+           row.appendChild(disabledCell)
+
+          // Editable flipX
+          const flipXCell = document.createElement('td')
+          const flipXInput = document.createElement('input')
+          flipXInput.type = 'checkbox'
+          flipXInput.checked = client['flipX'] =="True"
+          flipXInput.onchange = () => updateClientData(clientId, 'flipX', flipXInput.checked)
+          flipXCell.appendChild(flipXInput)
+          row.appendChild(flipXCell)
+
+          // Editable flipY
+          const flipYCell = document.createElement('td')
+          const flipYInput = document.createElement('input')
+          flipYInput.type = 'checkbox'
+          flipYInput.checked = client['flipY'] =="True"
+          flipYInput.onchange = () => updateClientData(clientId, 'flipY', flipYInput.checked)
+          flipYCell.appendChild(flipYInput)
+          row.appendChild(flipYCell)
+          // Remove button
+          const actionCell = document.createElement('td')
+          const removeButton = document.createElement('button')
+          removeButton.textContent = 'Remove'
+          removeButton.onclick = () => removeClient(clientId)
+          actionCell.appendChild(removeButton)
+          if (client['client_id'] != 'None') {
+            const identifyButton = document.createElement('button')
+            identifyButton.textContent = 'Identify'
+            identifyButton.onclick = () => identifyClient(client['client_id'])
+            actionCell.appendChild(identifyButton)
+          }
+          row.appendChild(actionCell)
+          // Append the row to the table body
+          tableBody.appendChild(row)
+        })
+      }
+      function updateClientData(internalId, field, value) {
+        // Send an API request to update the server with the changed value
+        fetch(`/api/update/${internalId}/${field}/${value}`, {
+          method: 'PUT'
+          // You may need to add headers or additional options based on your API
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Failed to update ${field}`)
+            }
+          })
+          .catch((error) => console.error('Error updating data:', error))
+      }
+      function createClientIdDropdown(selectedClientId) {
+        const dropdown = document.createElement('select')
+        if (selectedClientId !== 'None') {
+          const option_empty = document.createElement('option')
+          option_empty.value = 'None'
+          option_empty.textContent = 'None'
+          dropdown.appendChild(option_empty)
+        }
+        const option_current = document.createElement('option')
+        option_current.value = selectedClientId
+        option_current.textContent = selectedClientId
+        dropdown.appendChild(option_current)
+        // Populate the dropdown with unassigned IDs
+        unassignedIds.forEach((id) => {
+          const option = document.createElement('option')
+          option.value = id
+          option.textContent = id
+          dropdown.appendChild(option)
+        })
+      
+        return dropdown
+      }
+      function updateUnassignedList() {
+        const unassignedList = document.getElementById('unassignedList')
+        unassignedList.innerHTML = '' // Clear existing list content
+        unassignedIds.forEach((id) => {
+          const listItem = document.createElement('li')
+          listItem.textContent = id
+      
+          const identifyButton = document.createElement('button')
+          identifyButton.textContent = 'Identify'
+          identifyButton.onclick = () => identifyClient(id)
+      
+          listItem.appendChild(identifyButton)
+          unassignedList.appendChild(listItem)
+        })
+      }
+      // Connect to the WebSocket server
+      const socket = io.connect('https://' + document.domain + ':' + location.port + '/config')
+      
+      // Function to handle the WebSocket event
+      socket.on('update_config', (data) => {
+        const { function_name } = data
+        fetchConfig()
+      })
+      const fetchConfig = async () => {
+        try {
+          const response = await fetch('/api/config')
+          if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`)
+          }
+          const jsonData = await response.json()
+          console.log('Config data:', jsonData)
+          updateTable(jsonData)
+          updateUnassignedList()
+          return jsonData
+        } catch (error) {
+          console.error('Error fetching config data:', error)
+          return null
+        }
+      }
+      
+      fetchConfig()
+    </script>
+  </body>
+</html>
