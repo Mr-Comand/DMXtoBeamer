@@ -5,8 +5,8 @@ import webserver, artnet, gloabals, config
 
 if __name__ == '__main__':
     # Create a thread for the send_command function
-    #command_thread = threading.Thread(target=artnet.send_command_a, daemon=True)
-    #command_thread.start()
+    command_thread = threading.Thread(target=artnet.send_command_a, daemon=True)
+    command_thread.start()
 
     # Run the Flask application with SocketIO
     webserver.socketio.run(webserver.app, debug=True, host="0.0.0.0",ssl_context='adhoc', use_reloader=False)
