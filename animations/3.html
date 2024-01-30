@@ -42,6 +42,7 @@
 <canvas id="myCanvas" width="5000" height="5000"></canvas>
 
 <script>
+  const animationid = 3;
   function clearCanvas() {
     const canvas = document.getElementById('myCanvas');
     const ctx = canvas.getContext('2d');
@@ -122,7 +123,11 @@
       const renderFrame = () => {
         this.analyser.getByteFrequencyData(frequencyData);
         processFrame(frequencyData);
-
+        if (stopFlag[animationid]) {
+          console.log("Execution stopped.");
+          // Perform any cleanup or termination logic if needed
+          return; // Exit the function to stop execution
+        }
         requestAnimationFrame(renderFrame);
       };
       requestAnimationFrame(renderFrame);

@@ -18,6 +18,7 @@
 </style>
 
 <script>
+    const animationid = 0;
     function init() {
         const linkElement = document.createElement("link");
 
@@ -60,7 +61,7 @@
                 snowContainer.appendChild(snowflake);
                 amout++;
                 animateSnowflake(snowflake);
-            }else{
+            } else {
                 console.log("blacked")
             }
         }
@@ -83,6 +84,11 @@
                     amout--;
                     snowflake.remove();
                 } else {
+                    if (stopFlag[animationid]) {
+                        console.log("Execution stopped.");
+                        // Perform any cleanup or termination logic if needed
+                        return; // Exit the function to stop execution
+                    }
                     requestAnimationFrame(function (timestamp) {
                         moveSnowflake(timestamp / 1000); // Zeit in Sekunden übergeben
                     });
@@ -94,15 +100,19 @@
             });
         }
 
-       var interval = 1/(fx1+1)*39000;
-       var snowfallTimeout = null;
-       console.log(interval)
+        var interval = 1 / (fx1 + 1) * 39000;
+        var snowfallTimeout = null;
+        console.log(interval)
         function createSnowfall() {
             // Clear any existing timeout
             clearTimeout(snowfallTimeout);
             // Set a new timeout with the specified interval
             snowfallTimeout = setTimeout(function () {
-                
+                if (stopFlag[animationid]) {
+                    console.log("Execution stopped.");
+                    // Perform any cleanup or termination logic if needed
+                    return; // Exit the function to stop execution
+                }
                 createSnowflake();
                 // Call createSnowfall again to create a continuous effect
                 createSnowfall();
