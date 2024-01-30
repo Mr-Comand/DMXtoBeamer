@@ -4,13 +4,8 @@ import webserver
 
 
 class Client():
-    dimmer, hueshift, animation, fx1, fx2, fx3, fx4 = 0, 0, 0, 0, 0, 0, 0
-    listener_id = None
-    _transform = {"rotateX": 0,
-                 "rotateY": 0,
-                 "rotateZ": 0,
-                 "perspective": 0,
-                 "scale": 1 }
+    
+    
 
     def __init__(self, id,  client_id=None, name=None, addresse=0, universe=None, disabled=False, flipY=False, flipX=False):
         self._id = id
@@ -21,7 +16,19 @@ class Client():
         self._disabled = disabled
         self._flipY = flipY
         self._flipX = flipX
-
+        self._transform = {
+                 "rotateX": 0,
+                 "rotateY": 0,
+                 "rotateZ": 0,
+                 "perspective": 500,
+                 "scale": 1,
+                 "translateX":  0,
+                 "translateY":  0
+                 }
+        self.dimmer, self.hueshift, self.animation, self.fx1, self.fx2, self.fx3, self.fx4 = 0, 0, 0, 0, 0, 0, 0
+        self.listener_id = None
+    
+    _calibratemode = False
     def getAsJson(self):
         return f'("client_id":"{self.client_id}","name":"{self.name}","addresse":"{self.addresse}","universe":"{self.universe}", "disabled":"{self.disabled}", "flipX": "{self.flipX}", "flipY": "{self.flipY}")'.replace("(", "{").replace(")", "}")
 
@@ -31,7 +38,18 @@ class Client():
         self._transform[property]=value
         print(property, value,  self._transform)
         webserver.socketio.emit('chang_transform', {
-                                'rotateX': self._transform["rotateX"], 'rotateY': self._transform["rotateY"],'rotateZ': self._transform["rotateZ"],'perspective': self._transform["perspective"],'scale': self._transform["scale"],}, room=self._client_id, namespace="/client")
+                                'rotateX': self._transform["rotateX"], 'rotateY': self._transform["rotateY"],'rotateZ': self._transform["rotateZ"],'perspective': self._transform["perspective"],'scale': self._transform["scale"], "translateX": self._transform["translateX"], "translateY": self._transform["translateY"], "calibratemode":self.calibratemode}, room=self._client_id, namespace="/client")
+    
+    @property
+    def calibratemode(self):
+        return self._calibratemode
+
+    @calibratemode.setter
+    def calibratemode(self, value):
+        self._calibratemode = value
+        webserver.socketio.emit('chang_transform', {
+                                'rotateX': self._transform["rotateX"], 'rotateY': self._transform["rotateY"],'rotateZ': self._transform["rotateZ"],'perspective': self._transform["perspective"],'scale': self._transform["scale"], "translateX": self._transform["translateX"], "translateY": self._transform["translateY"], "calibratemode":self.calibratemode}, room=self._client_id, namespace="/client")
+        
     @property
     def id(self):
         return self._id
@@ -46,9 +64,12 @@ class Client():
             gloabals.unassigned.append(self._client_id)
             webserver.socketio.emit('chang_settings', {
                                     'flipY': "false", 'flipX': "false", 'disabled': "true"}, room=self._client_id, namespace="/client")
+            
         self._client_id = value
         webserver.socketio.emit('chang_settings', {
                                 'flipY': self._flipY, 'flipX': self._flipX, 'disabled': self._disabled}, room=self._client_id, namespace="/client")
+        webserver.socketio.emit('chang_transform', {
+                                'rotateX': self._transform["rotateX"], 'rotateY': self._transform["rotateY"],'rotateZ': self._transform["rotateZ"],'perspective': self._transform["perspective"],'scale': self._transform["scale"], "translateX": self._transform["translateX"], "translateY": self._transform["translateY"], "calibratemode":self.calibratemode}, room=self._client_id, namespace="/client")
         if value in gloabals.unassigned:
             gloabals.unassigned.remove(value)
         else:

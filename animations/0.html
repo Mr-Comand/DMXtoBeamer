@@ -15,7 +15,6 @@
         position: fixed;
         top: 00px;
     }
-
 </style>
 
 <script>
@@ -25,8 +24,8 @@
         const snowContainer = document.createElement("div");
         snowContainer.id = "snowflakes";
         document.getElementById("animation").appendChild(snowContainer);
-        const snowflakeicons = ["💩"];
-        
+        const snowflakeicons = ["❄", "❅", "❆", "❊", "✼"];
+
         var amout = 0;
         function unregelmaessigeSchwingung(t) {
             // Parameter für die einzelnen Schwingungen
@@ -45,6 +44,7 @@
         }
         function createSnowflake() {
             if (amout <= fx1) {
+                console.log(amout)
                 const snowflake = document.createElement("div");
                 snowflake.className = "snowflake";
                 snowflake.innerHTML =
@@ -60,12 +60,13 @@
                 snowContainer.appendChild(snowflake);
                 amout++;
                 animateSnowflake(snowflake);
+            }else{
+                console.log("blacked")
             }
         }
         function animateSnowflake(snowflake) {
-            const speed = Math.random() *(fx2/64) + 0.5; // Zufällige Geschwindigkeit zwischen 1 und 3
-            const amplitude = Math.random() * 20 + 10; // Zufällige Amplitude für seitliche Bewegung
-            const frequency = Math.random() * 0.1 + 0.05; // Zufällige Frequenz für seitliche Bewegung
+            const speed = Math.random() * (fx2 / 64) + 0.5; // Zufällige Geschwindigkeit zwischen 1 und 3
+            const amplitude = Math.random() * 10 * speed / 2; // Zufällige Amplitude für seitliche Bewegung
             const phase = Math.random() * Math.PI * 2; // Zufällige Phasenverschiebung für seitliche Bewegung
 
             function moveSnowflake(t) {
@@ -75,7 +76,7 @@
                 snowflake.style.top = `${currentTop + speed}px`;
 
                 // Seitliche Bewegung mit unregelmäßiger Schwingung
-                const sideToSide = unregelmaessigeSchwingung(t + phase);
+                const sideToSide = unregelmaessigeSchwingung(t + phase) * amplitude;
                 snowflake.style.left = `${currentLeft + sideToSide}px`;
 
                 if (currentTop > window.innerHeight) {
@@ -93,10 +94,20 @@
             });
         }
 
+       var interval = 1/(fx1+1)*39000;
+       var snowfallTimeout = null;
+       console.log(interval)
         function createSnowfall() {
-            setInterval(createSnowflake, 50); // Create a new snowflake every 500 milliseconds
+            // Clear any existing timeout
+            clearTimeout(snowfallTimeout);
+            // Set a new timeout with the specified interval
+            snowfallTimeout = setTimeout(function () {
+                
+                createSnowflake();
+                // Call createSnowfall again to create a continuous effect
+                createSnowfall();
+            }, interval);
         }
-
         createSnowfall();
     };
     init();

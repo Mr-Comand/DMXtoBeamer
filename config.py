@@ -39,7 +39,9 @@ def disconnect():
 @app.route('/api/config')
 def getData():
     return gloabals.getasJson()
-
+@app.route('/api/transform/<int:client_id>')
+def getTransformData(client_id):
+        return jsonify(gloabals.clients[client_id]._transform)
 
 @app.route('/api/add/<int:client_id>', methods=["POST"])
 def addclient(client_id):
@@ -59,9 +61,12 @@ def removeclient(client_id):
 def updateConfig(id, field, value):
     if field.startswith("transform"):
         gloabals.clients[id].transform(field[10:], float(value))
+        
         return gloabals.getasJson()
 
     match field:
+        case 'calibratemode':
+            gloabals.clients[id].calibratemode = value
         case 'name':
             print('name')
             gloabals.clients[id].name = value

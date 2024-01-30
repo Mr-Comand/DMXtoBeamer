@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>WebSocket Example</title>
+    <title>Beamer Client</title>
     <style>
       :root {
         --dimmer: 1;
@@ -13,6 +13,7 @@
       body {
         background-color: #000;
         margin: 000;
+        overflow: hidden;
       }
       #dimmer {
         background-color: rgba(0, 0, 0, var(--dimmer));
@@ -29,6 +30,9 @@
         position: absolute;
         top: 0;
         left: 00;
+        left: 50%;
+        top: 50%;
+        transform: translate(calc(-50% + var(--translateX)), calc(-50% + var(--translateY))) perspective(var(--perspective)) scale(var(--scale)) rotateX(var(--rotateX)) rotateY(var(--rotateY)) rotateZ(var(--rotateZ)) scaleX(calc(var(--flipX) * var(--scale))) scaleY(calc(var(--flipY) * var(--scale))) scaleZ(var(--scale)); 
       }
       #animation.disabled {
         display: None;
@@ -43,11 +47,49 @@
         background: url('/Monitor-Calibration.avif');
         position: absolute;
       }
-      #animation{
-        transform: perspective(var(--perspective)) scale(var(--scale)) rotateX(var(--rotateX)) rotateY(var(--rotateY)) rotateZ(var(--rotateZ));
+      #animation.calibrate{
+        background-image: 
+        linear-gradient(90deg, 
+              red 50%, 
+              hsla(0, 50%, 50%, .5) 50%, 
+              hsla(0, 50%, 0%, .5) 50%)
+        ,
+        linear-gradient(0deg, 
+              green 50%, 
+              hsla(0, 50%, 50%, .5) 50%, 
+              hsla(0, 50%, 0%, .5) 50%)
+      ,
+        linear-gradient(45deg, 
+              blue 50%, 
+              hsla(0, 50%, 50%, .5) 50%, 
+              hsla(0, 50%, 0%, .5) 50%)
+      ;
+      background-size: 150px 150px;
 
+      border: 3vh solid pink;
       }
+      #animation.calibrate::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 0;
+        bottom: 0;
+        width: 2vh;
+        background-color: #00f; /* Color of the vertical center line */
+        transform: translateX(-50%); /* Center the line horizontally */
+    }
 
+    /* Horizontal center line */
+    #animation.calibrate::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2vh;
+        background-color: #00f; /* Color of the horizontal center line */
+        transform: translateY(-50%); /* Center the line vertically */
+    }
     </style>
   </head>
   <body>
@@ -57,7 +99,7 @@
     </div>
     <div id="dimmer"></div>
     <div id="identifier"></div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
+    <script src="/static/socket.io.js"></script>
     <script>
       // Connect to the WebSocket server
       const socket = io.connect('https://' + document.domain + ':' + location.port + '/client')
@@ -82,11 +124,12 @@
         changeSettings(flipX, flipY, disabled)
         console.log(flipX, flipY, disabled)
       })
+      
       socket.on('chang_transform', (data) => {
-        const { rotateX, rotateY, rotateZ, perspective, scale } = data
+        const { rotateX, rotateY, rotateZ, perspective, scale, translateX, translateY, calibratemode} = data
         // Run the specified JavaScript function
-        changetransform(rotateX, rotateY, rotateZ, perspective, scale)
-        console.log(rotateX, rotateY, rotateZ, perspective, scale)
+        changetransform(rotateX, rotateY, rotateZ, perspective, scale, translateX, translateY, calibratemode)
+        console.log(rotateX, rotateY, rotateZ, perspective, scale, translateX, translateY, calibratemode)
       })
       function test() {
         console.log('test')
@@ -100,9 +143,15 @@
           identifier.classList.remove('identify')
         }, 2000)
       }
-      var disabled = false
-      function changetransform(rotateX, rotateY, rotateZ, perspective, scale){
-        
+      var disabled = false;
+      var calibratemode ="false";
+      function changetransform(rotateX, rotateY, rotateZ, perspective, scale, translateX, translateY, calibratemode_in){
+        calibratemode = calibratemode_in
+        if (calibratemode=="true"){
+          document.getElementById("animation").classList.add("calibrate")
+        }else{
+          document.getElementById("animation").classList.remove("calibrate")
+        }
         //document.getElementById("identifier").style.webkitTransform = transformString;
         //document.getElementById("identifier").style.msTransform =   transformString;
         document.getElementById("animation").style.setProperty("--perspective",   perspective+"px");
@@ -110,13 +159,18 @@
         document.getElementById("animation").style.setProperty("--rotateY",   rotateY+"deg");
         document.getElementById("animation").style.setProperty("--rotateZ",   rotateZ+"deg");
         document.getElementById("animation").style.setProperty("--scale",   scale);
+        document.getElementById("animation").style.setProperty("--translateX",   translateX + "px");
+        document.getElementById("animation").style.setProperty("--translateY",   translateY + "px") ;
+        
+        
 
         //document.getElementById("identifier").style.transform = "scale("+scale+")";
       }
       function changeSettings(flipX, flipY, disabled_in) {
         const bodyElement = document.getElementById('animation')
-        const transformValue = `scaleX(${flipX ? -1 : 1}) scaleY(${flipY ? -1 : 1})`
-        bodyElement.style.transform = transformValue
+        bodyElement.style.setProperty("--flipX",   flipX ? -1 : 1);
+        bodyElement.style.setProperty("--flipY",   flipY ? -1 : 1);
+
         disabled = disabled_in
         if (disabled) {
           bodyElement.classList.add('disabled')

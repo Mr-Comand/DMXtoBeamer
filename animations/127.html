@@ -3,16 +3,19 @@
   box-sizing: border-box;
 }
 main {
-  position: relative;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   justify-content: center;
   align-items: center;
   
   > div {
     display: inline-block;
-    width: 3px;
-    height: 100px;
-    margin: 0 7px;
+    width: 0.2vw;
+    height: 20vh;
+    margin: 0 0.1vw;
     background: red;
     transform: scaleY( .5 );
     opacity: .25;
@@ -83,7 +86,7 @@ class AudioVisualizer {
 }
 
 const visualMainElement = document.querySelector( 'main' );
-const visualValueCount = 100;
+const visualValueCount = 150;
 let visualElements;
 const createDOMElements = () => {
   let i;
@@ -106,7 +109,7 @@ const init = () => {
   initDOM();
 
   // Swapping values around for a better visual effect
-  const dataMap = generateDictionary(100,100, variableSteps); //{    0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10, 11: 11, 12: 12, 13: 13, 14: 14, 15: 15};
+  const dataMap = generateDictionary(visualValueCount,visualValueCount, variableSteps); //{    0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10, 11: 11, 12: 12, 13: 13, 14: 14, 15: 15};
     /*
   0:  1,  1:  2, 2:  3, 3:  4, 4:  5, 5:  6, 6:  7, 7:  8,
   8:  9, 9:  10, 10: 11, 11: 12, 12: 13, 13: 14, 14: 15, 15: 16,
@@ -121,7 +124,7 @@ const init = () => {
     const values = Object.values( data );
     let i;
     for ( i = 0; i < visualValueCount; ++i ) {
-      const value = values[ dataMap[ i ] ] / 255;
+      const value = (values[ dataMap[ i ] ] / 255)**2*4;
       const elmStyles = visualElements[ i ].style;
       elmStyles.transform = `scaleY( ${ value } )`;
       elmStyles.opacity = Math.max( .25, value );

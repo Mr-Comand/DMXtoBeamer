@@ -59,7 +59,7 @@
       <!-- List content will be dynamically added here -->
     </ul>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
+    <script src="/static/socket.io.js"></script>
 
     <script>
       function addNewClient() {
@@ -207,6 +207,7 @@
           }
           const configureButton = document.createElement('button')
           configureButton.textContent = 'Configure Transformation'
+
           configureButton.onclick = () => showConfigPopup(clientId)
           actionCell.appendChild(configureButton)
       
@@ -297,27 +298,32 @@
 
     <script>
       // 3d transform popup
-      function showConfigPopup(clientId) {
+      async function showConfigPopup(clientId) {
         // Get the client data based on clientId
-        const clientData = getClientDataById(clientId)
-      
+        const clientData = await getClientDataById(clientId)
+        console.log(clientData);
+        updateClientData(clientId, "calibratemode", true)
         // Create a popup container
         const popupContainer = document.createElement('div')
         popupContainer.classList.add('popup-container')
       
         // Create input fields for transformation properties
-        const rotateXInput = createConfigInput('Rotate X:', 'number', clientData.transform.rotateX, clientId, "rotateX")
-        const rotateYInput = createConfigInput('Rotate Y:', 'number', clientData.transform.rotateY, clientId, "rotateY")
-        const rotateZInput = createConfigInput('Rotate Z:', 'number', clientData.transform.rotateZ, clientId, "rotateZ")
-        const perspectiveInput = createConfigInput('Perspective:', 'number', clientData.transform.perspective, clientId, "perspective")
-        const scaleXInput = createConfigInput('Scale:', 'number', clientData.transform.scaleX, clientId, "scale")
-      
+        const rotateXInput = createConfigInput('Rotate X:', 'number', clientData.rotateX, clientId, "rotateX")
+        const rotateYInput = createConfigInput('Rotate Y:', 'number', clientData.rotateY, clientId, "rotateY")
+        const rotateZInput = createConfigInput('Rotate Z:', 'number', clientData.rotateZ, clientId, "rotateZ")
+        const perspectiveInput = createConfigInput('Perspective:', 'number', clientData.perspective, clientId, "perspective")
+        const scaleInput = createConfigInput('Scale:', 'number', clientData.scale, clientId, "scale")
+        const translateXInput = createConfigInput('TranslateX:', 'number', clientData.translateX, clientId, "translateX")
+        const translateYInput = createConfigInput('TranslateY:', 'number', clientData.translateY, clientId, "translateY")
+
         // Create a save button
         const saveButton = document.createElement('button')
         saveButton.textContent = 'Close'
         saveButton.onclick = () => {
           // Close the popup
           popupContainer.remove()
+          updateClientData(clientId, "calibratemode", false)
+
         }
       
         // Append input fields and save button to the popup container
@@ -325,9 +331,11 @@
         popupContainer.appendChild(rotateYInput)
         popupContainer.appendChild(rotateZInput)
         popupContainer.appendChild(perspectiveInput)
-        popupContainer.appendChild(scaleXInput)
+        popupContainer.appendChild(scaleInput)
+        popupContainer.appendChild(translateXInput)
+        popupContainer.appendChild(translateYInput)
         popupContainer.appendChild(saveButton)
-      
+        
         // Append the popup container to the body
         document.body.appendChild(popupContainer)
       }
@@ -348,19 +356,34 @@
         return inputContainer
       }
       
-      function getClientDataById(clientId) {
+      async function getClientDataById(clientId) {
         // Replace this with your actual logic to get client data based on clientId
         const clientData = {
-          transform: {
+          
             rotateX: 0,
             rotateY: 0,
             rotateZ: 0,
             perspective: 0,
-            scaleX: 1
-          }
+            scaleX: 1, 
+            translateX: 0,
+            translateY: 0
+          
         }
-      
-        return clientData
+        return await (async () => {
+          try {
+            const response = await fetch('/api/transform/'+clientId)
+            if (!response.ok) {
+              throw new Error(`HTTP error: ${response.status}`)
+            }
+            const jsonData = await response.json()
+            console.log('transform data:', jsonData)
+            return jsonData
+          } catch (error) {
+            console.error('Error fetching config data:', error)
+            return null
+          }
+        })();
+
       }
     </script>
   </body>
