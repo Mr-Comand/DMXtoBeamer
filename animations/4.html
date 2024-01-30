@@ -168,7 +168,7 @@
         d = distance + value
         x = Math.cos((i / visualValueCount) * Math.PI) * d + canvas.width / 2
         y = Math.sin((i / visualValueCount) * Math.PI) * d + canvas.height / 2
-        x2 = -Math.cos((i / visualValueCount) * Math.PI) * d + canvas.width / 2
+        x2 = Math.cos((i / visualValueCount) * Math.PI) * d + canvas.width / 2
         y2 = -Math.sin((i / visualValueCount) * Math.PI) * d + canvas.height / 2
         array[i] = [x, y,value]
         array[(visualValueCount * 2) - i] = [x2, y2, value]
