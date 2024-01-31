@@ -1,0 +1,190 @@
+<style>
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  main {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    >div {
+      display: inline-block;
+      width: 0.2vw;
+      height: 20vh;
+      margin: 0 0.1vw;
+      background: red;
+      transform: scaleY(.5);
+      opacity: .25;
+    }
+
+    &.error {
+      color: #f7451d;
+      min-width: 20em;
+      max-width: 30em;
+      margin: 0 auto;
+      white-space: pre-line;
+    }
+  }
+
+  #myCanvas {
+    width: 100vw;
+    height: 100vh;
+  }
+</style>
+<main></main>
+<canvas id="myCanvas" width="5000" height="5000"></canvas>
+
+<script>
+  const animationid = 4;
+  function clearCanvas() {
+    const canvas = document.getElementById('myCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Clear the entire canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  function drawSmoothLine(coordinates) {
+    const canvas = document.getElementById('myCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.beginPath();
+    clearCanvas();
+    ctx.moveTo(coordinates[0][0], coordinates[0][1]);
+
+    for (let i = 1; i < coordinates.length - 1; i++) {
+      ctx.lineTo(coordinates[i][0],
+        coordinates[i][1]);
+
+      const redIntensity = Math.min(255, Math.floor(coordinates[10][2] * 1.5));
+      const blueIntensity = Math.min(255, Math.floor(coordinates[100][2] * 1.5));
+      const greenIntensity = Math.min(255, Math.floor(coordinates[200][2] * 1.5));
+
+      // Use the intensity to set the color
+      const color = `rgb(${redIntensity}, ${greenIntensity}, ${blueIntensity})`;
+      // Set line color for each segment
+      ctx.strokeStyle = color;
+
+      ctx.lineWidth = 10;
+      ctx.stroke();
+    }
+  }
+
+
+
+  function generateDictionary(start, end, steps) {
+    const resultDict = {};
+
+    for (let i = 0; i <= end; i++) {
+      resultDict[i] = Math.floor((Math.abs(i - (end / 2)) ** 1.2) * (start / 177)) //Math.floor(Math.random() * 600)//Math.abs(start);
+      //start -= (steps[i % steps.length] * (((i-(end/2))**2)+(-1*((i-(end/2))**2)+3))); // Use modulo to repeat steps if they run out
+
+    }
+    console.log(resultDict)
+    return resultDict;
+  }
+
+  // Example with variable steps
+  const variableSteps = [2];
+
+  class AudioVisualizer {
+    constructor(audioContext, processFrame, processError) {
+      this.audioContext = audioContext;
+      this.processFrame = processFrame;
+      this.connectStream = this.connectStream.bind(this);
+      navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+        .then(this.connectStream)
+        .catch((error) => {
+          if (processError) {
+            processError(error);
+          }
+        });
+    }
+
+    connectStream(stream) {
+      this.analyser = this.audioContext.createAnalyser();
+      const source = this.audioContext.createMediaStreamSource(stream);
+      source.connect(this.analyser);
+      this.analyser.smoothingTimeConstant = 0.5;
+      this.analyser.fftSize = 2048;
+
+      this.initRenderLoop(this.analyser);
+    }
+
+    initRenderLoop() {
+      const frequencyData = new Uint8Array(this.analyser.frequencyBinCount);
+      const processFrame = this.processFrame || (() => { });
+
+      const renderFrame = () => {
+        this.analyser.getByteFrequencyData(frequencyData);
+        processFrame(frequencyData);
+        if (stopFlag[animationid]) {
+          console.log("Execution stopped.");
+          // Perform any cleanup or termination logic if needed
+          return; // Exit the function to stop execution
+        }
+        requestAnimationFrame(renderFrame);
+      };
+      requestAnimationFrame(renderFrame);
+    }
+  }
+
+  const visualMainElement = document.querySelector('main');
+  const visualValueCount = 250;
+
+
+  const init = () => {
+    // Creating initial DOM elements
+    const audioContext = new AudioContext();
+
+
+    // Swapping values around for a better visual effect
+    const dataMap = generateDictionary(300, visualValueCount, variableSteps); //{    0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10, 11: 11, 12: 12, 13: 13, 14: 14, 15: 15};
+    /*
+  0:  1,  1:  2, 2:  3, 3:  4, 4:  5, 5:  6, 6:  7, 7:  8,
+  8:  9, 9:  10, 10: 11, 11: 12, 12: 13, 13: 14, 14: 15, 15: 16,
+  16: 17, 17: 18, 18: 19, 19: 20, 20: 21, 21: 22, 22: 23, 23: 24,
+  24: 25, 25: 26, 26: 27, 27: 28, 28: 29, 29: 30, 30: 31, 31: 32,
+  32: 33, 33: 34, 34: 35, 35: 180, 36: 185, 37: 190, 38: 195, 39: 200,
+  40: 205, 41: 210, 42: 215, 43: 220, 44: 225, 45: 230, 46: 235, 47: 240,
+  48: 245, 49: 250, 50: 255, 51: 260, 52: 265, 53: 270, 54: 275, 55: 280,
+  56: 285, 57: 290, 58: 295, 59: 300, 60: 305, 61: 310, 62: 315, 63: 320,
+};*/
+    const distance = 400
+    const processFrame = (data) => {
+      const values = Object.values(data);
+      let i;
+      const canvas = document.getElementById('myCanvas');
+
+      array = []
+      //array[0] = [0, canvas.height / 2]
+      for (i = 0; i < visualValueCount; ++i) {
+        const value = (values[dataMap[i]] / 255) ** 2 * 800;
+        d = distance + value
+        x = Math.cos((i / visualValueCount) * Math.PI) * d + canvas.width / 2
+        y = Math.sin((i / visualValueCount) * Math.PI) * d + canvas.height / 2
+        x2 = Math.cos((i / visualValueCount) * Math.PI) * d + canvas.width / 2
+        y2 = -Math.sin((i / visualValueCount) * Math.PI) * d + canvas.height / 2
+        array[i] = [x, y,value]
+        array[(visualValueCount * 2) - i] = [x2, y2, value]
+
+      }
+      array[visualValueCount] = [x, y, 0]
+      
+      drawSmoothLine(array)
+    };
+
+    const processError = () => {
+      visualMainElement.classList.add('error');
+      visualMainElement.innerText = 'Please allow access to your microphone in order to see this demo.\nNothing bad is going to happen... hopefully :P';
+    }
+
+    const a = new AudioVisualizer(audioContext, processFrame, processError);
+  };
+  init();
+</script>
