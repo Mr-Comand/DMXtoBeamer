@@ -55,3 +55,7 @@ def getanimations(id):
 def staticfiles(name):
     #return image
     return send_from_directory(os.path.join(app.root_path,'static'),name)
+@app.route('/animationassets/<string:id>/<string:name>')
+def staticfiles(name):
+    #return image
+    return send_from_directory(os.path.join(app.root_path,'animationassets/'+id),name)
