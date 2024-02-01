@@ -9,6 +9,6 @@ if __name__ == '__main__':
     command_thread.start()
 
     # Run the Flask application with SocketIO
-    webserver.socketio.run(webserver.app, debug=True, host="0.0.0.0",ssl_context='adhoc', use_reloader=False)
+    webserver.socketio.run(webserver.app, debug=True, host="0.0.0.0",ssl_context='adhoc', use_reloader=False, port=443)
     # Uncomment the line below if you want to use the default Flask server without SocketIO
     # app.run(debug=True)
