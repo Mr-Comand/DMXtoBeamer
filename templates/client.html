@@ -86,10 +86,55 @@
     <div id="identifier"></div>
     <script src="/static/socket.io.js"></script>
     <script>
-      let stopFlag = Array(256).fill(true); // Flag to indicate whether to stop execution
+      let stopFlag = Array(256).fill(true) // Flag to indicate whether to stop execution
       // Connect to the WebSocket server
       const socket = io.connect('https://' + document.domain + ':' + location.port + '/client')
       
+      class AudioVisualizer {
+        constructor(audioContext, processFrame, processError) {
+          this.audioContext = audioContext
+          this.processFrame = processFrame
+          this.connectStream = this.connectStream.bind(this)
+          navigator.mediaDevices
+            .getUserMedia({ audio: true, video: false })
+            .then(this.connectStream)
+            .catch((error) => {
+              if (processError) {
+                processError(error)
+              }
+            })
+        }
+        changeProcessFrame(newprocessFrame) {
+          this.processFrame = newprocessFrame
+        }
+        connectStream(stream) {
+          this.analyser = this.audioContext.createAnalyser()
+          const source = this.audioContext.createMediaStreamSource(stream)
+          source.connect(this.analyser)
+          this.analyser.smoothingTimeConstant = 0.5
+          this.analyser.fftSize = 2048
+      
+          this.initRenderLoop(this.analyser)
+        }
+      
+        initRenderLoop() {
+          const frequencyData = new Uint8Array(this.analyser.frequencyBinCount)
+          this.processFrame = this.processFrame || (() => {})
+      
+          const renderFrame = () => {
+            this.analyser.getByteFrequencyData(frequencyData)
+            this.processFrame(frequencyData)
+            requestAnimationFrame(renderFrame)
+          }
+          requestAnimationFrame(renderFrame)
+        }
+      }
+      const processAudioError = () => {
+        visualMainElement.classList.add('error')
+        visualMainElement.innerText = 'Please allow access to your microphone in order to see this demo.\nNothing bad is going to happen... hopefully :P'
+      }
+      const audioContext = new AudioContext()
+      const audioClient = new AudioVisualizer(audioContext, () => {}, processAudioError)
       // Function to handle the WebSocket event
       socket.on('run_function', (data) => {
         const { function_name } = data
@@ -189,11 +234,12 @@
             return response.text()
           })
           .then((data) => {
-            stopFlag.fill(true);;
+            stopFlag.fill(true)
+            audioClient.changeProcessFrame(() => {})
             // Put the content into the "animation" element
             animationElement.innerHTML = data
             const scripts = animationElement.querySelectorAll('script')
-            stopFlag[animation]=false;
+            stopFlag[animation] = false
             scripts.forEach((script) => {
               eval(script.innerHTML)
             })
