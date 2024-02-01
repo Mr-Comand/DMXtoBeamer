@@ -39,7 +39,7 @@
   }
 </style>
 <main></main>
-<canvas id="myCanvas" width="5000" height="5000"></canvas>
+<canvas id="myCanvas" width="3000" height="3000"></canvas>
 
 <script>
   const animationid = 4;
@@ -54,7 +54,6 @@
     const canvas = document.getElementById('myCanvas');
     const ctx = canvas.getContext('2d');
     ctx.beginPath();
-    clearCanvas();
     ctx.moveTo(coordinates[0][0], coordinates[0][1]);
 
     for (let i = 1; i < coordinates.length - 1; i++) {
@@ -135,7 +134,7 @@
   }
 
   const visualMainElement = document.querySelector('main');
-  const visualValueCount = 250;
+  const visualValueCount = 150;
 
 
   const init = () => {
@@ -160,24 +159,27 @@
       const values = Object.values(data);
       let i;
       const canvas = document.getElementById('myCanvas');
+      clearCanvas();
+      for (j = 0; j <= Math.min(fx1, 4); j++) {
+        array = Array(visualValueCount * 2).fill([0, 0, 0])
+        //array[0] = [0, canvas.height / 2]
+        for (i = 0; i < visualValueCount; i++) {
+          const value = (values[dataMap[i]] / 255) ** 2 * 800;
+          d = (distance * (j + 1)) + value
+          const a = ((((i / visualValueCount) * Math.PI)));// + (j))%Math.PI;
+          x = Math.cos(a) * d + canvas.width / 2;
+          y = Math.sin(a) * d + canvas.height / 2;
+          x2 = x;
+          y2 = -Math.sin(a) * d + canvas.height / 2;
+          array[i] = [x, y, value]
+          array[(visualValueCount * 2) - i] = [x2, y2, value]
 
-      array = []
-      //array[0] = [0, canvas.height / 2]
-      for (i = 0; i < visualValueCount; ++i) {
-        const value = (values[dataMap[i]] / 255) ** 2 * 800;
-        d = distance + value
-        x = Math.cos((i / visualValueCount) * Math.PI) * d + canvas.width / 2
-        y = Math.sin((i / visualValueCount) * Math.PI) * d + canvas.height / 2
-        x2 = Math.cos((i / visualValueCount) * Math.PI) * d + canvas.width / 2
-        y2 = -Math.sin((i / visualValueCount) * Math.PI) * d + canvas.height / 2
-        array[i] = [x, y,value]
-        array[(visualValueCount * 2) - i] = [x2, y2, value]
+        }
+        array[visualValueCount] = [x, y, 0]
 
+        drawSmoothLine(array)
       }
-      array[visualValueCount] = [x, y, 0]
-      
-      drawSmoothLine(array)
-    };
+    }
 
     const processError = () => {
       visualMainElement.classList.add('error');
