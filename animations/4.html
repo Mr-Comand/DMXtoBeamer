@@ -43,6 +43,7 @@
 
 <script>
   const animationid = 4;
+  var peakvolume = 0;
   function clearCanvas() {
     const canvas = document.getElementById('myCanvas');
     const ctx = canvas.getContext('2d');
@@ -165,6 +166,7 @@
         //array[0] = [0, canvas.height / 2]
         for (i = 0; i < visualValueCount; i++) {
           const value = (values[dataMap[i]] / 255) ** 2 * 800;
+          peakvolume = Math.max(peakvolume, value)
           d = (distance * (j + 1)) + value
           const a = ((((i / visualValueCount) * Math.PI)));// + (j))%Math.PI;
           x = Math.cos(a) * d + canvas.width / 2;
@@ -179,6 +181,7 @@
 
         drawSmoothLine(array)
       }
+      peakvolume -= 1;
     }
 
     const processError = () => {

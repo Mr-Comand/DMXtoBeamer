@@ -43,6 +43,7 @@
 
 <script>
   const animationid = 2;
+  var peakvolume = 0;
   function clearCanvas() {
     const canvas = document.getElementById('myCanvas');
     const ctx = canvas.getContext('2d');
@@ -64,16 +65,15 @@
         (coordinates[i][0] + coordinates[i + 1][0]) / 2,
         (coordinates[i][1] + coordinates[i + 1][1]) / 2
       );
-      const redIntensity = Math.min(255, Math.floor(coordinates[10][2] * 1.5));
-      const blueIntensity = Math.min(255, Math.floor(coordinates[100][2] * 1.5));
-      const greenIntensity = Math.min(255, Math.floor(coordinates[200][2] * 1.5));
-
+      const redIntensity = Math.floor((coordinates[10][2] / peakvolume) * 255);
+      const blueIntensity = Math.floor((coordinates[100][2] / peakvolume) * 255);
+      const greenIntensity = Math.floor((coordinates[200][2] / peakvolume) * 255);
       // Use the intensity to set the color
       const color = `rgb(${redIntensity}, ${greenIntensity}, ${blueIntensity})`;
       // Set line color for each segment
       ctx.strokeStyle = color;
 
-      ctx.lineWidth = 10;
+      ctx.lineWidth = fx2+1;
       ctx.stroke();
     }
   }
@@ -168,13 +168,12 @@
       array[0] = [0, canvas.height / 2]
       for (i = 0; i < visualValueCount; ++i) {
         const value = (values[dataMap[i]] / 255) ** 2 * 400;
-
-
+        peakvolume = Math.max(peakvolume, value)
         array[i] = [i * distance + 1, canvas.height / 2 - value, value]
-
       }
       array[visualValueCount] = [((visualValueCount) * distance + distance), canvas.height / 2]
       drawSmoothLine(array)
+      peakvolume -= 1;
     };
 
     const processError = () => {
