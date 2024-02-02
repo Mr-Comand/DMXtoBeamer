@@ -43,6 +43,9 @@
 
 <script>
   const animationid = 3;
+  const visualValueCount = 250;
+  const baseAmplitude = 400;
+  const bandwidth = 300;
   var peakvolume = 0;
   function clearCanvas() {
     const canvas = document.getElementById('myCanvas');
@@ -71,7 +74,7 @@
       // Set line color for each segment
       ctx.strokeStyle = coordinates[i][2];
 
-      ctx.lineWidth = 10;
+      ctx.lineWidth = fx2+1;
       ctx.stroke();
     }
   }
@@ -90,12 +93,9 @@
     return resultDict;
   }
 
-  // Example with variable steps
-  const variableSteps = [2];
 
 
   const visualMainElement = document.querySelector('main');
-  const visualValueCount = 250;
 
 
   const init = () => {
@@ -103,7 +103,7 @@
 
 
     // Swapping values around for a better visual effect
-    const dataMap = generateDictionary(300, visualValueCount, variableSteps); //{    0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10, 11: 11, 12: 12, 13: 13, 14: 14, 15: 15};
+    const dataMap = generateDictionary(bandwidth, visualValueCount); //{    0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10, 11: 11, 12: 12, 13: 13, 14: 14, 15: 15};
     /*
   0:  1,  1:  2, 2:  3, 3:  4, 4:  5, 5:  6, 6:  7, 7:  8,
   8:  9, 9:  10, 10: 11, 11: 12, 12: 13, 13: 14, 14: 15, 15: 16,
@@ -123,7 +123,7 @@
       array = []
       array[0] = [0, canvas.height / 2]
       for (i = 0; i < visualValueCount; ++i) {
-        const value = (values[dataMap[i]] / 255) ** 2 * 400;
+        const value = (values[dataMap[i]] / 255) ** 2 * baseAmplitude * (fx1 / 2 + 1);
         peakvolume = Math.max(peakvolume, value)
 
         const redIntensity = Math.min(255, Math.floor(value * 1.5));
@@ -132,10 +132,10 @@
         // Use the intensity to set the color
         const color = `rgb(${redIntensity}, 0, ${blueIntensity})`;
 
-        array[i] = [i * distance + 1, canvas.height / 2 - value, color]
+        array[i] = [i * distance + 1, canvas.height - value, color]
 
       }
-      array[visualValueCount] = [((visualValueCount) * distance + distance), canvas.height / 2]
+      array[visualValueCount] = [((visualValueCount) * distance + distance), canvas.height / 2, 0]
       drawSmoothLine(array)
       peakvolume -= 1;
     };

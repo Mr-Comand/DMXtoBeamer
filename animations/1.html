@@ -36,7 +36,10 @@
 <main></main>
 <script>
   const animationid = 1;
-  function generateDictionary(start, end, steps) {
+  const visualValueCount = 200;
+  const baseAmplitude = 4;
+  const bandwidth = 300;
+  function generateDictionary(start, end) {
     const resultDict = {};
 
     for (let i = 0; i <= end; i++) {
@@ -49,11 +52,11 @@
   }
 
   // Example with variable steps
-  const variableSteps = [2];
+
 
 
   const visualMainElement = document.querySelector('main');
-  const visualValueCount = 200;
+
   let visualElements;
   const createDOMElements = () => {
     let i;
@@ -75,7 +78,7 @@
     initDOM();
 
     // Swapping values around for a better visual effect
-    const dataMap = generateDictionary(300, visualValueCount, variableSteps); //{    0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10, 11: 11, 12: 12, 13: 13, 14: 14, 15: 15};
+    const dataMap = generateDictionary(bandwidth, visualValueCount); //{    0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10, 11: 11, 12: 12, 13: 13, 14: 14, 15: 15};
     /*
   0:  1,  1:  2, 2:  3, 3:  4, 4:  5, 5:  6, 6:  7, 7:  8,
   8:  9, 9:  10, 10: 11, 11: 12, 12: 13, 13: 14, 14: 15, 15: 16,
@@ -90,7 +93,7 @@
       const values = Object.values(data);
       let i;
       for (i = 0; i < visualValueCount; ++i) {
-        const value = (values[dataMap[i]] / 255) ** 2 * 4;
+        const value = (values[dataMap[i]] / 255) ** 2 * baseAmplitude * (fx1 / 2 + 1);
         const elmStyles = visualElements[i].style;
         elmStyles.transform = `scaleY( ${value} )`;
         elmStyles.opacity = Math.max(.25, value);

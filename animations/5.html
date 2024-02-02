@@ -43,6 +43,10 @@
 
 <script>
   const animationid = 5;
+  const visualValueCount = 250;
+  const baseAmplitude = 800;
+  const bandwidth = 300;
+  const baseRadius = 400
   var peakvolume = 0;
   function clearCanvas() {
     const canvas = document.getElementById('myCanvas');
@@ -71,14 +75,14 @@
       // Set line color for each segment
       ctx.strokeStyle = color;
 
-      ctx.lineWidth = 10;
+      ctx.lineWidth = fx2+1;
       ctx.stroke();
     }
   }
 
 
 
-  function generateDictionary(start, end, steps) {
+  function generateDictionary(start, end) {
     const resultDict = {};
 
     for (let i = 0; i <= end; i++) {
@@ -90,12 +94,10 @@
     return resultDict;
   }
 
-  // Example with variable steps
-  const variableSteps = [2];
 
 
   const visualMainElement = document.querySelector('main');
-  const visualValueCount = 250;
+  
 
 
   const init = () => {
@@ -103,7 +105,7 @@
 
 
     // Swapping values around for a better visual effect
-    const dataMap = generateDictionary(300, visualValueCount, variableSteps); //{    0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10, 11: 11, 12: 12, 13: 13, 14: 14, 15: 15};
+    const dataMap = generateDictionary(bandwidth, visualValueCount); //{    0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10, 11: 11, 12: 12, 13: 13, 14: 14, 15: 15};
     /*
   0:  1,  1:  2, 2:  3, 3:  4, 4:  5, 5:  6, 6:  7, 7:  8,
   8:  9, 9:  10, 10: 11, 11: 12, 12: 13, 13: 14, 14: 15, 15: 16,
@@ -114,7 +116,7 @@
   48: 245, 49: 250, 50: 255, 51: 260, 52: 265, 53: 270, 54: 275, 55: 280,
   56: 285, 57: 290, 58: 295, 59: 300, 60: 305, 61: 310, 62: 315, 63: 320,
 };*/
-    const distance = 400
+    
     const processFrame = (data) => {
       const values = Object.values(data);
       let i;
@@ -123,9 +125,9 @@
       array = []
       //array[0] = [0, canvas.height / 2]
       for (i = 0; i < visualValueCount; ++i) {
-        const value = (values[dataMap[i]] / 255) ** 2 * 800;
+        const value = (values[dataMap[i]] / 255) ** 2 * baseAmplitude * (fx1 / 2 + 1);
         peakvolume = Math.max(peakvolume, value)
-        d = distance + value
+        d = baseRadius + value
         x = Math.cos((i / visualValueCount) * 360) * d + canvas.width / 2
         y = Math.sin((i / visualValueCount) * 360) * d + canvas.height / 2
         
