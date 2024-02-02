@@ -35,7 +35,7 @@ def handle_connect():
 @socketio.on('disconnect', namespace='/client')
 def handle_disconnect():
     client_id = request.sid  # Change this line to use sid directly
-    gloabals.disconnectCleint(client_id)   
+    gloabals.disconnectClient(client_id)
     print("Client {} disconnected.".format(client_id))
 
 

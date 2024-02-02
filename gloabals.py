@@ -9,18 +9,12 @@ ArtnetClient = StupidArtnetServer()
 
 
 
-# unassigned ids
+# unassigned client_ids ["SrPo2guNYcrdp00BAAAB", ...]
 unassigned: list[str] = []
 
 available: list[str] = []
 # map of internal IDs to ther client_ids (1=>"SrPo2guNYcrdp00BAAAB")
 clients: dict[int, Client] = {}
-
-
-def printall():
-    """Print all the known data"""
-    pprint(unassigned, clients, names, addresses, universes)
-
 
 def getClientByName(name):
     """Get a Client ID by its name. Returns None if not found."""
@@ -30,7 +24,7 @@ def getClientByName(name):
     return None
 
 
-def getClientByCleintId(client_id):
+def getClientByClientId(client_id):
     """Get a Client ID by its name. Returns None if not found."""
     for id in clients.keys():
         if clients[id].client_id == client_id:
@@ -59,15 +53,17 @@ def addinternalClinet(id):
 
 
 def removeInternalClient(id):
+    """Removes an internal client by id and puts the client_id if set in unassigned."""
     if clients[id].client_id != "" and clients[id].client_id != "None" and clients[id].client_id != None:
         unassigned.append(clients[id].client_id)
     clients.pop(id)
     sendConfigToAllCliets()
 
 
-def disconnectCleint(client_id):
+def disconnectClient(client_id):
+    """removes an Web Client from unassigned of from the Client."""
     if client_id in unassigned:
         unassigned.remove(client_id)
     else:
-        getClientByCleintId(client_id)._client_id = None
+        getClientByClientId(client_id)._client_id = None
     sendConfigToAllCliets()
