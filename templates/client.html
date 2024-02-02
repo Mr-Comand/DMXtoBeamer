@@ -32,7 +32,18 @@
         left: 00;
         left: 50%;
         top: 50%;
-        transform: translate(calc(-50% + var(--translateX)), calc(-50% + var(--translateY))) perspective(var(--perspective)) scale(var(--scale)) rotateX(var(--rotateX)) rotateY(var(--rotateY)) rotateZ(var(--rotateZ)) scaleX(calc(var(--flipX) * var(--scale))) scaleY(calc(var(--flipY) * var(--scale))) scaleZ(var(--scale));
+        --dmx-tilt: 0vh;
+        --dmx-pan: 0vw;
+        --dmx-rotate: 0deg;
+        --dmx-zoom: 1;
+      }
+      #animation:not(.showfull) {
+        transform: translate(calc(calc(-50% + var(--translateX)) + var(--dmx-tilt)), calc(calc(-50% + var(--translateY)) + var(--dmx-pan))) perspective(var(--perspective)) scale(var(--scale)) rotateX(var(--rotateX)) rotateY(var(--rotateY)) rotateZ(calc(var(--rotateZ) + var(--dmx-rotate))) scaleX(calc(calc(var(--flipX) * var(--scale)) * var(--dmx-zoom))) scaleY(calc(calc(var(--flipY) * var(--scale)) * var(--dmx-zoom))) scaleZ(calc(var(--scale) * var(--dmx-zoom)));
+      }
+      #animation.showfull {
+        --scale-full: var(--scale);
+        /*transform: translate(calc(-50% + var(--translateX) + var(--dmx-tilt) ), calc(-50% + var(--translateY) + var(--dmx-pan))) perspective(var(--perspective)) scale(var(--scale)) rotateX(var(--rotateX)) rotateY(var(--rotateY)) rotateZ(calc(var(--rotateZ)+ var(--dmx-rotate))) scaleX(calc(var(--flipX) * var(--scale-full) * var(--dmx-zoom))) scaleY(calc(var(--flipY) * var(--scale-full) * var(--dmx-zoom))) scaleZ(calc(var(--scale-full)* var(--dmx-zoom)));*/
+        transform: translate(calc(calc(-50% + var(--translateX)) + var(--dmx-tilt)), calc(calc(-50% + var(--translateY)) + var(--dmx-pan))) perspective(var(--perspective)) scale(var(--scale-full)) rotateX(var(--rotateX)) rotateY(var(--rotateY)) rotateZ(calc(var(--rotateZ) + var(--dmx-rotate))) scaleX(calc(calc(var(--flipX) * var(--scale-full)) * var(--dmx-zoom))) scaleY(calc(calc(var(--flipY) * var(--scale-full)) * var(--dmx-zoom))) scaleZ(calc(var(--scale-full) * var(--dmx-zoom)));
       }
       #animation.disabled {
         display: None;
@@ -145,9 +156,9 @@
         }
       })
       socket.on('update_artnet', (data) => {
-        const { dimmer, hueshift, animation, fx1, fx2, fx3, fx4 } = data
+        const { dimmer, hueshift, animation, fx1, fx2, fx3, fx4, pan, tilt, rotate, zoom } = data
         // Run the specified JavaScript function
-        update_artnet(dimmer, hueshift, animation, fx1, fx2, fx3, fx4)
+        update_artnet(dimmer, hueshift, animation, fx1, fx2, fx3, fx4, pan, tilt, rotate, zoom)
       })
       socket.on('chang_settings', (data) => {
         const { flipX, flipY, disabled } = data
@@ -157,10 +168,10 @@
       })
       
       socket.on('chang_transform', (data) => {
-        const { rotateX, rotateY, rotateZ, perspective, scale, translateX, translateY, calibratemode } = data
+        const { rotateX, rotateY, rotateZ, perspective, scale, scaleFull, translateX, translateY, calibratemode } = data
         // Run the specified JavaScript function
-        changetransform(rotateX, rotateY, rotateZ, perspective, scale, translateX, translateY, calibratemode)
-        console.log(rotateX, rotateY, rotateZ, perspective, scale, translateX, translateY, calibratemode)
+        changetransform(rotateX, rotateY, rotateZ, perspective, scale, scaleFull, translateX, translateY, calibratemode)
+        console.log(rotateX, rotateY, rotateZ, perspective, scale, scaleFull, translateX, translateY, calibratemode)
       })
       function test() {
         console.log('test')
@@ -176,7 +187,7 @@
       }
       var disabled = false
       var calibratemode = 'false'
-      function changetransform(rotateX, rotateY, rotateZ, perspective, scale, translateX, translateY, calibratemode_in) {
+      function changetransform(rotateX, rotateY, rotateZ, perspective, scale, scaleFull, translateX, translateY, calibratemode_in) {
         calibratemode = calibratemode_in
         if (calibratemode == 'true') {
           document.getElementById('animation').classList.add('calibrate')
@@ -190,6 +201,7 @@
         document.getElementById('animation').style.setProperty('--rotateY', rotateY + 'deg')
         document.getElementById('animation').style.setProperty('--rotateZ', rotateZ + 'deg')
         document.getElementById('animation').style.setProperty('--scale', scale)
+        document.getElementById('animation').style.setProperty('--scale-full', scaleFull)
         document.getElementById('animation').style.setProperty('--translateX', translateX + 'px')
         document.getElementById('animation').style.setProperty('--translateY', translateY + 'px')
       
@@ -208,9 +220,9 @@
         }
       }
       var current_animation = -1
-      var fx1, fx2
-      function update_artnet(dimmer, hueshift, animation, fx1_in, fx2_in, fx3_in, fx4_in) {
-        console.log('Received values:', dimmer, hueshift, animation, fx1_in, fx2_in, fx3_in, fx4_in)
+      var fx1, fx2, fx3, fx4, pan, tilt, rotate, zoom
+      function update_artnet(dimmer, hueshift, animation, fx1_in, fx2_in, fx3_in, fx4_in, pan_in, tilt_in, rotate_in, zoom_in) {
+        console.log('Received values:', dimmer, hueshift, animation, fx1_in, fx2_in, fx3_in, fx4_in , pan_in, tilt_in, rotate_in, zoom_in)
         document.body.style.setProperty('--dimmer', 1 - dimmer / 255)
         if (animation != current_animation) {
           load_new_adnimation(animation)
@@ -221,6 +233,14 @@
         fx2 = fx2_in
         fx3 = fx3_in
         fx4 = fx4_in
+        pan = pan_in
+        tilt = tilt_in
+        rotate = rotate_in
+        zoom = zoom_in
+        document.getElementById('animation').style.setProperty('--dmx-pan', ((pan - 127) / 128) * 100 + 'vh')
+        document.getElementById('animation').style.setProperty('--dmx-tilt', ((tilt - 127) / 128) * 100 + 'vw')
+        document.getElementById('animation').style.setProperty('--dmx-rotate', ((rotate - 127) / 128) * 180 + 'deg')
+        document.getElementById('animation').style.setProperty('--dmx-zoom', ((zoom / 255 )*5) +1)
       }
       function load_new_adnimation(animation) {
         const animationElement = document.getElementById('animation')

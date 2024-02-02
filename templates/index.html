@@ -313,6 +313,7 @@
         const rotateZInput = createConfigInput('Rotate Z:', 'number', clientData.rotateZ, clientId, "rotateZ")
         const perspectiveInput = createConfigInput('Perspective:', 'number', clientData.perspective, clientId, "perspective")
         const scaleInput = createConfigInput('Scale:', 'number', clientData.scale, clientId, "scale")
+        const scalefullInput = createConfigInput('Scale Full:', 'number', clientData.scaleFull, clientId, "scaleFull")
         const translateXInput = createConfigInput('TranslateX:', 'number', clientData.translateX, clientId, "translateX")
         const translateYInput = createConfigInput('TranslateY:', 'number', clientData.translateY, clientId, "translateY")
 
@@ -332,6 +333,7 @@
         popupContainer.appendChild(rotateZInput)
         popupContainer.appendChild(perspectiveInput)
         popupContainer.appendChild(scaleInput)
+        popupContainer.appendChild(scalefullInput)
         popupContainer.appendChild(translateXInput)
         popupContainer.appendChild(translateYInput)
         popupContainer.appendChild(saveButton)
@@ -359,14 +361,14 @@
       async function getClientDataById(clientId) {
         // Replace this with your actual logic to get client data based on clientId
         const clientData = {
-          
             rotateX: 0,
             rotateY: 0,
             rotateZ: 0,
             perspective: 0,
             scaleX: 1, 
             translateX: 0,
-            translateY: 0
+            translateY: 0,
+            scaleFull: 1,
           
         }
         return await (async () => {

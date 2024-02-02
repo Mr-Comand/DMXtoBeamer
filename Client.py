@@ -23,9 +23,10 @@ class Client():
                  "perspective": 500,
                  "scale": 1,
                  "translateX":  0,
-                 "translateY":  0
+                 "translateY":  0,
+                 "scaleFull": 1
                  }
-        self.dimmer, self.hueshift, self.animation, self.fx1, self.fx2, self.fx3, self.fx4 = 0, 0, 0, 0, 0, 0, 0
+        self.dimmer, self.hueshift, self.animation, self.fx1, self.fx2, self.fx3, self.fx4, self.pan, self.tilt, self.rotate, self.zoom = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         self.listener_id = None
     
     _calibratemode = False
@@ -38,7 +39,7 @@ class Client():
         self._transform[property]=value
         print(property, value,  self._transform)
         webserver.socketio.emit('chang_transform', {
-                                'rotateX': self._transform["rotateX"], 'rotateY': self._transform["rotateY"],'rotateZ': self._transform["rotateZ"],'perspective': self._transform["perspective"],'scale': self._transform["scale"], "translateX": self._transform["translateX"], "translateY": self._transform["translateY"], "calibratemode":self.calibratemode}, room=self._client_id, namespace="/client")
+                                'rotateX': self._transform["rotateX"], 'rotateY': self._transform["rotateY"],'rotateZ': self._transform["rotateZ"],'perspective': self._transform["perspective"],'scale': self._transform["scale"], 'scaleFull': self._transform["scaleFull"], "translateX": self._transform["translateX"], "translateY": self._transform["translateY"], "calibratemode":self.calibratemode}, room=self._client_id, namespace="/client")
     
     @property
     def calibratemode(self):
@@ -48,7 +49,7 @@ class Client():
     def calibratemode(self, value):
         self._calibratemode = value
         webserver.socketio.emit('chang_transform', {
-                                'rotateX': self._transform["rotateX"], 'rotateY': self._transform["rotateY"],'rotateZ': self._transform["rotateZ"],'perspective': self._transform["perspective"],'scale': self._transform["scale"], "translateX": self._transform["translateX"], "translateY": self._transform["translateY"], "calibratemode":self.calibratemode}, room=self._client_id, namespace="/client")
+                                'rotateX': self._transform["rotateX"], 'rotateY': self._transform["rotateY"],'rotateZ': self._transform["rotateZ"],'perspective': self._transform["perspective"],'scale': self._transform["scale"], 'scaleFull': self._transform["scaleFull"],  "translateX": self._transform["translateX"], "translateY": self._transform["translateY"], "calibratemode":self.calibratemode}, room=self._client_id, namespace="/client")
         
     @property
     def id(self):
@@ -69,11 +70,11 @@ class Client():
         webserver.socketio.emit('chang_settings', {
                                 'flipY': self._flipY, 'flipX': self._flipX, 'disabled': self._disabled}, room=self._client_id, namespace="/client")
         webserver.socketio.emit('chang_transform', {
-                                'rotateX': self._transform["rotateX"], 'rotateY': self._transform["rotateY"],'rotateZ': self._transform["rotateZ"],'perspective': self._transform["perspective"],'scale': self._transform["scale"], "translateX": self._transform["translateX"], "translateY": self._transform["translateY"], "calibratemode":self.calibratemode}, room=self._client_id, namespace="/client")
+                                'rotateX': self._transform["rotateX"], 'rotateY': self._transform["rotateY"],'rotateZ': self._transform["rotateZ"],'perspective': self._transform["perspective"],'scale': self._transform["scale"], 'scaleFull': self._transform["scaleFull"],  "translateX": self._transform["translateX"], "translateY": self._transform["translateY"], "calibratemode":self.calibratemode}, room=self._client_id, namespace="/client")
         if value in gloabals.unassigned:
             gloabals.unassigned.remove(value)
         else:
-            print(unassigned, "not in list")
+            print(globals.unassigned, "not in list")
 
         self.sendToDisplayClient()
 
@@ -153,9 +154,9 @@ class Client():
                                 'flipY': self._flipY, 'flipX': self._flipX, 'disabled': self._disabled}, room=self._client_id, namespace="/client")
 
     def update_artnet(self, data):
-        # dimmer, hueshift, animation, fx1, fx2
-        dimmer, hueshift, animation, fx1, fx2, fx3, fx4 = data[self.addresse:self.addresse+7]
-        if dimmer != self.dimmer or hueshift != self.hueshift or animation != self.animation or fx1 != self.fx1 or fx2 != self.fx2 or fx3 != self.fx3 or fx4 != self.fx4:
+        # self.dimmer, self.hueshift, self.animation, self.fx1, self.fx2, self.fx3, self.fx4, self.pan, self.tilt, self.rotate, self.zoom = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        dimmer, hueshift, animation, fx1, fx2, fx3, fx4, pan, tilt, rotate, zoom = data[self.addresse:self.addresse+11]
+        if dimmer != self.dimmer or hueshift != self.hueshift or animation != self.animation or fx1 != self.fx1 or fx2 != self.fx2 or fx3 != self.fx3 or fx4 != self.fx4 or pan != self.pan or tilt != self.tilt or rotate != self.rotate or zoom != self.zoom:
             self.dimmer = dimmer
             self.hueshift = hueshift
             self.animation = animation
@@ -163,6 +164,10 @@ class Client():
             self.fx2 = fx2
             self.fx3 = fx3
             self.fx4 = fx4
+            self.pan = pan
+            self.tilt = tilt
+            self.rotate = rotate
+            self.zoom = zoom
             self.sendToDisplayClient()
 
     def sendToDisplayClient(self):
@@ -173,6 +178,10 @@ class Client():
             'fx1': self.fx1,
             'fx2': self.fx2,
             'fx3': self.fx3,
-            'fx4': self.fx4
+            'fx4': self.fx4,
+            'pan': self.pan,
+            'tilt': self.tilt,
+            'rotate': self.rotate,
+            'zoom': self.zoom
         }, room=self.client_id, namespace="/client")
         print("send update")
