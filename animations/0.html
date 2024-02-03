@@ -45,7 +45,7 @@
         }
         function createSnowflake() {
             if (amout <= fx1) {
-                console.log(amout)
+                console.log(amout + "\t" + fx1)
                 const snowflake = document.createElement("div");
                 snowflake.className = "snowflake";
                 snowflake.innerHTML =
@@ -62,7 +62,7 @@
                 amout++;
                 animateSnowflake(snowflake);
             } else {
-                console.log("blacked")
+                console.log("blocked")
             }
         }
         function animateSnowflake(snowflake) {
@@ -100,9 +100,9 @@
             });
         }
 
-        var interval = 1 / (fx1 + 1) * 39000;
+        var interval = Math.max(100, (fx1 - amout) * (10/(fx2+1)) * 50);;
         var snowfallTimeout = null;
-        console.log(interval)
+        
         function createSnowfall() {
             // Clear any existing timeout
             clearTimeout(snowfallTimeout);
