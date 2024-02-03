@@ -39,14 +39,15 @@
   }
 </style>
 <main></main>
-<canvas id="myCanvas" width="5000" height="5000"></canvas>
+<canvas id="myCanvas" width="3000" height="3000"></canvas>
 
 <script>
   const animationid = 3;
   const visualValueCount = 250;
   const baseAmplitude = 400;
+  const baseDistance = 3000 / visualValueCount;
   const bandwidth = 300;
-  var peakvolume = 0;
+  var peakvolume = 1;
   function clearCanvas() {
     const canvas = document.getElementById('myCanvas');
     const ctx = canvas.getContext('2d');
@@ -74,7 +75,7 @@
       // Set line color for each segment
       ctx.strokeStyle = coordinates[i][2];
 
-      ctx.lineWidth = fx2+1;
+      ctx.lineWidth = fx2 + 1;
       ctx.stroke();
     }
   }
@@ -114,7 +115,6 @@
   48: 245, 49: 250, 50: 255, 51: 260, 52: 265, 53: 270, 54: 275, 55: 280,
   56: 285, 57: 290, 58: 295, 59: 300, 60: 305, 61: 310, 62: 315, 63: 320,
 };*/
-    const distance = 20
     const processFrame = (data) => {
       const values = Object.values(data);
       let i;
@@ -126,16 +126,16 @@
         const value = (values[dataMap[i]] / 255) ** 2 * baseAmplitude * (fx1 / 2 + 1);
         peakvolume = Math.max(peakvolume, value)
 
-        const redIntensity = Math.min(255, Math.floor(value * 1.5));
-        const blueIntensity = Math.min(255, 255 - Math.floor(value * 0.5));
+        const redIntensity = Math.min(255, Math.floor(value * 0.1));
+        const blueIntensity = Math.min(255, 255 - Math.floor(value * 0.1));
 
         // Use the intensity to set the color
         const color = `rgb(${redIntensity}, 0, ${blueIntensity})`;
 
-        array[i] = [i * distance + 1, canvas.height - value, color]
+        array[i] = [i * baseDistance + 1, canvas.height - value - fx2 - 50, color]
 
       }
-      array[visualValueCount] = [((visualValueCount) * distance + distance), canvas.height / 2, 0]
+      array[visualValueCount] = [((visualValueCount) * baseDistance + baseDistance), canvas.height - fx2 - 50, 0]
       drawSmoothLine(array)
       peakvolume -= 1;
     };

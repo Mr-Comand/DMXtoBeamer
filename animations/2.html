@@ -39,14 +39,15 @@
   }
 </style>
 <main></main>
-<canvas id="myCanvas" width="5000" height="5000"></canvas>
+<canvas id="myCanvas" width="3000" height="3000"></canvas>
 
 <script>
   const animationid = 2;
   const visualValueCount = 250;
   const baseAmplitude = 400;
   const bandwidth = 300;
-  var peakvolume = 0;
+  const baseDistance = 3000 / visualValueCount;
+  var peakvolume = 1;
   function clearCanvas() {
     const canvas = document.getElementById('myCanvas');
     const ctx = canvas.getContext('2d');
@@ -120,7 +121,6 @@
   48: 245, 49: 250, 50: 255, 51: 260, 52: 265, 53: 270, 54: 275, 55: 280,
   56: 285, 57: 290, 58: 295, 59: 300, 60: 305, 61: 310, 62: 315, 63: 320,
 };*/
-    const distance = 20
     const processFrame = (data) => {
       const values = Object.values(data);
       let i;
@@ -131,9 +131,9 @@
       for (i = 0; i < visualValueCount; ++i) {
         const value = (values[dataMap[i]] / 255) ** 2 * (baseAmplitude / 2 + 1) * (fx1 / 2 + 1); //TODO: set to an good devider
         peakvolume = Math.max(peakvolume, value)
-        array[i] = [i * distance + 1, canvas.height / 2 - value, value]
+        array[i] = [i * baseDistance + 1, canvas.height - value - fx2 - 50, value]
       }
-      array[visualValueCount] = [((visualValueCount) * distance + distance), canvas.height / 2]
+      array[visualValueCount] = [((visualValueCount) * baseDistance + baseDistance), canvas.height - fx2 - 50, 0]
       drawSmoothLine(array)
       peakvolume -= 1;
     };
