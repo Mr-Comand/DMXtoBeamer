@@ -65,10 +65,34 @@
       ctx.lineTo(coordinates[i][0],
         coordinates[i][1]);
 
-      const redIntensity = Math.min(255, Math.floor(coordinates[10][2] * 1.5));
-      const blueIntensity = Math.min(255, Math.floor(coordinates[100][2] * 1.5));
-      const greenIntensity = Math.min(255, Math.floor(coordinates[200][2] * 1.5));
+      // Assuming coordinates[x][2] and peakvolume are dynamic values
+      const dynamicRedIntensity = coordinates[10][2];
+      peakvolume = Math.max(peakvolume, dynamicRedIntensity)
+      const dynamicBlueIntensity = coordinates[100][2];
+      peakvolume = Math.max(peakvolume, dynamicBlueIntensity)
+      const dynamicGreenIntensity = coordinates[200][2];
+      peakvolume = Math.max(peakvolume, dynamicGreenIntensity)
+      let normalizedRedIntensity, normalizedBlueIntensity, normalizedGreenIntensity;
 
+      // Find the maximum intensity among the color channels
+      const maxIntensity = Math.max(dynamicRedIntensity, dynamicBlueIntensity, dynamicGreenIntensity);
+      if (fx4 > 127) {
+        // Normalize each color channel independently
+        normalizedRedIntensity = dynamicRedIntensity / maxIntensity;
+        normalizedBlueIntensity = dynamicBlueIntensity / maxIntensity;
+        normalizedGreenIntensity = dynamicGreenIntensity / maxIntensity;
+      } else {
+        // Normalize each color channel independently
+        normalizedRedIntensity = dynamicRedIntensity / peakvolume;
+        normalizedBlueIntensity = dynamicBlueIntensity / peakvolume;
+        normalizedGreenIntensity = dynamicGreenIntensity / peakvolume;
+      }
+
+      // Scale the normalized values to the range 0-255
+      const redIntensity = Math.floor(normalizedRedIntensity * 255);
+      const blueIntensity = Math.floor(normalizedBlueIntensity * 255);
+      const greenIntensity = Math.floor(normalizedGreenIntensity * 255);
+      console.log(peakvolume,dynamicRedIntensity, dynamicGreenIntensity, dynamicBlueIntensity)
       // Use the intensity to set the color
       const color = `rgb(${redIntensity}, ${greenIntensity}, ${blueIntensity})`;
       // Set line color for each segment
@@ -124,7 +148,7 @@
         //array[0] = [0, canvas.height / 2]
         for (i = 0; i < visualValueCount; i++) {
           const value = (values[dataMap[i]] / 255) ** 2 * baseAmplitude * (fx1 / 2 + 1);
-          peakvolume = Math.max(peakvolume, value)
+          
           d = (baseRadius * (j + 1)) + value
           const a = ((((i / visualValueCount) * Math.PI)));// + (j))%Math.PI;
           x = Math.cos(a) * d + canvas.width / 2;
