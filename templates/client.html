@@ -38,12 +38,12 @@
         --dmx-zoom: 1;
       }
       #animation:not(.showfull) {
-        transform: translate(calc(calc(-50% + var(--translateX)) + var(--dmx-tilt)), calc(calc(-50% + var(--translateY)) + var(--dmx-pan))) perspective(var(--perspective)) scale(var(--scale)) rotateX(var(--rotateX)) rotateY(var(--rotateY)) rotateZ(calc(var(--rotateZ) + var(--dmx-rotate))) scaleX(calc(calc(var(--flipX) * var(--scale)) * var(--dmx-zoom))) scaleY(calc(calc(var(--flipY) * var(--scale)) * var(--dmx-zoom))) scaleZ(calc(var(--scale) * var(--dmx-zoom)));
+        transform: translate(calc(calc(-50% + var(--translateX)) + var(--dmx-pan)), calc(calc(-50% + var(--translateY)) + var(--dmx-tilt))) perspective(var(--perspective)) scale(var(--scale)) rotateX(var(--rotateX)) rotateY(var(--rotateY)) rotateZ(calc(var(--rotateZ) + var(--dmx-rotate))) scaleX(calc(calc(var(--flipX) * var(--scale)) * var(--dmx-zoom))) scaleY(calc(calc(var(--flipY) * var(--scale)) * var(--dmx-zoom))) scaleZ(calc(var(--scale) * var(--dmx-zoom)));
       }
       #animation.showfull {
         --scale-full: var(--scale);
         /*transform: translate(calc(-50% + var(--translateX) + var(--dmx-tilt) ), calc(-50% + var(--translateY) + var(--dmx-pan))) perspective(var(--perspective)) scale(var(--scale)) rotateX(var(--rotateX)) rotateY(var(--rotateY)) rotateZ(calc(var(--rotateZ)+ var(--dmx-rotate))) scaleX(calc(var(--flipX) * var(--scale-full) * var(--dmx-zoom))) scaleY(calc(var(--flipY) * var(--scale-full) * var(--dmx-zoom))) scaleZ(calc(var(--scale-full)* var(--dmx-zoom)));*/
-        transform: translate(calc(calc(-50% + var(--translateX)) + var(--dmx-tilt)), calc(calc(-50% + var(--translateY)) + var(--dmx-pan))) perspective(var(--perspective)) scale(var(--scale-full)) rotateX(var(--rotateX)) rotateY(var(--rotateY)) rotateZ(calc(var(--rotateZ) + var(--dmx-rotate))) scaleX(calc(calc(var(--flipX) * var(--scale-full)) * var(--dmx-zoom))) scaleY(calc(calc(var(--flipY) * var(--scale-full)) * var(--dmx-zoom))) scaleZ(calc(var(--scale-full) * var(--dmx-zoom)));
+        transform: translate(calc(calc(-50% + var(--translateX)) + var(--dmx-pan)), calc(calc(-50% + var(--translateY)) + var(--dmx-tilt))) perspective(var(--perspective)) scale(var(--scale-full)) rotateX(var(--rotateX)) rotateY(var(--rotateY)) rotateZ(calc(var(--rotateZ) + var(--dmx-rotate))) scaleX(calc(calc(var(--flipX) * var(--scale-full)) * var(--dmx-zoom))) scaleY(calc(calc(var(--flipY) * var(--scale-full)) * var(--dmx-zoom))) scaleZ(calc(var(--scale-full) * var(--dmx-zoom)));
       }
       #animation.disabled {
         display: None;
@@ -237,10 +237,10 @@
         tilt = tilt_in
         rotate = rotate_in
         zoom = zoom_in
-        document.getElementById('animation').style.setProperty('--dmx-pan', ((pan - 127) / 128) * 100 + 'vh')
-        document.getElementById('animation').style.setProperty('--dmx-tilt', ((tilt - 127) / 128) * 100 + 'vw')
+        document.getElementById('animation').style.setProperty('--dmx-pan', -((pan - 127) / 128) * 100 + 'vh')
+        document.getElementById('animation').style.setProperty('--dmx-tilt', -((tilt - 127) / 128) * 100 + 'vw')
         document.getElementById('animation').style.setProperty('--dmx-rotate', ((rotate - 127) / 128) * 180 + 'deg')
-        document.getElementById('animation').style.setProperty('--dmx-zoom', ((zoom / 255 )*5) +1)
+        document.getElementById('animation').style.setProperty('--dmx-zoom', (((zoom+1) / 255 )*4))
       }
       function load_new_adnimation(animation) {
         const animationElement = document.getElementById('animation')
