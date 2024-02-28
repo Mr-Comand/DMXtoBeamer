@@ -26,7 +26,7 @@ class Client():
                  "translateY":  0,
                  "scaleFull": 1
                  }
-        self.dimmer, self.hueshift, self.animation, self.fx1, self.fx2, self.fx3, self.fx4, self.pan, self.tilt, self.rotate, self.zoom = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        self.dimmer, self.hueshift, self.animation, self.fx1, self.fx2, self.fx3, self.fx4, self.pan, self.tilt, self.rotate, self.zoom = 0, 0, 0, 0, 0, 0, 0, 127, 127, 127, 64
         self.listener_id = None
     
     _calibratemode = False
