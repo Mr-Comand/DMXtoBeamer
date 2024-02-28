@@ -22,11 +22,10 @@ def send_command_a():
             data[client.addresse+4]=fx2
             data[client.addresse+5]=fx3
             data[client.addresse+6]=fx4
-            data[client.addresse+7]=128
-            data[client.addresse+8]=128
-            data[client.addresse+9]=128
+            data[client.addresse+7]=127
+            data[client.addresse+8]=127
+            data[client.addresse+9]=127
             data[client.addresse+10]=64
-
             client.update_artnet(data)
         except:
             print("An error occurred. Retry from the beginning.")
