@@ -1,83 +1,93 @@
 <style>
-#blatt {
-    left: 50%;
-    top: 50%;
-}
+    #blatt {
+        left: 50%;
+        top: 50%;
+    }
 
-#blatt_ {
-    fill: #00ff00;
+    #blatt_ {
+        fill: #00ff00;
 
 
-}
+    }
 
-#animation {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+    #animation {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 </style>
 
 <script>
-function calcaverage(array, from, to) {
-    var values_subset = array.slice(from, to)
-    let sum = values_subset.reduce((acc, val) => acc + val, 0); // Calculating sum
-    let average = sum / values_subset.length; // Calculating average
-    return average;
-}
-const baseAmplitude = 0.01
-var peakvolume = 0;
-const init = () => {
-    const processFrame = (data) => {
-        var i = 0
-        document.getElementById("blatt").style.scale = calcaverage(data, (data.length / 4) * i, (data.length / 4) * (i + 1)) * baseAmplitude; // S
-        i++;
-        const dynamicGreenIntensity = calcaverage(data, (data.length / 5) * i, (data.length / 5) * (i + 1));
-        peakvolume = Math.max(peakvolume, dynamicGreenIntensity)
-        i++;
-        const dynamicRedIntensity = calcaverage(data, (data.length / 5) * i, (data.length / 5) * (i + 1));
-        peakvolume = Math.max(peakvolume, dynamicRedIntensity)
-        i++;
-        const dynamicBlueIntensity = calcaverage(data, (data.length / 5) * i, (data.length / 5) * (i + 1));
-        peakvolume = Math.max(peakvolume, dynamicBlueIntensity)
-        
-        let normalizedRedIntensity, normalizedBlueIntensity, normalizedGreenIntensity;
+    function calcaverage(array, from, to) {
+        var values_subset = array.slice(from, to)
+        let sum = values_subset.reduce((acc, val) => acc + val, 0); // Calculating sum
+        let average = sum / values_subset.length; // Calculating average
+        return average;
+    }
+    const baseAmplitude = 0.01
+    var peakvolume = 0;
+    const init = () => {
+        const processFrame = (data) => {
+            var i = 0
+            document.getElementById("blatt").style.scale = calcaverage(data, (data.length / 4) * i, (data.length / 4) * (i + 1)) * baseAmplitude; // S
+            i++;
+            const dynamicGreenIntensity = calcaverage(data, (data.length / 5) * i, (data.length / 5) * (i + 1));
+            peakvolume = Math.max(peakvolume, dynamicGreenIntensity)
+            i++;
+            const dynamicRedIntensity = calcaverage(data, (data.length / 5) * i, (data.length / 5) * (i + 1));
+            peakvolume = Math.max(peakvolume, dynamicRedIntensity)
+            i++;
+            const dynamicBlueIntensity = calcaverage(data, (data.length / 5) * i, (data.length / 5) * (i + 1));
+            peakvolume = Math.max(peakvolume, dynamicBlueIntensity)
 
-        // Find the maximum intensity among the color channels
-        const maxIntensity = Math.max(dynamicRedIntensity, dynamicBlueIntensity, dynamicGreenIntensity);
-        if (true) {
-            // Normalize each color channel independently
-            normalizedRedIntensity = dynamicRedIntensity / maxIntensity;
-            normalizedBlueIntensity = dynamicBlueIntensity / maxIntensity;
-            normalizedGreenIntensity = dynamicGreenIntensity / maxIntensity;
-        } else {
-            // Normalize each color channel independently
-            normalizedRedIntensity = dynamicRedIntensity / peakvolume;
-            normalizedBlueIntensity = dynamicBlueIntensity / peakvolume;
-            normalizedGreenIntensity = dynamicGreenIntensity / peakvolume;
-        }
+            let normalizedRedIntensity, normalizedBlueIntensity, normalizedGreenIntensity;
 
-        // Scale the normalized values to the range 0-255
-        const redIntensity = Math.floor(normalizedRedIntensity * 255);
-        const blueIntensity = Math.floor(normalizedBlueIntensity * 255);
-        const greenIntensity = Math.floor(normalizedGreenIntensity * 255);
-        // Use the intensity to set the color
-        const color = `rgb(${redIntensity}, ${greenIntensity}, ${blueIntensity})`;
-        document.getElementById("blatt_").style = "fill: " + color;
-        peakvolume--;
+            // Find the maximum intensity among the color channels
+            const maxIntensity = Math.max(dynamicRedIntensity, dynamicBlueIntensity, dynamicGreenIntensity);
+            if (fx4 > 127) {
+                // Normalize each color channel independently
+                normalizedRedIntensity = dynamicRedIntensity / maxIntensity;
+                normalizedBlueIntensity = dynamicBlueIntensity / maxIntensity;
+                normalizedGreenIntensity = dynamicGreenIntensity / maxIntensity;
+            } else {
+                // Normalize each color channel independently
+                normalizedRedIntensity = dynamicRedIntensity / peakvolume;
+                normalizedBlueIntensity = dynamicBlueIntensity / peakvolume;
+                normalizedGreenIntensity = dynamicGreenIntensity / peakvolume;
+            }
+            if (fx3 > 127) {
+                if (fx3 == 255) {
+                    normalizedRedIntensity = 1;
+                    normalizedBlueIntensity = 1;
+                    normalizedGreenIntensity = 1;
+                } else {
+                    normalizedRedIntensity = 0;
+                    normalizedBlueIntensity = 0;
+                    normalizedGreenIntensity = 1;
+                }
+            }
+            // Scale the normalized values to the range 0-255
+            const redIntensity = Math.floor(normalizedRedIntensity * 255);
+            const blueIntensity = Math.floor(normalizedBlueIntensity * 255);
+            const greenIntensity = Math.floor(normalizedGreenIntensity * 255);
+            // Use the intensity to set the color
+            const color = `rgb(${redIntensity}, ${greenIntensity}, ${blueIntensity})`;
+            document.getElementById("blatt_").style = "fill: " + color;
+            peakvolume--;
+        };
+        audioClient.changeProcessFrame(processFrame);
+
+
+
+
     };
-    audioClient.changeProcessFrame(processFrame);
-
-
-
-
-};
-init();
+    init();
 </script>
 <svg id="blatt" version="1.0" xmlns="http://www.w3.org/2000/svg" width="744.000000pt" height="766.000000pt"
-viewBox="0 0 744.000000 766.000000" preserveAspectRatio="xMidYMid meet">
+    viewBox="0 0 744.000000 766.000000" preserveAspectRatio="xMidYMid meet">
 
-<g transform="translate(0.000000,766.000000) scale(0.100000,-0.100000)" stroke="none" id="blatt_">
-    <path d="M3707 7578 c-23 -49 -37 -108 -39 -166 -1 -29 -4 -52 -7 -52 -2 0
+    <g transform="translate(0.000000,766.000000) scale(0.100000,-0.100000)" stroke="none" id="blatt_">
+        <path d="M3707 7578 c-23 -49 -37 -108 -39 -166 -1 -29 -4 -52 -7 -52 -2 0
 -13 7 -23 17 -10 9 -21 13 -26 9 -4 -4 -9 -48 -10 -97 l-4 -89 -26 21 -27 21
 -8 -34 c-5 -18 -7 -70 -5 -115 1 -46 1 -83 -1 -83 -2 0 -12 12 -23 26 -33 42
 -43 17 -43 -111 l0 -114 -22 27 c-11 15 -24 24 -28 21 -22 -23 -22 -200 1
@@ -282,5 +292,5 @@ l24 30 -28 11 -28 12 43 22 c47 24 131 104 131 125 0 8 -13 15 -32 17 l-33 3
 -19 1 92 c0 51 -5 100 -11 111 -11 18 -12 18 -33 -3 -11 -11 -22 -21 -24 -21
 -2 0 -1 26 1 58 2 31 -1 77 -8 101 l-11 43 -25 -23 -24 -22 0 36 c0 77 -44
 217 -69 217 -5 0 -16 -15 -24 -32z" />
-</g>
+    </g>
 </svg>

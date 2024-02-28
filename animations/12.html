@@ -48,7 +48,7 @@
 
             // Find the maximum intensity among the color channels
             const maxIntensity = Math.max(dynamicRedIntensity, dynamicBlueIntensity, dynamicGreenIntensity);
-            if (true) {
+            if (fx4 > 127) {
                 // Normalize each color channel independently
                 normalizedRedIntensity = dynamicRedIntensity / maxIntensity;
                 normalizedBlueIntensity = dynamicBlueIntensity / maxIntensity;
@@ -58,6 +58,17 @@
                 normalizedRedIntensity = dynamicRedIntensity / peakvolume;
                 normalizedBlueIntensity = dynamicBlueIntensity / peakvolume;
                 normalizedGreenIntensity = dynamicGreenIntensity / peakvolume;
+            }
+            if (fx3 > 127) {
+                if (fx3 == 255) {
+                    normalizedRedIntensity = 1;
+                    normalizedBlueIntensity = 1;
+                    normalizedGreenIntensity = 1;
+                } else {
+                    normalizedRedIntensity = 0;
+                    normalizedBlueIntensity = 0;
+                    normalizedGreenIntensity = 1;
+                }
             }
 
             // Scale the normalized values to the range 0-255
