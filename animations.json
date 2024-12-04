@@ -1,0 +1,77 @@
+[
+    {
+        "id": 1,
+        "thumbnailUrl": "https://example.com/animation1.jpg",
+        "fx1": "Faderbenennung1",
+        "fx2": "Faderbenennung2",
+        "fx3": "Faderbenennung3",
+        "fx4": "Faderbenennung4",
+        "name":"name"
+    },
+    {
+        "id": 2,
+        "thumbnailUrl": "https://example.com/animation2.jpg"
+    },
+    {
+        "id": 3,
+        "thumbnailUrl": "https://example.com/animation2.jpg"
+    },
+    {
+        "id": 4,
+        "thumbnailUrl": "https://example.com/animation2.jpg"
+    },
+    {
+        "id": 5,
+        "thumbnailUrl": "https://example.com/animation2.jpg"
+    },
+    {
+        "id": 6,
+        "thumbnailUrl": "https://example.com/animation2.jpg"
+    },
+    {
+        "id": 7,
+        "thumbnailUrl": "https://example.com/animation2.jpg"
+    },
+    {
+        "id": 8,
+        "thumbnailUrl": "https://example.com/animation2.jpg"
+    }
+    ,
+    {
+        "id": 9,
+        "thumbnailUrl": "https://example.com/animation2.jpg"
+    }
+    ,
+    {
+        "id": 10,
+        "thumbnailUrl": "https://example.com/animation2.jpg"
+    },
+    {
+        "id": 11,
+        "thumbnailUrl": "https://example.com/animation2.jpg"
+    },
+    {
+        "id": 12,
+        "thumbnailUrl": "https://example.com/animation2.jpg"
+    },
+    {
+        "id": 13,
+        "thumbnailUrl": "https://example.com/animation2.jpg"
+    },
+    {
+        "id": 50,
+        "thumbnailUrl": "https://example.com/animation2.jpg"
+    },
+    {
+        "id": 100,
+        "thumbnailUrl": "https://example.com/animation2.jpg"
+    },
+    {
+        "id": 127,
+        "thumbnailUrl": "https://example.com/animation2.jpg"
+    },
+    {   
+        "id": 255,
+        "thumbnailUrl": "https://example.com/animation2.jpg"
+    }
+]

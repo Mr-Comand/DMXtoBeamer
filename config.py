@@ -2,7 +2,6 @@ from webserver import app, socketio
 import webserver
 import gloabals
 from flask import render_template, request, jsonify
-
 config_clients = []
 
 
@@ -93,3 +92,9 @@ def identifyclient(client_id):
     webserver.socketio.emit('run_function', {
                             'function_name': "identify"}, room=client_id, namespace="/client")
     return gloabals.getasJson()
+
+
+
+@app.route('/manual')
+def manual():
+    return render_template('manualcontorl.html')

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+    <title>Bouncing DVD Logo</title>
+</head>
+
+<body>
+    <canvas id="dvdCanvas"></canvas>
+
+    <script>
+
+        const canvas = document.getElementById('dvdCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const dvdLogo = new Image();
+        dvdLogo.src = 'https://logos-download.com/wp-content/uploads/2016/07/DVD_logo.png';  // Replace with the path to your logo image
+
+        const logoSize = 100;
+        let logoX = Math.random() * (canvas.width - logoSize);
+        let logoY = Math.random() * (canvas.height - logoSize);
+        let speedX = 5;
+        let speedY = 5;
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            logoX += speedX;
+            logoY += speedY;
+
+            // Bounce off the walls
+            if (logoX < 0 || logoX + logoSize > canvas.width) {
+                speedX = -speedX;
+            }
+            if (logoY < 0 || logoY + logoSize > canvas.height) {
+                speedY = -speedY;
+            }
+
+            ctx.drawImage(dvdLogo, logoX, logoY, logoSize, logoSize);
+
+            requestAnimationFrame(draw);
+        }
+
+        // Set up canvas size
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        dvdLogo.onload = function () {
+            // Start the animation
+            draw();
+        }
+        // Resize canvas on window resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+
+</html>

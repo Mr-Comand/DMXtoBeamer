@@ -1,6 +1,6 @@
 
 import threading
-import webserver, artnet, gloabals, config
+import webserver, artnet, gloabals, config, maunual
 
 
 if __name__ == '__main__':

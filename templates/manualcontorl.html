@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Animation Control</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .clients, .animations, .faders { margin-bottom: 20px; }
+        .client { display: inline-block; margin: 10px; cursor: pointer; border: 1px solid #ccc; padding: 10px; }
+        .client.selected { border: 2px solid blue; }
+        .thumbnail { width: 100px; height: 100px; background-size: cover; background-color: #eee; }
+        .fader { margin-bottom: 10px; }
+        .fader label { display: inline-block; width: 150px; }
+        .fader input { width: 300px; }
+        .animation.selected { border: 2px solid green; }
+    </style>
+</head>
+<body>
+    <h1>Client Animation Control</h1>
+
+    <!-- Client Selection -->
+    <div class="clients">
+        <h2>Clients</h2>
+        <div id="clients-container"></div>
+    </div>
+
+    <!-- Animation Selection -->
+    <div class="animations">
+        <h2>Animations</h2>
+        <div id="animations-container"></div>
+    </div>
+
+    <!-- Faders -->
+    <div class="faders">
+        <h2>Fader Controls</h2>
+        <div id="faders-container"></div>
+    </div>
+    <div class="save-preset">
+        <h3>Save Client Configuration as a Preset</h3>
+        <input type="text" id="preset-name" placeholder="Preset name">
+        <button onclick="saveClientAsPreset()">Save as Preset</button>
+    </div>
+    
+    <script>
+        const apiBaseUrl = '/api';
+        let selectedClients = [];
+        let selectedAnimationId = null;
+
+        // Fetch and display clients
+        async function loadClients() {
+            const response = await fetch(`${apiBaseUrl}/client-ids`);
+            const clientIds = await response.json();
+
+            const container = document.getElementById('clients-container');
+            container.innerHTML = '';
+
+            for (const clientId of clientIds) {
+                const clientDiv = document.createElement('div');
+                clientDiv.className = 'client';
+                clientDiv.dataset.clientId = clientId;
+                clientDiv.innerHTML = `
+                    <div class="thumbnail" id="client-thumbnail-${clientId}">Client ${clientId}</div>
+                `;
+                clientDiv.addEventListener('click', (event) => handleClientClick(event, clientId));
+                container.appendChild(clientDiv);
+
+                // Load client thumbnail
+                loadClientThumbnail(clientId);
+            }
+        }
+
+        // Load client thumbnail
+        async function loadClientThumbnail(clientId) {
+            // Here we simulate loading a thumbnail or image for each client
+            const clientThumbnailUrl = `https://example.com/thumbnails/${clientId}.png`; // Replace with actual URL
+            const thumbnailDiv = document.getElementById(`client-thumbnail-${clientId}`);
+            thumbnailDiv.style.backgroundImage = `url('${clientThumbnailUrl}')`;
+        }
+
+        // Handle client click with Ctrl for multi-select
+        function handleClientClick(event, clientId) {
+            if (event.ctrlKey) {
+                // Ctrl-click for multi-selection
+                if (selectedClients.includes(clientId)) {
+                    selectedClients = selectedClients.filter(id => id !== clientId);
+                } else {
+                    selectedClients.push(clientId);
+                }
+            } else {
+                // Single click for single selection
+                selectedClients = [clientId];
+            }
+
+            updateClientSelectionUI();
+        }
+
+        // Update client selection UI
+        function updateClientSelectionUI() {
+            document.querySelectorAll('.client').forEach(clientDiv => {
+                const clientId = parseInt(clientDiv.dataset.clientId, 10);
+                if (selectedClients.includes(clientId)) {
+                    clientDiv.classList.add('selected');
+                } else {
+                    clientDiv.classList.remove('selected');
+                }
+            });
+
+            // Load faders for the first selected client
+            if (selectedClients.length > 0) {
+                loadFaders(selectedClients[0]);
+            } else {
+                document.getElementById('faders-container').innerHTML = '';
+            }
+
+            // Update the animation based on the last selected client
+            if (selectedClients.length > 0) {
+                loadAnimation(selectedClients[selectedClients.length - 1]);
+            }
+        }
+
+        // Fetch and display animations
+        async function loadAnimations() {
+            const response = await fetch(`${apiBaseUrl}/animations/list`);
+            const animations = await response.json();
+
+            const container = document.getElementById('animations-container');
+            container.innerHTML = '';
+
+            for (const animation of animations) {
+                const animationDiv = document.createElement('div');
+                animationDiv.className = 'animation';
+                animationDiv.dataset.animationId = animation.id;
+                animationDiv.innerHTML = `
+                    <div class="thumbnail" style="background-image: url('${animation.thumbnailUrl}');"></div>
+                    <p>Animation ${animation.id}</p>
+                `;
+                animationDiv.addEventListener('click', () => updateAnimation(animation.id));
+                container.appendChild(animationDiv);
+            }
+        }
+
+        // Fetch and display faders for the first selected client
+        async function loadFaders(clientId) {
+            const response = await fetch(`${apiBaseUrl}/${clientId}/properties`);
+            const clientData = await response.json();
+
+            const container = document.getElementById('faders-container');
+            container.innerHTML = '';
+
+            const faderFields = [
+                { label: 'Dimmer', key: 'dimmer' },
+                { label: 'Hue Shift', key: 'hueshift' },
+                { label: 'FX1', key: 'fx1' },
+                { label: 'FX2', key: 'fx2' },
+                { label: 'FX3', key: 'fx3' },
+                { label: 'FX4', key: 'fx4' },
+                { label: 'Pan', key: 'pan' },
+                { label: 'Tilt', key: 'tilt' },
+                { label: 'Rotate', key: 'rotate' },
+                { label: 'Zoom', key: 'zoom' },
+            ];
+
+            for (const field of faderFields) {
+                const faderDiv = document.createElement('div');
+                faderDiv.className = 'fader';
+                faderDiv.innerHTML = `
+                    <label>${field.label}</label>
+                    <input type="range" min="0" max="255" value="${clientData[field.key]}" id="fader-${field.key}" />
+                `;
+                faderDiv.querySelector('input').addEventListener('input', (event) => {
+                    updateFader(clientId, field.key, event.target.value);
+                });
+                container.appendChild(faderDiv);
+            }
+        }
+
+        // Update animation for selected clients
+        async function updateAnimation(animationId) {
+            selectedAnimationId = animationId;
+
+            // Update the animation for all selected clients
+            for (const clientId of selectedClients) {
+                await fetch(`${apiBaseUrl}/${clientId}/animation/${animationId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+
+                // Update client thumbnail
+                const thumbnailDiv = document.getElementById(`client-thumbnail-${clientId}`);
+                const animationsResponse = await fetch(`${apiBaseUrl}/animations/list`);
+                const animations = await animationsResponse.json();
+                const selectedAnimation = animations.find(anim => anim.id === animationId);
+                if (selectedAnimation) {
+                    thumbnailDiv.style.backgroundImage = `url('${selectedAnimation.thumbnailUrl}')`;
+                }
+            }
+
+            // Outline selected animation
+            document.querySelectorAll('.animation').forEach(animDiv => {
+                const animationId = parseInt(animDiv.dataset.animationId, 10);
+                if (animationId === selectedAnimationId) {
+                    animDiv.classList.add('selected');
+                } else {
+                    animDiv.classList.remove('selected');
+                }
+            });
+        }
+
+        // Update fader for a selected client
+        async function updateFader(clientId, key, value) {
+            await fetch(`${apiBaseUrl}/${clientId}/properties`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ [key]: value }),
+            });
+        }
+
+        // Load initial clients and animations
+        loadClients();
+        loadAnimations();
+    </script>
+</body>
+</html>

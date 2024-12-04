@@ -1,0 +1,208 @@
+<style>
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  main {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    >div {
+      display: inline-block;
+      width: 0.2vw;
+      height: 20vh;
+      margin: 0 0.1vw;
+      background: red;
+      transform: scaleY(.5);
+      opacity: .25;
+    }
+
+    &.error {
+      color: #f7451d;
+      min-width: 20em;
+      max-width: 30em;
+      margin: 0 auto;
+      white-space: pre-line;
+    }
+  }
+
+  #myCanvas {
+    width: 100vw;
+    height: 100vh;
+  }
+</style>
+<main></main>
+<canvas id="myCanvas" width="3000" height="3000"></canvas>
+
+<script>
+  const animationid = 5;
+  const visualValueCount = 250;
+  const baseAmplitude = 800;
+  const bandwidth = 300;
+  const baseRadius = 400
+  var peakvolume = 1;
+  particles = new Array();
+  function clearCanvas() {
+    const canvas = document.getElementById('myCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Clear the entire canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  function drawPoint(data, ctx, canvas) {
+    ctx.beginPath();
+    ctx.arc(data.position.x * 100 + canvas.width / 2, data.position.y * 100 + canvas.height / 2, data.size, 0, Math.PI * 2);
+    ctx.fillStyle = `rgb(${data.color.red},${data.color.green},${data.color.blue})`;
+    ctx.fill();
+  }
+  function drawParticles(particles) {
+    const canvas = document.getElementById('myCanvas');
+    const ctx = canvas.getContext('2d');
+    //ctx.beginPath();
+    clearCanvas();
+    console.log("drawn");
+    for (var j = 0; j < particles.length; j++) {
+      var particle = particles[j];
+      if (particle) {
+        drawPoint(particles[j], ctx, canvas);
+      }
+      console.log("drawne");
+    }
+    /*
+        for (let i = 1; i < coordinates.length - 1; i++) {
+          ctx.lineTo(coordinates[i][0],
+            coordinates[i][1]);
+    
+          const dynamicRedIntensity = coordinates[10][2];
+          peakvolume = Math.max(peakvolume, dynamicRedIntensity)
+          const dynamicBlueIntensity = coordinates[100][2];
+          peakvolume = Math.max(peakvolume, dynamicBlueIntensity)
+          const dynamicGreenIntensity = coordinates[200][2];
+          peakvolume = Math.max(peakvolume, dynamicGreenIntensity)
+          let normalizedRedIntensity, normalizedBlueIntensity, normalizedGreenIntensity;
+    
+          // Find the maximum intensity among the color channels
+          const maxIntensity = Math.max(dynamicRedIntensity, dynamicBlueIntensity, dynamicGreenIntensity);
+          if (fx4 > 127) {
+            // Normalize each color channel independently
+            normalizedRedIntensity = dynamicRedIntensity / maxIntensity;
+            normalizedBlueIntensity = dynamicBlueIntensity / maxIntensity;
+            normalizedGreenIntensity = dynamicGreenIntensity / maxIntensity;
+          } else {
+            // Normalize each color channel independently
+            normalizedRedIntensity = dynamicRedIntensity / peakvolume;
+            normalizedBlueIntensity = dynamicBlueIntensity / peakvolume;
+            normalizedGreenIntensity = dynamicGreenIntensity / peakvolume;
+          }
+    
+          // Scale the normalized values to the range 0-255
+          const redIntensity = Math.floor(normalizedRedIntensity * 255);
+          const blueIntensity = Math.floor(normalizedBlueIntensity * 255);
+          const greenIntensity = Math.floor(normalizedGreenIntensity * 255);
+          // Use the intensity to set the color
+          const color = `rgb(${redIntensity}, ${greenIntensity}, ${blueIntensity})`;
+          // Set line color for each segment
+          ctx.strokeStyle = color;
+    
+          ctx.lineWidth = fx2 + 1;
+          ctx.stroke();
+        }
+        */
+  }
+
+
+
+  function generateDictionary(start, end) {
+    const resultDict = {};
+
+    for (let i = 0; i <= end; i++) {
+      resultDict[i] = Math.floor((Math.abs(i - (end / 2)) ** 1.2) * (start / 177)) //Math.floor(Math.random() * 600)//Math.abs(start);
+      //start -= (steps[i % steps.length] * (((i-(end/2))**2)+(-1*((i-(end/2))**2)+3))); // Use modulo to repeat steps if they run out
+
+    }
+    console.log(resultDict)
+    return resultDict;
+  }
+
+
+
+  const visualMainElement = document.querySelector('main');
+
+
+  var spiral = { a: 0.15, b: 0.2, angle: 11, intensity: 0.18 }
+  var angle = 11
+  var spiralCounter = false;
+  const init = () => {
+    // Creating initial DOM elements
+
+
+    // Swapping values around for a better visual effect
+    const dataMap = generateDictionary(bandwidth, visualValueCount); //{    0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10, 11: 11, 12: 12, 13: 13, 14: 14, 15: 15};
+    /*
+  0:  1,  1:  2, 2:  3, 3:  4, 4:  5, 5:  6, 6:  7, 7:  8,
+  8:  9, 9:  10, 10: 11, 11: 12, 12: 13, 13: 14, 14: 15, 15: 16,
+  16: 17, 17: 18, 18: 19, 19: 20, 20: 21, 21: 22, 22: 23, 23: 24,
+  24: 25, 25: 26, 26: 27, 27: 28, 28: 29, 29: 30, 30: 31, 31: 32,
+  32: 33, 33: 34, 34: 35, 35: 180, 36: 185, 37: 190, 38: 195, 39: 200,
+  40: 205, 41: 210, 42: 215, 43: 220, 44: 225, 45: 230, 46: 235, 47: 240,
+  48: 245, 49: 250, 50: 255, 51: 260, 52: 265, 53: 270, 54: 275, 55: 280,
+  56: 285, 57: 290, 58: 295, 59: 300, 60: 305, 61: 310, 62: 315, 63: 320,
+};*/
+    for (var i = 0; i <= 548; i++) {
+
+      particles[i] = { position: { x: 0, y: 0 }, color: { red: 0, green: 255, blue: 0 }, size: 2 };
+
+    }
+
+    const processFrame = (data) => {
+      const values = Object.values(data);
+      let i;
+      const canvas = document.getElementById('myCanvas');
+
+      array = []
+      //array[0] = [0, canvas.height / 2]
+      if (spiralCounter) {
+        angle += 0.0008;
+        if (angle >= 13) {
+          spiralCounter = false;
+        }
+      }
+      else {
+        angle -= 0.0008;
+        if (angle <= 9) {
+          spiralCounter = true;
+        }
+      }
+
+      for (var j = 0; j < particles.length; j++) {
+        var particle = particles[j];
+        const value = (values[dataMap[i]] / 255) ** 2 * baseAmplitude * (fx1 / 2 + 1);
+
+        particles[j].position.x = (spiral.a + spiral.b * ((angle / 100) * j))
+          * Math.sin(((angle / 100) * j));
+        particles[j].position.y = (spiral.a + spiral.b * ((angle / 100) * j))
+          * Math.cos(((angle / 100) * j));
+        //particle.position.z = (timeFloatData[j] * timeFrequencyData[j] * spiral.intensity);
+        particles[j] = particle;
+
+
+      }
+      //array[visualValueCount] = [x, y, 0]
+
+      drawParticles(particles)
+      peakvolume -= 1;
+
+    };
+
+    audioClient.changeProcessFrame(processFrame);
+
+  };
+  init();
+</script>
