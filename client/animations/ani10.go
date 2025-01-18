@@ -102,12 +102,12 @@ func (a *Ani10) Render(config *ws.AnimationConfig, data *[]float64) {
 		// fmt.Print(", ", value)
 		// value = (value * 10) * (value * 10)
 		// Calculate positions using an Archimedean spiral with a wavy pattern
-		particle.Position.X = (a.Spiral.A+a.Spiral.B*((a.Spiral.Angle/100)*float64(i)))*
+		particle.Position.X = (((a.Spiral.A+a.Spiral.B*((a.Spiral.Angle/100)*float64(i)))*
 			math.Cos((a.Spiral.Angle/100)*float64(i)) +
-			math.Sin(float64(i)/(a.Spiral.Angle/100))*17
-		particle.Position.Y = (a.Spiral.A+a.Spiral.B*((a.Spiral.Angle/100)*float64(i)))*
+			math.Sin(float64(i)/(a.Spiral.Angle/100))*17) + 50) * 10
+		particle.Position.Y = (((a.Spiral.A+a.Spiral.B*((a.Spiral.Angle/100)*float64(i)))*
 			math.Sin((a.Spiral.Angle/100)*float64(i)) +
-			math.Cos(float64(i)/(a.Spiral.Angle/100))*17
+			math.Cos(float64(i)/(a.Spiral.Angle/100))*17) + 50) * 10
 
 		// Update size and color based on data
 		particle.Size = math.Log(float64(value)/10 + 1)
@@ -153,6 +153,6 @@ func (p *Particle) Draw() {
 		fmt.Errorf("Partikel not defined")
 		return
 	}
-	rl.DrawCircle(int32(p.Position.X*10+1536/2), int32(p.Position.Y*10+1536/2), float32(p.Size), p.Color)
+	rl.DrawCircle(int32(p.Position.X), int32(p.Position.Y), float32(p.Size), p.Color)
 	// fmt.Println(int32(p.Position.X), int32(p.Position.Y), float32(p.Size), p.Color)
 }

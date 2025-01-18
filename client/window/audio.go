@@ -12,26 +12,18 @@ import (
 var audioProcessor *AudioProcessor
 
 // Initialize PortAudio and create a new audio stream
-func InitAudioProcessor(bufferSize int) {
+func InitAudioProcessor(bufferSize int, deviceIndex int) {
+	if audioProcessor != nil {
+		audioProcessor.Stop()
+	}
 	// Initialize PortAudio
 	err := portaudio.Initialize()
 	if err != nil {
 		log.Fatalf("Failed to initialize PortAudio: %v", err)
 	}
 
-	// List all available devices
-	devices, err := portaudio.Devices()
-	if err != nil {
-		log.Fatalf("Failed to get devices: %v", err)
-	}
-
-	// Print out available devices and their index
-	for i, device := range devices {
-		fmt.Printf("%d: %s \t%s  \t%s\n", i, device.Name, device.HostApi.Name, device.DefaultSampleRate)
-	}
-
 	// Create a new AudioProcessor instance
-	audioProcessor = NewAudioProcessor(bufferSize, 1)
+	audioProcessor = NewAudioProcessor(bufferSize, deviceIndex)
 	audioProcessor.Start()
 }
 
@@ -45,13 +37,31 @@ type AudioProcessor struct {
 
 // NewAudioProcessor initializes the PortAudio stream and prepares the data buffer
 func NewAudioProcessor(bufferSize int, deviceIndex int) *AudioProcessor {
-
-	// Set device index (default is 0)
-	devices, err := portaudio.Devices()
-	if err != nil {
-		log.Fatalf("Failed to get the device: %v", err)
+	var device *portaudio.DeviceInfo
+	if deviceIndex < 0 {
+		// Get the default input device
+		var err error
+		device, err = portaudio.DefaultInputDevice()
+		if err != nil {
+			log.Fatalf("Failed to get devices: %v", err)
+		}
+		fmt.Println("Using default device: " + device.Name)
+	} else {
+		// Set device index (default is 0)
+		devices, err := portaudio.Devices()
+		if err != nil {
+			log.Fatalf("Failed to get devices: %v", err)
+		}
+		// filter devices witrh input channels
+		var inputDevices []*portaudio.DeviceInfo
+		for _, device := range devices {
+			if device.MaxInputChannels > 0 {
+				inputDevices = append(inputDevices, device)
+			}
+		}
+		device = inputDevices[deviceIndex]
 	}
-	device := devices[deviceIndex]
+
 	fmt.Println("-------------------------------------------")
 	fmt.Println("Using:                                    "+device.Name, device.DefaultSampleRate)
 	// Data buffer to store audio samples
@@ -133,19 +143,10 @@ func (ap *AudioProcessor) Process() []float64 {
 		}
 	}
 
-	// Convert peak amplitude to decibels (dBFS)
-	// if maxAmplitude > 0 {
-	// 	peakLevel := 20 * math.Log10(maxAmplitude)
-	// 	fmt.Printf("Peak Amplitude Level: %.2f dBFS\n", peakLevel)
-	// } else {
-	// 	fmt.Println("Peak Amplitude Level: -Infinity dBFS (silence)")
-	// }
-
 	// Calculate FFT with exactly fftSize samples
 	fftData := fft.FFTReal(data)
 
 	// Calculate magnitude of first 2048 frequency bins
-	// fftData will have fftSize / 2 complex values due to symmetry (Nyquist theorem)
 	binCount := 2048
 	frequencies := make([]float64, binCount)
 	for i := 0; i < binCount; i++ {
