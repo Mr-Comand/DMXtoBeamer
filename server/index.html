@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animation Configurator</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        label { display: block; margin-bottom: 10px; }
+        input { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <h1>Configure Animation Settings</h1>
+
+    <label for="dimmer">Dimmer:</label>
+    <input type="number" id="dimmer" value="50">
+    
+    <label for="hueshift">Hue Shift:</label>
+    <input type="number" id="hueshift" value="0">
+    
+    <label for="animation">Animation:</label>
+    <input type="text" id="animation" value="wave">
+    
+    <label for="fx1">FX1:</label>
+    <input type="text" id="fx1" value="effect1">
+    
+    <label for="fx2">FX2:</label>
+    <input type="text" id="fx2" value="effect2">
+    
+    <label for="fx3">FX3:</label>
+    <input type="text" id="fx3" value="effect3">
+    
+    <label for="fx4">FX4:</label>
+    <input type="text" id="fx4" value="effect4">
+    
+    <label for="pan">Pan:</label>
+    <input type="number" id="pan" value="100">
+    
+    <label for="tilt">Tilt:</label>
+    <input type="number" id="tilt" value="50">
+    
+    <label for="rotate">Rotate:</label>
+    <input type="number" id="rotate" value="30">
+    
+    <label for="zoom">Zoom:</label>
+    <input type="number" id="zoom" value="10">
+
+    <button id="sendConfig">Send Config to Go Client</button>
+
+    <script>
+        // Send configuration data to the server via REST API (POST request)
+        document.getElementById("sendConfig").addEventListener("click", function() {
+            const config = {
+                dimmer: parseInt(document.getElementById("dimmer").value),
+                hueshift: parseInt(document.getElementById("hueshift").value),
+                animation: document.getElementById("animation").value,
+                fx1: document.getElementById("fx1").value,
+                fx2: document.getElementById("fx2").value,
+                fx3: document.getElementById("fx3").value,
+                fx4: document.getElementById("fx4").value,
+                pan: parseInt(document.getElementById("pan").value),
+                tilt: parseInt(document.getElementById("tilt").value),
+                rotate: parseInt(document.getElementById("rotate").value),
+                zoom: parseInt(document.getElementById("zoom").value),
+            };
+
+            // Make an HTTP POST request to send config to the server
+            fetch('/update-config', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(config),
+            })
+            .then(response => {r = response.text()})
+            .then(data => alert("Configuration updated: "+r))
+            .catch((error) => alert("Error updating config: " + error));
+        });
+    </script>
+
+</body>
+</html>
