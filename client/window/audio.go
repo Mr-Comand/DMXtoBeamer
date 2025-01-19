@@ -4,27 +4,37 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"time"
 
 	"github.com/gordonklaus/portaudio"
 	"github.com/mjibson/go-dsp/fft"
 )
 
 var audioProcessor *AudioProcessor
+var stopAudioChannel chan bool // Channel to signal stopping the goroutine
 
 // Initialize PortAudio and create a new audio stream
 func InitAudioProcessor(bufferSize int, deviceIndex int) {
+	if stopAudioChannel != nil {
+		stopAudioChannel <- true           // Signal the previous goroutine to stop
+		time.Sleep(250 * time.Millisecond) // Sleep for 250ms to give time for cleanup
+	}
+
 	if audioProcessor != nil {
 		audioProcessor.Stop()
 	}
-	// Initialize PortAudio
+
+	// Reinitialize the stop channel to restart the process
+	stopAudioChannel = make(chan bool)
+
 	err := portaudio.Initialize()
 	if err != nil {
 		log.Fatalf("Failed to initialize PortAudio: %v", err)
 	}
-
 	// Create a new AudioProcessor instance
 	audioProcessor = NewAudioProcessor(bufferSize, deviceIndex)
 	audioProcessor.Start()
+	go continuesProcessAudio(audioDataChannel, stopAudioChannel)
 }
 
 // AudioProcessor struct to manage audio capture and FFT processing
@@ -109,6 +119,7 @@ func (ap *AudioProcessor) Stop() {
 const fftSize = 4096 // Set fftSize to 4096 to get 2048 frequency bins
 
 func (ap *AudioProcessor) Process() []float64 {
+
 	// Read data from the microphone stream
 	err := ap.Stream.Read()
 	if err != nil {
@@ -176,4 +187,26 @@ func processAudio() []float64 {
 	// Get the FFT frequency data from the microphone
 	frequencies := audioProcessor.Process()
 	return frequencies
+}
+
+// Function that processes audio in a separate goroutine
+func continuesProcessAudio(audioDataChannel chan<- []float64, stopChannel <-chan bool) {
+	for {
+		select {
+		case <-stopChannel:
+			// Stop the audio processing when the stop signal is received
+			return
+		default:
+			// Process the audio data (this is the current audio processing logic)
+			frequencies := processAudio() // Replace with actual audio processing logic
+
+			// Send the processed data through the channel
+			select {
+			case audioDataChannel <- frequencies:
+				// Successfully sent data to the channel
+			default:
+				// If the channel is full (you can handle the case here if needed)
+			}
+		}
+	}
 }

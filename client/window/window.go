@@ -2,10 +2,8 @@ package window
 
 import (
 	"fmt"
-	"log"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
-	"github.com/gordonklaus/portaudio"
 	"technikflg.com/dmxToProjector/animations"
 	"technikflg.com/dmxToProjector/ws"
 )
@@ -16,9 +14,11 @@ const (
 )
 
 var (
-	animationMap map[string]animations.AnimationInterface
-	deviceIndex  int
-	showPopup    bool
+	animationMap     map[string]animations.AnimationInterface
+	deviceIndex      int
+	showPopup        bool
+	audioDataChannel chan []float64
+	audioData        []float64
 )
 
 func InitWindow() {
@@ -30,31 +30,24 @@ func InitWindow() {
 	rl.SetWindowMinSize(10, 10)
 	rl.SetWindowState(rl.FlagWindowResizable)
 	rl.SetWindowState(rl.FlagWindowTopmost)
-
+	rl.SetConfigFlags(rl.FlagVsyncHint)
+	rl.SetTargetFPS(0) // Cap to 60 FPS
 	// Set the initial background to black
 	rl.ClearBackground(rl.Black)
 
 	animationMap = animations.InitAnimations()
 
 	// Initialize the microphone audio processor
-	bufferSize := 512 * 8 // Number of samples per buffer
-	deviceIndex = -1      // Default device index
+	bufferSize := 512 * 8                      // Number of samples per buffer
+	deviceIndex = -1                           // Default device index
+	audioDataChannel = make(chan []float64, 1) // Channel with buffer size 1 to hold only the latest data
+
 	InitAudioProcessor(bufferSize, deviceIndex)
+
+	// Initialize the audio data channel
 
 	// List available audio devices
 	// listAudioDevices()
-}
-
-func listAudioDevices() {
-	devices, err := portaudio.Devices()
-	if err != nil {
-		log.Fatalf("Failed to get devices: %v", err)
-	}
-
-	fmt.Println("Available Audio Devices:")
-	for i, device := range devices {
-		fmt.Printf("%d: %s\n", i, device.Name)
-	}
 }
 
 func Render() {
@@ -92,11 +85,19 @@ func Render() {
 		displayAudioDeviceSelection()
 	}
 	rl.BeginMode2D(rl.NewCamera2D(rl.Vector2{X: float32(windowWidth / 2), Y: float32(windowHeight / 2)}, rl.Vector2{X: 500, Y: 500}, 0.0, min(scaleX, scaleY)))
-	// Call the function to process audio and get frequency data
-	frequencies := processAudio()
 
+	// Retrieve the latest audio data from the channel (non-blocking)
+	select {
+	case audioData = <-audioDataChannel: // Get the most recently processed audio data
+		// New audio data is available, update audioData
+	default:
+		if len(audioData) == 0 {
+			audioData = <-audioDataChannel
+		}
+		// No new data available, use the previous data (audioData remains the same)
+	}
 	// Call the function to handle the animation logic based on the configuration
-	handleAnimation(config, &frequencies)
+	handleAnimation(config, &audioData)
 
 	// End drawing
 	rl.EndDrawing()

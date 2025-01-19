@@ -64,8 +64,8 @@ func displayAudioDeviceSelection() {
 				// Handle device selection
 				if rl.IsMouseButtonPressed(rl.MouseLeftButton) {
 					deviceIndex = i
-					InitAudioProcessor(512*8, deviceIndex) // Reinitialize with the selected device
-					showPopup = false                      // Close the popup
+					go InitAudioProcessor(512*8, deviceIndex) // Reinitialize with the selected device
+					showPopup = false                         // Close the popup
 				}
 			}
 			rl.DrawRectangleRec(deviceRect, rl.LightGray)
