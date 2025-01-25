@@ -6,8 +6,8 @@
     <title>Animation Configurator</title>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; }
-        label { display: block; margin-bottom: 10px; }
-        input { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; }
+        input, button { margin-bottom: 15px; padding: 5px; }
     </style>
 </head>
 <body>
@@ -16,78 +16,70 @@
 
     <label for="dimmer">Dimmer:</label>
     <input type="number" id="dimmer" value="50">
-    
+
     <label for="hueshift">Hue Shift:</label>
     <input type="number" id="hueshift" value="0">
-    
-    <label for="animation">Animation:</label>
-    <input type="text" id="animation" value="wave">
-    
-    <label for="fx1">FX1:</label>
-    <input type="text" id="fx1" value="effect1">
-    
-    <label for="fx2">FX2:</label>
-    <input type="text" id="fx2" value="effect2">
-    
-    <label for="fx3">FX3:</label>
-    <input type="text" id="fx3" value="effect3">
-    
-    <label for="fx4">FX4:</label>
-    <input type="text" id="fx4" value="effect4">
-    
-    <label for="pan">Pan:</label>
-    <input type="number" id="pan" value="100">
-    
-    <label for="tilt">Tilt:</label>
-    <input type="number" id="tilt" value="50">
-    
+
     <label for="rotate">Rotate:</label>
     <input type="number" id="rotate" value="30">
-    
-    <label for="zoom">Zoom:</label>
-    <input type="number" id="zoom" value="10">
+
+    <h2>Layers</h2>
+    <label for="animationID">Animation ID:</label>
+    <input type="text" id="animationID" value="wave">
+
+    <label for="parameterName">Parameter Name:</label>
+    <input type="text" id="parameterName" value="fx1">
+
+    <label for="enabled">Enabled:</label>
+    <select id="enabled">
+        <option value="true">True</option>
+        <option value="false">False</option>
+    </select>
+
+    <h2>Target Client</h2>
     <label for="clientID">Target Client ID (Leave blank for broadcast):</label>
-    
     <input type="text" id="clientID" placeholder="Enter Client ID (optional)">
-    
+
     <button id="sendConfig">Send Config to Go Client</button>
-    
+
     <script>
         // Send configuration data to the server via REST API (POST request)
         document.getElementById("sendConfig").addEventListener("click", function() {
+            const layers = [{
+                animationID: document.getElementById("animationID").value,
+                parameterName: document.getElementById("parameterName").value,
+                enabled: document.getElementById("enabled").value === "true"
+            }];
+
             const config = {
+                clientID: document.getElementById("clientID").value || "",
+                layers: layers,
                 dimmer: parseInt(document.getElementById("dimmer").value),
                 hueshift: parseInt(document.getElementById("hueshift").value),
-                animation: document.getElementById("animation").value,
-                fx1: document.getElementById("fx1").value,
-                fx2: document.getElementById("fx2").value,
-                fx3: document.getElementById("fx3").value,
-                fx4: document.getElementById("fx4").value,
-                pan: parseInt(document.getElementById("pan").value),
-                tilt: parseInt(document.getElementById("tilt").value),
                 rotate: parseInt(document.getElementById("rotate").value),
-                zoom: parseInt(document.getElementById("zoom").value),
             };
-    
-            // Get client ID from the input field
-            const clientID = document.getElementById("clientID").value;
-    
-            // Construct the URL with the client ID as a query parameter (if provided)
-            const url = clientID ? `/update-config?client_id=${encodeURIComponent(clientID)}` : '/update-config';
-    
-            // Make an HTTP POST request to send config to the server
-            fetch(url, {
-                method: 'POST',
+
+            fetch("/client/set", {
+                method: "POST",
                 headers: {
-                    'Content-Type': 'application/json',
+                    "Content-Type": "application/json",
                 },
                 body: JSON.stringify(config),
             })
-            .then(response => response.text())
-            .then(data => alert("Configuration updated: " + data))
-            .catch((error) => alert("Error updating config: " + error));
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert("Configuration updated successfully: " + JSON.stringify(data));
+            })
+            .catch(error => {
+                alert("Error updating configuration: " + error.message);
+            });
         });
     </script>
-    
+
 </body>
 </html>

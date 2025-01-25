@@ -104,11 +104,20 @@ func Render() {
 }
 
 // Function to handle animation based on the configuration
-func handleAnimation(config ws.AnimationConfig, audioData *[]float64) {
-	animation := animationMap[config.Animation]
-	if animation != nil {
-		(animation).Render(&config, audioData)
-	} else {
-		fmt.Println("Unknown animation type:", config.Animation)
+func handleAnimation(config ws.ClientConfig, audioData *[]float64) {
+	// fmt.Println("config:", config)
+
+	for _, v := range config.Layers {
+		if !v.Enabled {
+			fmt.Println("skipt :", v.AnimationID, v.Parameters)
+			continue
+		}
+		animation := animationMap[v.AnimationID]
+		if animation != nil {
+			(animation).Render(&v.Parameters, audioData)
+		} else {
+			fmt.Println("Unknown animation type:", v.AnimationID, v.Parameters)
+		}
 	}
+
 }

@@ -92,7 +92,7 @@ func (a *Ani4) Render(config *ws.AnimationConfig, data *[]float64) {
 
 func NewAni4(visualValueCount, baseAmplitude, bandwidth, baseRadius int) *Ani4 {
 	// Initialize pointers for DynamicConfig
-	ringCount := uint8(10)
+	ringCount := uint8(1)
 	colorSegments := uint8(4)
 	lineWidth := uint16(1)
 	baseRadiusPointer := float64(baseRadius)

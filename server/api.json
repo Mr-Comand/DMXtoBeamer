@@ -1,0 +1,65 @@
+GET /Client/list
+{
+    "clients": [
+        "clientID"
+    ]
+}
+/animation/list
+{
+    "animationID": {
+        "animationName": "animationName",
+        "ParameterName": {
+            "type": "bool/slider/string/textarea",
+            "min": 10,
+            "max": 15,
+            "columns": 10,
+            "rows"
+        },
+    }
+}
+POST /client/set
+request
+{
+    "clientID": "clintid/(empty for broadcast)",
+    "layers": [
+        {
+            "animationID": "animationID",
+            "parameterName": "parameterValue",
+            "enabled": true
+        },
+        {
+            "animationID": "animationID",
+            "parameterName": "parameterValue",
+            "enabled": true
+        }
+    ],
+    "dimmer":0-10,
+    "hueshift":0-360,
+    "rotate":-180-180,
+}
+response: {
+    "success": "message",
+    "error": "message"
+}
+
+
+POST /client/get
+request
+{
+    "clientID": "clientID",
+}
+response
+{
+    "layers": [
+        {
+            "animationID": "animationID",
+            "parameterName": "parameterValue",
+            "enabled": true
+        }
+    ],
+    "dimmer":0-10,
+    "hueshift":0-360,
+    "rotate":-180-180,
+    "pan":-100-100,
+    "tilt":-100-100,
+}

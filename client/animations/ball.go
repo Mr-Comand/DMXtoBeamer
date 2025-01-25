@@ -1,0 +1,95 @@
+package animations
+
+import (
+	"image/color"
+	"math/rand/v2"
+
+	"technikflg.com/dmxToProjector/ws"
+)
+
+type Balls struct {
+	Animation
+	balls      []Ball
+	peakVolume float32
+	dataMap    map[int]int
+	friction   float64
+}
+type Ball struct {
+	Particle
+	velocityX float64
+	velocityY float64
+	friction  *float64
+}
+
+func NewBallsAnimation(ballCount int) *Balls {
+	balls := Balls{
+		balls:    make([]Ball, ballCount),
+		dataMap:  make(map[int]int),
+		friction: 0.0001,
+	}
+	balls.peakVolume = 0.0
+	balls.dataMap = make(map[int]int)
+	for i := range balls.balls {
+		balls.balls[i].Init(rand.Float64()*50, 0, 500, &balls.friction)
+		balls.dataMap[i] = 0
+		// Assign random velocities
+		balls.balls[i].velocityY = rand.Float64()*10 - 5 // Random Y velocity between -10 and 10
+		balls.balls[i].velocityX = rand.Float64()*10 - 5 // Random X velocity between -5 and 5
+	}
+	return &balls
+}
+
+func (b *Ball) Init(size, x, y float64, friction *float64) {
+	b.velocityX = 0
+	b.velocityY = 0
+	b.Particle.Position.X = x
+	b.Particle.Position.Y = y
+	b.Particle.Color = color.RGBA{255, 0, 0, 255}
+	b.Particle.Size = size
+	b.friction = friction
+}
+
+func (b *Ball) Update() {
+	b.velocityX -= *b.friction * b.velocityX
+	b.velocityY -= *b.friction * b.velocityY
+	// Update positions
+	b.Particle.Position.X += b.velocityX
+	b.Particle.Position.Y += b.velocityY
+	// Collision detection and response with boundaries
+	if b.Particle.Position.X < -500 {
+		b.Particle.Position.X = -500
+		b.velocityX = -b.velocityX // Reverse velocity on collision
+	}
+	if b.Particle.Position.X > 500 {
+		b.Particle.Position.X = 500
+		b.velocityX = -b.velocityX // Reverse velocity on collision
+	}
+	if b.Particle.Position.Y < -500 {
+		b.Particle.Position.Y = -500
+		b.velocityY = -b.velocityY // Reverse velocity on collision
+	}
+	if b.Particle.Position.Y > 500 {
+		b.Particle.Position.Y = 500
+		b.velocityY = -b.velocityY // Reverse velocity on collision
+	}
+	// Debug output for testing
+	// fmt.Println("Friction:", *b.friction, "VelocityX:", b.velocityX, "VelocityY:", b.velocityY, "Position:", b.Particle.Position)
+}
+func (b *Balls) Render(*ws.AnimationConfig, *[]float64) {
+	for i := range b.balls {
+		b.balls[i].Update()
+		b.balls[i].Draw()
+		// b.dataMap[i] = int(b.balls[i].Particle.Position.Y)
+		if b.dataMap[i] > int(b.peakVolume) {
+			b.peakVolume = float32(b.dataMap[i])
+		}
+	}
+}
+func (b *Balls) Reset() {
+
+}
+func (b *Balls) Draw() {
+	for i := range b.balls {
+		b.balls[i].Draw()
+	}
+}

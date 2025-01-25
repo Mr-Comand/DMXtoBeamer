@@ -25,7 +25,7 @@ func InitAnimations() map[string]AnimationInterface {
 		Angle:     11,
 		Intensity: 0.18,
 	})
-	animations["ani10"] = NewAni10(500, 400, 300, 400, SpiralParams{
+	animations["ani10"] = NewAni10(300, 400, 300, 400, SpiralParams{
 
 		A:         1.20,
 		B:         0.76,
@@ -36,5 +36,6 @@ func InitAnimations() map[string]AnimationInterface {
 	animations["ani6"] = NewAni6(100, 400, 300, 10)
 	animations["8"] = NewShape8()
 	animations["square"] = NewSquare()
+	animations["balls"] = NewBallsAnimation(10)
 	return animations
 }
