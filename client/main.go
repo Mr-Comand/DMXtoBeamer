@@ -23,15 +23,9 @@ func main() {
 	// Initialize the window
 	defer rl.CloseWindow()
 	defer portaudio.Terminate()
-	// Connect to the WebSocket server
-	wsConn, err := ws.ConnectToWebSocket("ws://127.0.0.1:8080/ws") //?client_id=
-	if err != nil {
-		log.Fatal("Error connecting to WebSocket:", err)
-	}
-	defer wsConn.Close()
 
 	// Start the WebSocket listener in a goroutine
-	go ws.ListenWebSocket(wsConn)
+	go ws.ListenWebSocket("ws://127.0.0.1:8080/ws") //?client_id=
 
 	// Start animation loop
 	for !rl.WindowShouldClose() {

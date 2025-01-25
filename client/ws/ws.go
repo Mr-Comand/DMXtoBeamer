@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -12,6 +13,7 @@ import (
 var (
 	currentConfig ClientConfig
 	configMutex   sync.Mutex
+	reconnectWait = 1 * time.Second // Time to wait before attempting to reconnect
 )
 
 type ClientConfig struct {
@@ -20,42 +22,56 @@ type ClientConfig struct {
 	Rotate   int           `json:"rotate"`
 	Layers   []LayerConfig `json:"layers"`
 }
+
 type AnimationConfig map[string]interface{}
+
 type LayerConfig struct {
 	AnimationID string          `json:"animationID"`
 	Parameters  AnimationConfig `json:"parameters"`
 	Enabled     bool            `json:"enabled"`
 }
 
-// ConnectToWebSocket establishes a WebSocket connection to the given URL
-func ConnectToWebSocket(url string) (*websocket.Conn, error) {
-	ws, _, err := websocket.DefaultDialer.Dial(url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("error connecting to WebSocket: %w", err)
-	}
-	log.Printf("Connected to WebSocket server at %s\n", url)
-	return ws, nil
-}
+// ConnectToWebSocket establishes a WebSocket connection to the given URL with auto-reconnect
+func ConnectToWebSocket(url string) *websocket.Conn {
+	var ws *websocket.Conn
+	var err error
 
-// ListenWebSocket continuously listens for messages from the WebSocket server
-func ListenWebSocket(ws *websocket.Conn) {
 	for {
-		log.Printf("bbb")
-		_, message, err := ws.ReadMessage()
+		ws, _, err = websocket.DefaultDialer.Dial(url, nil)
 		if err != nil {
-			log.Printf("Error reading from WebSocket: %v\n", err)
-			return
-		}
-
-		var config ClientConfig
-		err = json.Unmarshal(message, &config)
-		if err != nil {
-			log.Printf("Error unmarshaling config: %v\n", err)
+			log.Printf("Failed to connect to WebSocket: %v. Retrying in %s...\n", err, reconnectWait)
+			time.Sleep(reconnectWait)
 			continue
 		}
-		log.Printf("aaaaaaaaaaaaaaa", err)
 
-		updateConfig(config)
+		log.Printf("Connected to WebSocket server at %s\n", url)
+		return ws
+	}
+}
+
+// ListenWebSocket continuously listens for messages from the WebSocket server with auto-reconnect
+func ListenWebSocket(url string) {
+	var ws *websocket.Conn
+
+	for {
+		ws = ConnectToWebSocket(url)
+		for {
+			_, message, err := ws.ReadMessage()
+			if err != nil {
+				log.Printf("Error reading from WebSocket: %v. Reconnecting...\n", err)
+				_ = ws.Close() // Ensure the connection is closed before reconnecting
+				break          // Exit the inner loop to reconnect
+			}
+
+			var config ClientConfig
+			err = json.Unmarshal(message, &config)
+			if err != nil {
+				log.Printf("Error unmarshaling config: %v\n", err)
+				continue
+			}
+
+			updateConfig(config)
+		}
 	}
 }
 
