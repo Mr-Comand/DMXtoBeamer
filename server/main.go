@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
@@ -27,40 +29,70 @@ type AnimationConfig struct {
 
 var config AnimationConfig
 
-var goClientConn *websocket.Conn
+// Mutex-protected map to store WebSocket connections
+var clients = make(map[string]*websocket.Conn)
+var clientsMutex = &sync.Mutex{}
+
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
 
 // Handle incoming WebSocket connection
 func handleWebSocket(w http.ResponseWriter, r *http.Request) {
-	// Upgrade HTTP connection to WebSocket
-	upgrader := websocket.Upgrader{
-		CheckOrigin: func(r *http.Request) bool {
-			return true
-		},
+	// Generate a unique client ID
+	clientID := r.URL.Query().Get("client_id")
+	if clientID == "" {
+		clientID = generateUniqueID()
 	}
+
+	// Upgrade HTTP connection to WebSocket
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("Error upgrading to WebSocket:", err)
 		return
 	}
-	defer conn.Close()
 
-	// Store the WebSocket connection to the Go client
-	goClientConn = conn
-	log.Println("Go client connected via WebSocket.")
-	err = sendToGoClient(config)
+	// Store the client connection
+	clientsMutex.Lock()
+	clients[clientID] = conn
+	clientsMutex.Unlock()
+	log.Printf("Client connected: %s", clientID)
+
+	// Notify the client of its assigned ID
+	err = conn.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf(`{"client_id": "%s"}`, clientID)))
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error sending to Go client: %v", err), http.StatusInternalServerError)
-		return
+		log.Printf("Error sending client ID to %s: %v", clientID, err)
 	}
-	// Loop to keep reading messages from Go client
+
+	// Send the current configuration to the newly connected client
+	err = sendToClient(clientID, config)
+	if err != nil {
+		log.Printf("Error sending initial config to %s: %v", clientID, err)
+	}
+
+	// Handle client communication
+	go handleClientMessages(clientID, conn)
+}
+
+// Handle client messages and disconnection
+func handleClientMessages(clientID string, conn *websocket.Conn) {
+	defer func() {
+		clientsMutex.Lock()
+		delete(clients, clientID)
+		clientsMutex.Unlock()
+		conn.Close()
+		log.Printf("Client disconnected: %s", clientID)
+	}()
+
 	for {
 		_, _, err := conn.ReadMessage()
 		if err != nil {
-			log.Println("Error reading from Go client WebSocket:", err)
+			log.Printf("Error reading from client %s: %v", clientID, err)
 			return
 		}
 	}
-
 }
 
 // Handle incoming REST API request to update configuration
@@ -72,11 +104,29 @@ func handleUpdateConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Relay the configuration to the Go client via WebSocket
-	err = sendToGoClient(config)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Error sending to Go client: %v", err), http.StatusInternalServerError)
-		return
+	// Get the client ID from query parameters
+	clientID := r.URL.Query().Get("client_id")
+
+	clientsMutex.Lock()
+	defer clientsMutex.Unlock()
+
+	if clientID != "" {
+		// Send the configuration to the specified client
+		err = sendToClient(clientID, config)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error sending to client %s: %v", clientID, err), http.StatusInternalServerError)
+			return
+		}
+		log.Printf("Configuration sent to client: %s", clientID)
+	} else {
+		// Broadcast the configuration to all connected clients
+		for id := range clients {
+			err = sendToClient(id, config)
+			if err != nil {
+				log.Printf("Error sending to client %s: %v", id, err)
+			}
+		}
+		log.Println("Configuration broadcasted to all clients.")
 	}
 
 	// Respond with success
@@ -84,10 +134,11 @@ func handleUpdateConfig(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Configuration updated successfully.")
 }
 
-// Send configuration to Go client via WebSocket
-func sendToGoClient(config AnimationConfig) error {
-	if goClientConn == nil {
-		return fmt.Errorf("Go client is not connected")
+// Send configuration to a specific client
+func sendToClient(clientID string, config AnimationConfig) error {
+	conn, ok := clients[clientID]
+	if !ok {
+		return fmt.Errorf("Client %s is not connected", clientID)
 	}
 
 	// Marshal the configuration to JSON
@@ -96,19 +147,27 @@ func sendToGoClient(config AnimationConfig) error {
 		return err
 	}
 
-	// Send the configuration to the Go client
-	err = goClientConn.WriteMessage(websocket.TextMessage, message)
+	// Send the configuration to the client
+	err = conn.WriteMessage(websocket.TextMessage, message)
 	if err != nil {
-		return err
+		clientsMutex.Lock()
+		delete(clients, clientID)
+		clientsMutex.Unlock()
+		return fmt.Errorf("Error sending to client %s: %v", clientID, err)
 	}
 
 	return nil
 }
 
+// Generate a unique ID for clients
+func generateUniqueID() string {
+	return fmt.Sprintf("%d", time.Now().UnixNano())
+}
+
 func main() {
 	// Setup router
 	r := mux.NewRouter()
-	r.HandleFunc("/ws", handleWebSocket)                               // WebSocket endpoint for Go client
+	r.HandleFunc("/ws", handleWebSocket)                               // WebSocket endpoint for clients
 	r.HandleFunc("/update-config", handleUpdateConfig).Methods("POST") // REST API endpoint for configuration
 
 	// Serve static files (if you want to serve a web page from this server)

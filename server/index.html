@@ -46,9 +46,12 @@
     
     <label for="zoom">Zoom:</label>
     <input type="number" id="zoom" value="10">
-
+    <label for="clientID">Target Client ID (Leave blank for broadcast):</label>
+    
+    <input type="text" id="clientID" placeholder="Enter Client ID (optional)">
+    
     <button id="sendConfig">Send Config to Go Client</button>
-
+    
     <script>
         // Send configuration data to the server via REST API (POST request)
         document.getElementById("sendConfig").addEventListener("click", function() {
@@ -65,20 +68,26 @@
                 rotate: parseInt(document.getElementById("rotate").value),
                 zoom: parseInt(document.getElementById("zoom").value),
             };
-
+    
+            // Get client ID from the input field
+            const clientID = document.getElementById("clientID").value;
+    
+            // Construct the URL with the client ID as a query parameter (if provided)
+            const url = clientID ? `/update-config?client_id=${encodeURIComponent(clientID)}` : '/update-config';
+    
             // Make an HTTP POST request to send config to the server
-            fetch('/update-config', {
+            fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(config),
             })
-            .then(response => {r = response.text()})
-            .then(data => alert("Configuration updated: "+r))
+            .then(response => response.text())
+            .then(data => alert("Configuration updated: " + data))
             .catch((error) => alert("Error updating config: " + error));
         });
     </script>
-
+    
 </body>
 </html>
