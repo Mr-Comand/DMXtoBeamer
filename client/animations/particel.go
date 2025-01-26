@@ -18,7 +18,7 @@ type Position struct {
 	X, Y float64
 }
 
-func asColor(r, g, b int) color.RGBA {
+func AsColor(r, g, b int) color.RGBA {
 	// Simple color normalization based on max intensity
 	peakVolume := math.Max(float64(r), math.Max(float64(g), float64(b)))
 	// maxIntensity := math.Max(float64(r), math.Max(float64(g), float64(b)))
@@ -40,5 +40,4 @@ func (p *Particle) Draw() {
 		return
 	}
 	rl.DrawCircle(int32(p.Position.X), int32(p.Position.Y), float32(p.Size), p.Color)
-	// fmt.Println(int32(p.Position.X), int32(p.Position.Y), float32(p.Size), p.Color)
 }

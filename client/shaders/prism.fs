@@ -1,15 +1,14 @@
 #version 330
 
-// Input from the vertex shader
-in vec2 fragTexCoord;   // Texture coordinates for the fragment
-in vec4 fragColor;      // Color from vertex shader (not used, but could be)
-
-// Output color of the fragment
+in vec2 fragTexCoord;
 out vec4 finalColor;
 
-// Uniforms (input values)
-uniform sampler2D texture0; // Main texture of the image
+uniform sampler2D texture0;  // The input texture (previous result or the scene)
+uniform float time;          // Time-based animation for the ripple effect
 
 void main() {
-    finalColor = texture(texture0, fragTexCoord); // Sample the texture at the given UV coordinates
+    // Applying a ripple effect using the sine function for distortion
+    vec2 uv = fragTexCoord;
+    uv.x += sin(uv.y * 10.0 + time * 2.0) * 0.05; // Apply distortion based on Y
+    finalColor = texture(texture0, uv); // Sample from the texture with the new distorted coordinates
 }

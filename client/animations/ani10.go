@@ -91,7 +91,7 @@ func (a *Ani10) Render(config *ws.AnimationConfig, data *[]float64) {
 
 		// Update size and color based on data
 		particle.Size = math.Log(float64(value)/10 + 1)
-		particle.Color = asColor(int(a.getValue(10%len(a.Particles), values)), int(a.getValue(100%len(a.Particles), values)), int(a.getValue(200%len(a.Particles), values)))
+		particle.Color = AsColor(int(a.getValue(10%len(a.Particles), values)), int(a.getValue(100%len(a.Particles), values)), int(a.getValue(200%len(a.Particles), values)))
 		particle.Draw()
 	}
 

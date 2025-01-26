@@ -24,18 +24,49 @@ request
     "layers": [
         {
             "animationID": "animationID",
-            "parameterName": "parameterValue",
-            "enabled": true
+            "parameters": {
+                "{parameterName}": "{parameterValue}",
+            },
+            "shader":"{shername}",
+            "shaderParameters":{
+                "{parameterName}": "{parameterValue}",
+            },
+            "textureShaderOrder":["shaderName"],
+            "textureShaders":{"shaderName":{"{parameterName}": "{parameterValue}",}},
+            "enabled": true,
+            "dimmer": 0-255,
+            "hueshift": 0-65535, //int 0 unchanged; 65535=360°
+            "rotate": -32768-32767, //int 0 center; -32768 -180°; 32767 +180°
+            "pan": -32768-32767, //int 0 center; -32768 -100vh; 32767 +100vh
+            "tilt": -32768-32767, //int 0 center; -32768 -100vw; 32767 +100vw
+            "scale": 0-255, //int 0=0x 25=1x 255=10.2x
         },
         {
             "animationID": "animationID",
-            "parameterName": "parameterValue",
-            "enabled": true
-        }
+            "parameters": {
+                "{parameterName}": "{parameterValue}",
+            },
+            "shader":"{shername}",
+            "shaderParameters":{
+                "{parameterName}": "{parameterValue}",
+            },
+            "textureShaderOrder":["shaderName"],
+            "textureShaders":{"shaderName":{"{parameterName}": "{parameterValue}",}},
+            "enabled": true,
+            "dimmer": 0-255,
+            "hueshift": 0-65535, //int 0 unchanged; 65535=360°
+            "rotate": -32768-32767, //int 0 center; -32768 -180°; 32767 +180°
+            "pan": -32768-32767, //int 0 center; -32768 -100vh; 32767 +100vh
+            "tilt": -32768-32767, //int 0 center; -32768 -100vw; 32767 +100vw
+            "scale": 0-255, //int 0=0x 25=1x 255=10.2x
+        },
     ],
-    "dimmer":0-10,
-    "hueshift":0-360,
-    "rotate":-180-180,
+    "dimmer": 0-255,
+    "hueshift": 0-65535, //int 0 unchanged; 65535=360°
+    "rotate": -32768-32767, //int 0 center; -32768 -180°; 32767 +180°
+    "pan": -32768-32767, //int 0 center; -32768 -100vh; 32767 +100vh
+    "tilt": -32768-32767, //int 0 center; -32768 -100vw; 32767 +100vw
+    "scale": 0-255, //int 0=0x 25=1x 255=10.2x
 }
 response: {
     "success": "message",
@@ -53,13 +84,28 @@ response
     "layers": [
         {
             "animationID": "animationID",
-            "parameterName": "parameterValue",
-            "enabled": true
-        }
+            "parameters": {
+                "{parameterName}": "{parameterValue}",
+            },
+            "shader":"{shername}",
+            "shaderParameters":{
+                "{parameterName}": "{parameterValue}",
+            },
+            "textureShaderOrder":["shaderName"],
+            "textureShaders":{"shaderName":{"{parameterName}": "{parameterValue}",}},
+            "enabled": true,
+            "dimmer": 0-255,
+            "hueshift": 0-65535, //int 0 unchanged; 65535=360°
+            "rotate": -32768-32767, //int 0 center; -32768 -180°; 32767 +180°
+            "pan": -32768-32767, //int 0 center; -32768 -100vh; 32767 +100vh
+            "tilt": -32768-32767, //int 0 center; -32768 -100vw; 32767 +100vw
+            "scale": 0-255, //int 0=0x 25=1x 255=10.2x
+        },
     ],
-    "dimmer":0-10,
-    "hueshift":0-360,
-    "rotate":-180-180,
-    "pan":-100-100,
-    "tilt":-100-100,
+    "dimmer": 0-255,
+    "hueshift": 0-65535, //int 0 unchanged; 65535=360°
+    "rotate": -32768-32767, //int 0 center; -32768 -180°; 32767 +180°
+    "pan": -32768-32767, //int 0 center; -32768 -100vh; 32767 +100vh
+    "tilt": -32768-32767, //int 0 center; -32768 -100vw; 32767 +100vw
+    "scale": 0-255, //int 0=0x 25=1x 255=10.2x
 }

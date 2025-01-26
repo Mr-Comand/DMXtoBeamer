@@ -5,12 +5,13 @@ import (
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"technikflg.com/dmxToProjector/animations"
+	"technikflg.com/dmxToProjector/window/shaders"
 	"technikflg.com/dmxToProjector/ws"
 )
 
 const (
-	WindowWidth  = 1536
-	WindowHeight = 1536
+	WindowWidth  = 500
+	WindowHeight = 500
 )
 
 var (
@@ -41,13 +42,8 @@ func InitWindow() {
 	bufferSize := 512 * 8                      // Number of samples per buffer
 	deviceIndex = -1                           // Default device index
 	audioDataChannel = make(chan []float64, 1) // Channel with buffer size 1 to hold only the latest data
-
 	InitAudioProcessor(bufferSize, deviceIndex)
-
-	// Initialize the audio data channel
-
-	// List available audio devices
-	// listAudioDevices()
+	shaders.InitShaders()
 }
 
 func Render() {
@@ -64,12 +60,12 @@ func Render() {
 		}
 	}
 	// Get the current window dimensions for scaling
-	windowWidth := rl.GetScreenWidth()
-	windowHeight := rl.GetScreenHeight()
+	// windowWidth := rl.GetScreenWidth()
+	// windowHeight := rl.GetScreenHeight()
 
-	// Calculate the scaling factors for the window
-	scaleX := float32(windowWidth) / float32(1000)
-	scaleY := float32(windowHeight) / float32(1000)
+	// // Calculate the scaling factors for the window
+	// scaleX := float32(windowWidth) / float32(1000)
+	// scaleY := float32(windowHeight) / float32(1000)
 
 	// Clear the screen
 	rl.BeginDrawing()
@@ -84,7 +80,7 @@ func Render() {
 	if showPopup {
 		displayAudioDeviceSelection()
 	}
-	rl.BeginMode2D(rl.NewCamera2D(rl.Vector2{X: float32(windowWidth / 2), Y: float32(windowHeight / 2)}, rl.Vector2{X: 500, Y: 500}, 0.0, min(scaleX, scaleY)))
+	// rl.BeginMode2D(rl.NewCamera2D(rl.Vector2{X: float32(windowWidth / 2), Y: float32(windowHeight / 2)}, rl.Vector2{X: 500, Y: 500}, 0.0, min(scaleX, scaleY)))
 
 	// Retrieve the latest audio data from the channel (non-blocking)
 	select {
@@ -105,19 +101,46 @@ func Render() {
 
 // Function to handle animation based on the configuration
 func handleAnimation(config ws.ClientConfig, audioData *[]float64) {
-	// fmt.Println("config:", config)
+	// Get the current window dimensions for scaling
+	windowWidth := rl.GetScreenWidth()
+	windowHeight := rl.GetScreenHeight()
 
-	for _, v := range config.Layers {
-		if !v.Enabled {
-			fmt.Println("skipt :", v.AnimationID, v.Parameters)
+	// Calculate the scaling factors for the window
+	scaleX := float32(windowWidth) / float32(1000)
+	scaleY := float32(windowHeight) / float32(1000)
+	for _, l := range config.Layers {
+		if !l.Enabled {
+			fmt.Println("skipped :", l.AnimationID, l.Parameters)
 			continue
 		}
-		animation := animationMap[v.AnimationID]
+		animation := animationMap[l.AnimationID]
 		if animation != nil {
-			(animation).Render(&v.Parameters, audioData)
+			shaders.SetupTextureShader("hueShift", map[string]interface{}{"HueShift": float32(config.HueShift)/65535 + float32(l.HueShift)/65535})
+			shaders.StartTextureShader("hueShift")
+			rl.BeginMode2D(rl.NewCamera2D(rl.Vector2{X: float32(windowWidth / 2), Y: float32(windowHeight / 2)}, rl.Vector2{X: 500 + float32(l.Tilt/32767)*1000, Y: 500 + float32(l.Tilt/32767)*1000}, float32(l.Rotate)/91, min(scaleX, scaleY)*(float32(config.Scale)/25*float32(l.Scale)/25)))
+			if l.Shader != "" {
+				shaders.SetupTextureShader(l.Shader, l.ShaderParameters)
+				shaders.StartElementShader(l.Shader)
+			}
+			(animation).Render(&l.Parameters, audioData)
+			if l.Shader != "" {
+				shaders.EndElementShader(l.Shader)
+			}
+			rl.EndMode2D()
+			if len(l.TextureShader) > 0 {
+				lastShader := "hueShift"
+				for _, name := range l.TextureShaderOrder {
+					shaders.SetupTextureShader(name, l.TextureShader[name])
+					shaders.AnotherTextureShader(lastShader, name)
+					lastShader = name
+				}
+				shaders.EndTextureShader(lastShader)
+
+			} else {
+				shaders.EndTextureShader("hueShift")
+			}
 		} else {
-			fmt.Println("Unknown animation type:", v.AnimationID, v.Parameters)
+			fmt.Println("Unknown animation type:", l.AnimationID, l.Parameters)
 		}
 	}
-
 }

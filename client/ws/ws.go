@@ -17,18 +17,30 @@ var (
 )
 
 type ClientConfig struct {
-	Dimmer   int           `json:"dimmer"`
-	HueShift int           `json:"hueshift"`
-	Rotate   int           `json:"rotate"`
+	Dimmer   uint8         `json:"dimmer"`
+	HueShift uint16        `json:"hueShift"`
+	Rotate   int16         `json:"rotate"`
+	Pan      int16         `json:"pan"`
+	Tilt     int16         `json:"tilt"`
+	Scale    uint8         `json:"scale"`
 	Layers   []LayerConfig `json:"layers"`
 }
-
 type AnimationConfig map[string]interface{}
 
 type LayerConfig struct {
-	AnimationID string          `json:"animationID"`
-	Parameters  AnimationConfig `json:"parameters"`
-	Enabled     bool            `json:"enabled"`
+	AnimationID        string                            `json:"animationID"`
+	Parameters         AnimationConfig                   `json:"parameters"`
+	Enabled            bool                              `json:"enabled"`
+	Dimmer             uint8                             `json:"dimmer"`
+	HueShift           uint16                            `json:"hueShift"`
+	Rotate             int16                             `json:"rotate"`
+	Pan                int16                             `json:"pan"`
+	Tilt               int16                             `json:"tilt"`
+	Scale              uint8                             `json:"scale"`
+	Shader             string                            `json:"shader"`
+	ShaderParameters   map[string]interface{}            `json:"shaderParameters"`
+	TextureShader      map[string]map[string]interface{} `json:"textureShaders"`
+	TextureShaderOrder []string                          `json:"textureShaderOrder"`
 }
 
 // ConnectToWebSocket establishes a WebSocket connection to the given URL with auto-reconnect

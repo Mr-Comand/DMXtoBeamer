@@ -4,6 +4,8 @@ import (
 	"image/color"
 	"math/rand/v2"
 
+	rl "github.com/gen2brain/raylib-go/raylib"
+
 	"technikflg.com/dmxToProjector/ws"
 )
 
@@ -33,8 +35,8 @@ func NewBallsAnimation(ballCount int) *Balls {
 		balls.balls[i].Init(rand.Float64()*50, 0, 500, &balls.friction)
 		balls.dataMap[i] = 0
 		// Assign random velocities
-		balls.balls[i].velocityY = rand.Float64()*10 - 5 // Random Y velocity between -10 and 10
-		balls.balls[i].velocityX = rand.Float64()*10 - 5 // Random X velocity between -5 and 5
+		balls.balls[i].velocityY = rand.Float64()*8 - 4 // Random Y velocity between -10 and 10
+		balls.balls[i].velocityX = rand.Float64()*8 - 4 // Random X velocity between -5 and 5
 	}
 	return &balls
 }
@@ -50,30 +52,41 @@ func (b *Ball) Init(size, x, y float64, friction *float64) {
 }
 
 func (b *Ball) Update() {
+	windowWidth := float64(rl.GetScreenWidth())
+	windowHeight := float64(rl.GetScreenHeight())
+
+	// Calculate the scaling factors for the window
+	scaleX := float64(windowWidth) / float64(1000)
+	scaleY := float64(windowHeight) / float64(1000)
+	if windowWidth < windowHeight {
+
+		scaleY *= scaleX
+	} else if windowWidth > windowHeight {
+		scaleX *= scaleY
+	} else {
+	}
 	b.velocityX -= *b.friction * b.velocityX
 	b.velocityY -= *b.friction * b.velocityY
 	// Update positions
 	b.Particle.Position.X += b.velocityX
 	b.Particle.Position.Y += b.velocityY
 	// Collision detection and response with boundaries
-	if b.Particle.Position.X < -500 {
-		b.Particle.Position.X = -500
+	if b.Particle.Position.X < 500-(1000*scaleX) {
+		b.Particle.Position.X = 500 - (1000 * scaleX)
 		b.velocityX = -b.velocityX // Reverse velocity on collision
 	}
-	if b.Particle.Position.X > 500 {
-		b.Particle.Position.X = 500
+	if b.Particle.Position.X > 500+(1000*scaleX) {
+		b.Particle.Position.X = 500 + (1000 * scaleX)
 		b.velocityX = -b.velocityX // Reverse velocity on collision
 	}
-	if b.Particle.Position.Y < -500 {
-		b.Particle.Position.Y = -500
+	if b.Particle.Position.Y < 500-(1000*scaleY) {
+		b.Particle.Position.Y = 500 - (1000 * scaleY)
 		b.velocityY = -b.velocityY // Reverse velocity on collision
 	}
-	if b.Particle.Position.Y > 500 {
-		b.Particle.Position.Y = 500
+	if b.Particle.Position.Y > 500+(1000*scaleY) {
+		b.Particle.Position.Y = 500 + (1000 * scaleY)
 		b.velocityY = -b.velocityY // Reverse velocity on collision
 	}
-	// Debug output for testing
-	// fmt.Println("Friction:", *b.friction, "VelocityX:", b.velocityX, "VelocityY:", b.velocityY, "Position:", b.Particle.Position)
 }
 func (b *Balls) Render(*ws.AnimationConfig, *[]float64) {
 	for i := range b.balls {

@@ -26,20 +26,32 @@ type Animation struct {
 	AnimationName string               `json:"animationName"`
 	Parameters    map[string]Parameter `json:"ParameterName"`
 }
+type AnimationConfig map[string]interface{}
 
 type Layer struct {
-	AnimationID   string `json:"animationID"`
-	ParameterName string `json:"parameterName"`
-	Enabled       bool   `json:"enabled"`
+	AnimationID        string                            `json:"animationID"`
+	Parameters         AnimationConfig                   `json:"parameters"`
+	Enabled            bool                              `json:"enabled"`
+	Dimmer             uint8                             `json:"dimmer"`
+	HueShift           uint16                            `json:"hueShift"`
+	Rotate             int16                             `json:"rotate"`
+	Pan                int16                             `json:"pan"`
+	Tilt               int16                             `json:"tilt"`
+	Scale              uint8                             `json:"scale"`
+	Shader             string                            `json:"shader"`
+	ShaderParameters   map[string]interface{}            `json:"shaderParameters"`
+	TextureShader      map[string]map[string]interface{} `json:"textureShaders"`
+	TextureShaderOrder []string                          `json:"textureShaderOrder"`
 }
 
 type ClientConfig struct {
 	Layers   []Layer `json:"layers"`
-	Dimmer   int     `json:"dimmer"`
-	HueShift int     `json:"hueshift"`
-	Rotate   int     `json:"rotate"`
-	Pan      int     `json:"pan"`
-	Tilt     int     `json:"tilt"`
+	Dimmer   uint8   `json:"dimmer"`
+	HueShift uint16  `json:"hueshift"`
+	Rotate   int16   `json:"rotate"`
+	Pan      int16   `json:"pan"`
+	Tilt     int16   `json:"tilt"`
+	Scale    uint8   `json:"scale"`
 }
 
 var clientConfigs = make(map[string]ClientConfig)
@@ -86,14 +98,16 @@ func handleAnimationList(w http.ResponseWriter, r *http.Request) {
 }
 
 // POST /client/set
-// POST /client/set
 func handleClientSet(w http.ResponseWriter, r *http.Request) {
 	var request struct {
 		ClientID string  `json:"clientID"`
 		Layers   []Layer `json:"layers"`
-		Dimmer   int     `json:"dimmer"`
-		HueShift int     `json:"hueshift"`
-		Rotate   int     `json:"rotate"`
+		Dimmer   uint8   `json:"dimmer"`
+		HueShift uint16  `json:"hueshift"`
+		Rotate   int16   `json:"rotate"`
+		Pan      int16   `json:"pan"`
+		Tilt     int16   `json:"tilt"`
+		Scale    uint8   `json:"scale"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -106,6 +120,9 @@ func handleClientSet(w http.ResponseWriter, r *http.Request) {
 		Dimmer:   request.Dimmer,
 		HueShift: request.HueShift,
 		Rotate:   request.Rotate,
+		Pan:      request.Pan,
+		Tilt:     request.Tilt,
+		Scale:    request.Scale,
 	}
 
 	if request.ClientID == "" {
@@ -199,6 +216,13 @@ func main() {
 		clientMapMutex.Lock()
 		clientMap[clientID] = conn
 		clientMapMutex.Unlock()
+		config, exists := clientConfigs[clientID]
+		if exists {
+			// Send the updated configuration to the client
+			if err := conn.WriteJSON(config); err != nil {
+				log.Printf("Error sending config to client %s: %v", clientID, err)
+			}
+		}
 
 		log.Printf("Client connected: %s", clientID)
 
