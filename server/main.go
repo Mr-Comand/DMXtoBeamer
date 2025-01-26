@@ -186,7 +186,10 @@ func main() {
 
 	// WebSocket endpoint
 	r.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		clientID := generateUniqueID()
+		clientID := r.URL.Query().Get("client_id")
+		if clientID == "" {
+			clientID = generateUniqueID()
+		}
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			log.Println("Error upgrading to WebSocket:", err)

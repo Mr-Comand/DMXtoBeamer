@@ -1,8 +1,12 @@
 package main
 
 import (
+	"bufio"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"regexp"
 
 	_ "net/http/pprof" // Import the pprof package
 
@@ -13,23 +17,118 @@ import (
 	"technikflg.com/dmxToProjector/ws"
 )
 
+var ClientId string
+
+func adjustWebSocketURL(input, clientId string) (string, bool) {
+	// Define the regex for WebSocket URL validation
+	urlRegex := regexp.MustCompile(`^(.+?\:\/\/)?(\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})(:\d+)(\/[^?\n]*?)?(?:\?(.*?&)?client_id=([^&\n]*)?(&.*)?|\?(.*))?$`)
+	matches := urlRegex.FindStringSubmatch(input)
+	if len(matches) == 0 {
+		return "", false // Return empty if the input doesn't match at all
+	}
+
+	// If group 1 (protocol) is empty, set it to "ws://"
+	if matches[1] == "" {
+		matches[1] = "ws://"
+	}
+
+	// If group 4 (path) is empty, set it to "/ws"
+	if matches[4] == "" {
+		matches[4] = "/ws"
+	}
+	query := ""
+	if matches[5] == "" && matches[6] == "" && matches[7] == "" && matches[8] == "" {
+		if clientId == "" {
+			fmt.Print("Please enter the ClientName: ")
+			scanner := bufio.NewScanner(os.Stdin)
+			if scanner.Scan() {
+				clientId = scanner.Text()
+			}
+		}
+		query = "client_id=" + clientId
+	} else {
+		if matches[8] != "" {
+			query = matches[8]
+			if clientId == "" {
+				fmt.Print("Please enter the ClientName: ")
+				scanner := bufio.NewScanner(os.Stdin)
+				if scanner.Scan() {
+					clientId = scanner.Text()
+				}
+			}
+			query += "&client_id=" + clientId
+
+		} else {
+			query = matches[5]
+			if matches[6] == "" {
+				if clientId == "" {
+					fmt.Print("Please enter the ClientName: ")
+					scanner := bufio.NewScanner(os.Stdin)
+					if scanner.Scan() {
+						clientId = scanner.Text()
+					}
+				}
+				query += "client_id=" + clientId
+			} else {
+				query += "client_id=" + matches[6]
+			}
+			query += matches[7]
+		}
+	}
+	// Reconstruct the full URL
+	return matches[1] + matches[2] + matches[3] + matches[4] + "?" + query, true
+}
 func main() {
 
+	// Check if a config is provided as a command-line argument
+	var valid bool
+	ClientId = ""
+	wsURL := ""
+	if len(os.Args) == 2 {
+		wsURL, valid = adjustWebSocketURL(os.Args[1], "")
+		if !valid {
+			ClientId = wsURL
+			// If not provided, prompt the user for input
+			fmt.Print("Please enter the WebSocket URL: ")
+			scanner := bufio.NewScanner(os.Stdin)
+			if scanner.Scan() {
+				wsURL, valid = adjustWebSocketURL(scanner.Text(), ClientId)
+			}
+		}
+	} else if len(os.Args) > 2 {
+		wsURL, valid = adjustWebSocketURL(os.Args[1], os.Args[2])
+		if !valid {
+			ClientId = os.Args[1]
+			wsURL, valid = adjustWebSocketURL(os.Args[2], ClientId)
+		}
+	} else {
+		fmt.Print("Please enter the WebSocket URL: ")
+		scanner := bufio.NewScanner(os.Stdin)
+		if scanner.Scan() {
+			wsURL, valid = adjustWebSocketURL(scanner.Text(), "")
+		}
+	}
+
+	// Validate the URL (basic check)
+	if wsURL == "" || !valid {
+		log.Fatal("WebSocket URL must be provided")
+	}
+
+	// Start the pprof HTTP server for diagnostics
 	go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
 
-	window.InitWindow()
 	// Initialize the window
+	window.InitWindow()
 	defer rl.CloseWindow()
 	defer portaudio.Terminate()
 
 	// Start the WebSocket listener in a goroutine
-	go ws.ListenWebSocket("ws://127.0.0.1:8080/ws") //?client_id=
+	go ws.ListenWebSocket(wsURL)
 
 	// Start animation loop
 	for !rl.WindowShouldClose() {
 		window.Render()
 	}
-
 }
