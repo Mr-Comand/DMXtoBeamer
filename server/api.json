@@ -1,15 +1,15 @@
-GET /Client/list
+GET /api/client/list
 {
     "clients": [
         "clientID"
     ]
 }
-/animation/list
+/api/animation/list
 {
     "animationID": {
         "animationName": "animationName",
         "ParameterName": {
-            "type": "bool/slider/string/textarea/number/Color",
+            "type": "bool/slider/string/textarea/number/color",
             "min": 10,
             "max": 15,
             "columns": 10,
@@ -43,10 +43,9 @@ GET /Client/list
         }
     },
 }
-POST /client/set
+POST /api/client/set/{clintID/(empty for broadcast)}
 request
 {
-    "clientID": "clintid/(empty for broadcast)",
     "layers": [ //last layer rendert on top
         {
             "layerID": 1,// Random ID to detect order changes (can just be incremental) (uint16)
@@ -114,11 +113,7 @@ response: {
 }
 
 
-POST /client/get
-request
-{
-    "clientID": "clientID",
-}
+GET /api/client/get/{clientID}
 response
 {
     "layers": [

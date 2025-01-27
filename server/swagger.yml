@@ -1,0 +1,325 @@
+openapi: 3.0.1
+info:
+  title: Animation Control API
+  description: API for managing animations, shaders, and client configurations.
+  version: 1.0.0
+servers:
+  - url: http://127.0.0.1:8080
+paths:
+  /api/animation/list:
+    get:
+      tags:
+        - Animations
+      summary: List all available animations
+      responses:
+        '200':
+          description: List of animations
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: 
+                  $ref: '#/components/schemas/AnimationDefinition'
+        '500':
+          description: Internal server error
+  /api/animation/get/{shaderID}:
+    get:
+      tags:
+        - Animations
+      summary: Get details of a specific animation
+      parameters:
+        - name: shaderID
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the animation to retrieve
+      responses:
+        '200':
+          description: Animation details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnimationDefinition'
+        '404':
+          description: Animation not found
+        '400':
+          description: Bad request
+  /api/animation/image/{shaderID}:
+    get:
+      tags:
+        - Animations
+      summary: Get the image associated with an animation
+      parameters:
+        - name: shaderID
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the animation
+      responses:
+        '200':
+          description: Returns the image
+        '404':
+          description: Image not found
+        '400':
+          description: Bad request
+  /api/shader/list:
+    get:
+      tags:
+        - Shaders
+      summary: List all available shaders
+      responses:
+        '200':
+          description: List of shaders
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: 
+                  $ref: '#/components/schemas/ShaderDefinition'
+        '500':
+          description: Internal server error
+  /api/shader/get/{shaderID}:
+    get:
+      tags:
+        - Shaders
+      summary: Get details of a specific shader
+      parameters:
+        - name: shaderID
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the shader to retrieve
+      responses:
+        '200':
+          description: Shader details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShaderDefinition'
+        '404':
+          description: Shader not found
+        '400':
+          description: Bad request
+  /api/shader/image/{shaderID}:
+    get:
+      tags:
+        - Shaders
+      summary: Get the image associated with a shader
+      parameters:
+        - name: shaderID
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the shader
+      responses:
+        '200':
+          description: Returns the image
+        '404':
+          description: Image not found
+        '400':
+          description: Bad request
+  /api/client/list:
+    get:
+      tags:
+        - Clients
+      summary: List all connected clients
+      responses:
+        '200':
+          description: List of connected clients
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  clients:
+                    type: array
+                    items:
+                      type: string
+        '500':
+          description: Internal server error
+  /api/client/set/{clientID}:
+    post:
+      tags:
+        - Clients
+      summary: Set configuration for a specific client
+      parameters:
+        - name: clientID
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the client (leave empty to broadcast to all clients)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientConfig'
+      responses:
+        '200':
+          description: Success message
+        '400':
+          description: Bad request
+  /api/client/set/:
+    post:
+      tags:
+        - Clients
+      summary: Set configuration for all clients
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientConfig'
+      responses:
+        '200':
+          description: Success message
+        '400':
+          description: Bad request
+  /api/client/get/{clientID}:
+    get:
+      tags:
+        - Clients
+      summary: Get configuration of a specific client
+      parameters:
+        - name: clientID
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the client
+      responses:
+        '200':
+          description: Client configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientConfig'
+        '400':
+          description: Bad request
+components:
+  schemas:
+    Layer:
+      type: object
+      properties:
+        layerID:
+          type: integer
+        animationID:
+          type: string
+        parameters:
+          type: object
+          additionalProperties:
+            anyOf:
+              - type: integer
+              - type: boolean
+              - type: string
+              - type: number
+        enabled:
+          type: integer
+        dimmer:
+          type: integer
+        hueShift:
+          type: integer
+        rotate:
+          type: integer
+        pan:
+          type: integer
+        tilt:
+          type: integer
+        scale:
+          type: integer
+        shader:
+          type: string
+        shaderParameters:
+          type: object
+          additionalProperties: {type: number}
+        textureShaders:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties:
+              type: number
+          example: {shaderName1: {parameterName1: 0.5, parameterName2: 100},shaderName2: {parameterName1: 0.5, parameterName2: 100}}
+        textureShaderOrder:
+          type: array
+          items:
+            type: string
+    ClientConfig:
+      type: object
+      properties:
+        layers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Layer'
+        dimmer:
+          type: integer
+        hueShift:
+          type: integer
+        rotate:
+          type: integer
+        pan:
+          type: integer
+        tilt:
+          type: integer
+        scale:
+          type: integer
+    AnimationParameterDefinition:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - bool
+            - slider
+            - string
+            - textarea
+            - number
+            - color
+        min:
+          type: number
+        max:
+          type: number
+        stepSize:
+          type: number
+        default:
+          oneOf:
+            - type: boolean
+            - type: string
+            - type: number
+        columns:
+          type: integer
+        rows:
+          type: integer
+    AnimationDefinition:
+      type: object
+      properties:
+        animationName:
+          type: string
+        parameters:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/AnimationParameterDefinition'
+    ShaderParameterDefinition:
+      type: object
+      properties:
+        min:
+          type: number
+        max:
+          type: number
+        stepSize:
+          type: number
+        default:
+          type: number
+    ShaderDefinition:
+      type: object
+      properties:
+        shaderName:
+          type: string
+        parameters:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ShaderParameterDefinition'

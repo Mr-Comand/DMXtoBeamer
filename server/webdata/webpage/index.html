@@ -54,15 +54,15 @@
             }];
 
             const config = {
-                clientID: document.getElementById("clientID").value || "",
+                
                 layers: layers,
                 dimmer: parseInt(document.getElementById("dimmer").value),
                 hueshift: parseInt(document.getElementById("hueshift").value),
                 rotate: parseInt(document.getElementById("rotate").value),
                 scale: parseInt(document.getElementById("scale").value),
             };
-
-            fetch("/client/set", {
+            clientIDvalue = document.getElementById("clientID").value || "",
+            fetch("/client/set/"+clientIDvalue, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
