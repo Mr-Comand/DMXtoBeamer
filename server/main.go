@@ -29,6 +29,7 @@ type Animation struct {
 type AnimationConfig map[string]interface{}
 
 type Layer struct {
+	LayerID            uint16                            `json:"layerID"`
 	AnimationID        string                            `json:"animationID"`
 	Parameters         AnimationConfig                   `json:"parameters"`
 	Enabled            bool                              `json:"enabled"`
