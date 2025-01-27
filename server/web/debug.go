@@ -122,11 +122,11 @@ func HandleAnimationGetImage(w http.ResponseWriter, r *http.Request) {
 }
 
 // GET /shader/list
-func HandleShaderList(w http.ResponseWriter, r *http.Request) {
+func HandleTextureShaderList(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// Base directory
-	baseDir := "./web/webdata/shaders"
+	baseDir := "./web/webdata/textureShaders"
 
 	// Map to hold the result
 	animationData := make(map[string]interface{})
@@ -168,7 +168,7 @@ func HandleShaderList(w http.ResponseWriter, r *http.Request) {
 }
 
 // GET /api/shader/get/{shaderID}
-func HandleShaderGet(w http.ResponseWriter, r *http.Request) {
+func HandleTextureShaderGet(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	shaderID, exists := vars["shaderID"]
 	if !exists {
@@ -177,7 +177,7 @@ func HandleShaderGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Path to the config.json file
-	configPath := fmt.Sprintf("./web/webdata/shaders/%s/config.json", shaderID)
+	configPath := fmt.Sprintf("./web/webdata/textureShaders/%s/config.json", shaderID)
 
 	// Check if the config.json exists
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
@@ -200,7 +200,7 @@ func HandleShaderGet(w http.ResponseWriter, r *http.Request) {
 }
 
 // GET /api/shader/image/{shaderID}
-func HandleShaderGetImage(w http.ResponseWriter, r *http.Request) {
+func HandleTextureShaderGetImage(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	shaderID, exists := vars["shaderID"]
 	if !exists {
@@ -209,7 +209,110 @@ func HandleShaderGetImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Path to the directory containing the image
-	dirPath := fmt.Sprintf("./web/webdata/shaders/%s", shaderID)
+	dirPath := fmt.Sprintf("./web/webdata/textureShaders/%s", shaderID)
+
+	// Supported image formats
+	supportedExtensions := []string{".webp", ".gif", ".jpg", ".png"}
+	for _, ext := range supportedExtensions {
+		imagePath := fmt.Sprintf("%s/image%s", dirPath, ext)
+		if _, err := os.Stat(imagePath); err == nil {
+			http.ServeFile(w, r, imagePath)
+			return
+		}
+	}
+
+	HttpError(w, fmt.Sprintf("Image for shader %s not found", shaderID), http.StatusNotFound)
+}
+
+// GET /shader/list
+func HandleElementShaderList(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	// Base directory
+	baseDir := "./web/webdata/elementShaders"
+
+	// Map to hold the result
+	animationData := make(map[string]interface{})
+
+	// Open the base directory
+	files, err := os.ReadDir(baseDir)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error reading shaders directory: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Iterate over the directories in the base directory
+	for _, file := range files {
+		if file.IsDir() {
+			configPath := fmt.Sprintf("%s/%s/config.json", baseDir, file.Name())
+			configFile, err := os.Open(configPath)
+			if err != nil {
+				log.Printf("Error reading config.json in %s: %v\n", file.Name(), err)
+				continue
+			}
+
+			var config interface{}
+			err = json.NewDecoder(configFile).Decode(&config)
+			configFile.Close()
+			if err != nil {
+				log.Printf("Error parsing config.json in %s: %v\n", file.Name(), err)
+				continue
+			}
+
+			// Add the parsed config to the result map
+			animationData[file.Name()] = config
+		}
+	}
+
+	// Encode and send the response
+	if err := json.NewEncoder(w).Encode(animationData); err != nil {
+		http.Error(w, fmt.Sprintf("Error encoding response: %v", err), http.StatusInternalServerError)
+	}
+}
+
+// GET /api/shader/get/{shaderID}
+func HandleElementShaderGet(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	shaderID, exists := vars["shaderID"]
+	if !exists {
+		HttpError(w, "shaderID is required in the URL path", http.StatusBadRequest)
+		return
+	}
+
+	// Path to the config.json file
+	configPath := fmt.Sprintf("./web/webdata/elementShaders/%s/config.json", shaderID)
+
+	// Check if the config.json exists
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		HttpError(w, fmt.Sprintf("Shader %s not found", shaderID), http.StatusNotFound)
+		return
+	}
+
+	// Read and return the config.json
+	configFile, err := os.Open(configPath)
+	if err != nil {
+		HttpError(w, fmt.Sprintf("Error opening config.json: %v", err), http.StatusInternalServerError)
+		return
+	}
+	defer configFile.Close()
+
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := io.Copy(w, configFile); err != nil {
+		HttpError(w, fmt.Sprintf("Error reading config.json: %v", err), http.StatusInternalServerError)
+	}
+}
+
+// GET /api/shader/image/{shaderID}
+func HandleElementShaderGetImage(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	shaderID, exists := vars["shaderID"]
+	if !exists {
+		HttpError(w, "shaderID is required in the URL path", http.StatusBadRequest)
+		return
+	}
+
+	// Path to the directory containing the image
+	dirPath := fmt.Sprintf("./web/webdata/elementShaders/%s", shaderID)
 
 	// Supported image formats
 	supportedExtensions := []string{".webp", ".gif", ".jpg", ".png"}

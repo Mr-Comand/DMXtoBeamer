@@ -64,7 +64,7 @@ paths:
           description: Image not found
         '400':
           description: Bad request
-  /api/shader/list:
+  /api/elementShader/list:
     get:
       tags:
         - Shaders
@@ -80,7 +80,7 @@ paths:
                   $ref: '#/components/schemas/ShaderDefinition'
         '500':
           description: Internal server error
-  /api/shader/get/{shaderID}:
+  /api/elementShader/get/{shaderID}:
     get:
       tags:
         - Shaders
@@ -103,7 +103,65 @@ paths:
           description: Shader not found
         '400':
           description: Bad request
-  /api/shader/image/{shaderID}:
+  /api/elementShader/image/{shaderID}:
+    get:
+      tags:
+        - Shaders
+      summary: Get the image associated with a shader
+      parameters:
+        - name: shaderID
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the shader
+      responses:
+        '200':
+          description: Returns the image
+        '404':
+          description: Image not found
+        '400':
+          description: Bad request
+  /api/textureShader/list:
+    get:
+      tags:
+        - Shaders
+      summary: List all available shaders
+      responses:
+        '200':
+          description: List of shaders
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: 
+                  $ref: '#/components/schemas/ShaderDefinition'
+        '500':
+          description: Internal server error
+  /api/textureShader/get/{shaderID}:
+    get:
+      tags:
+        - Shaders
+      summary: Get details of a specific shader
+      parameters:
+        - name: shaderID
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the shader to retrieve
+      responses:
+        '200':
+          description: Shader details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShaderDefinition'
+        '404':
+          description: Shader not found
+        '400':
+          description: Bad request
+  /api/textureShader/image/{shaderID}:
     get:
       tags:
         - Shaders
