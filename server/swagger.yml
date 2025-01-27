@@ -218,6 +218,7 @@ components:
               - type: boolean
               - type: string
               - type: number
+              - $ref: '#/components/schemas/Color'
         enabled:
           type: integer
         dimmer:
@@ -287,9 +288,11 @@ components:
           type: number
         default:
           oneOf:
+            - type: integer
             - type: boolean
             - type: string
             - type: number
+            - $ref: '#/components/schemas/Color'
         columns:
           type: integer
         rows:
@@ -323,3 +326,9 @@ components:
           type: object
           additionalProperties:
             $ref: '#/components/schemas/ShaderParameterDefinition'
+    Color:
+      type: array
+      maxLength: 3
+      minLength: 3
+      items:
+        type: integer
