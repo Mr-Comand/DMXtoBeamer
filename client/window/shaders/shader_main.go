@@ -26,9 +26,7 @@ type TextureShaderInterface interface {
 	Setup(parameters map[string]interface{})
 }
 
-func InitShaders() {
-	windowWidth := int32(rl.GetScreenWidth())
-	windowHeight := int32(rl.GetScreenHeight())
+func InitShaders(windowWidth, windowHeight int32) {
 
 	ElementShaders = make(map[string]ElementShaderInterface)
 	ElementShaders["kaleidoscope"] = &KaleidoscopeShader{Segments: 6}
@@ -43,10 +41,17 @@ func InitShaders() {
 	TextureShaders["prism"] = &PrismShader{}
 	for name, v := range TextureShaders {
 		v.Load()
-		TextureShaderRenderTexture[name] = rl.LoadRenderTexture(windowWidth, windowHeight)
+		TextureShaderRenderTexture[name] = rl.LoadRenderTexture(windowWidth+300, windowHeight+300)
 	}
 
 }
+func OnWindowResize(windowWidth, windowHeight int32) {
+	for name := range TextureShaders {
+		rl.UnloadRenderTexture(TextureShaderRenderTexture[name])
+		TextureShaderRenderTexture[name] = rl.LoadRenderTexture(windowWidth+300, windowHeight+300)
+	}
+}
+
 func StartElementShader(shaderName string) {
 	if shader := ElementShaders[shaderName]; shader != nil {
 		shader.StartShader()
@@ -81,7 +86,7 @@ func EndTextureShader(shaderName string) {
 	if shader := TextureShaders[shaderName]; shader != nil {
 		rl.EndTextureMode()
 		shader.StartShader(TextureShaderRenderTexture[shaderName])
-		rl.DrawTexture(TextureShaderRenderTexture[shaderName].Texture, 0, 0, rl.White)
+		rl.DrawTexture(TextureShaderRenderTexture[shaderName].Texture, -150, -150, rl.White)
 		shader.EndShader()
 	} else {
 		log.Println("Shader not found!")

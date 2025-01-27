@@ -9,13 +9,12 @@ import (
 	"technikflg.com/dmxToProjector/ws"
 )
 
-const (
+var (
 	WindowWidth  = 500
 	WindowHeight = 500
 )
 
 var (
-	animationMap     map[string]animations.AnimationInterface
 	deviceIndex      int
 	showPopup        bool
 	audioDataChannel chan []float64
@@ -24,7 +23,7 @@ var (
 
 func InitWindow() {
 	// Initialize the window with the specified width and height (not fullscreen)
-	rl.InitWindow(WindowWidth, WindowHeight, "WebSocket-Controlled Animation")
+	rl.InitWindow(int32(WindowWidth), int32(WindowHeight), "WebSocket-Controlled Animation")
 
 	// Set the window to be resizable by default (this is the default behavior)
 	rl.SetWindowMaxSize(100000, 1000000)
@@ -36,14 +35,14 @@ func InitWindow() {
 	// Set the initial background to black
 	rl.ClearBackground(rl.Black)
 
-	animationMap = animations.InitAnimations()
+	animations.InitAnimations()
 
 	// Initialize the microphone audio processor
 	bufferSize := 512 * 8                      // Number of samples per buffer
 	deviceIndex = -1                           // Default device index
 	audioDataChannel = make(chan []float64, 1) // Channel with buffer size 1 to hold only the latest data
 	InitAudioProcessor(bufferSize, deviceIndex)
-	shaders.InitShaders()
+	shaders.InitShaders(int32(WindowWidth), int32(WindowHeight))
 }
 
 func Render() {
@@ -59,14 +58,13 @@ func Render() {
 			rl.SetWindowState(rl.FlagBorderlessWindowedMode)
 		}
 	}
-	// Get the current window dimensions for scaling
-	// windowWidth := rl.GetScreenWidth()
-	// windowHeight := rl.GetScreenHeight()
-
-	// // Calculate the scaling factors for the window
-	// scaleX := float32(windowWidth) / float32(1000)
-	// scaleY := float32(windowHeight) / float32(1000)
-
+	if rl.GetScreenWidth() != WindowWidth || rl.GetScreenHeight() != WindowHeight {
+		// Update stored values
+		WindowWidth = rl.GetScreenWidth()
+		WindowHeight = rl.GetScreenHeight()
+		// Call your window resize function here
+		onWindowResize()
+	}
 	// Clear the screen
 	rl.BeginDrawing()
 	rl.ClearBackground(rl.Black)
@@ -102,12 +100,10 @@ func Render() {
 // Function to handle animation based on the configuration
 func handleAnimation(config ws.ClientConfig, audioData *[]float64) {
 	// Get the current window dimensions for scaling
-	windowWidth := rl.GetScreenWidth()
-	windowHeight := rl.GetScreenHeight()
 
 	// Calculate the scaling factors for the window
-	scaleX := float32(windowWidth) / float32(1000)
-	scaleY := float32(windowHeight) / float32(1000)
+	scaleX := float32(WindowWidth) / float32(1000)
+	scaleY := float32(WindowHeight) / float32(1000)
 	for _, l := range config.Layers {
 		if !l.Enabled {
 			fmt.Println("skipped :", l.AnimationID, l.Parameters)
@@ -117,9 +113,9 @@ func handleAnimation(config ws.ClientConfig, audioData *[]float64) {
 		if animation != nil {
 			shaders.SetupTextureShader("hueShift", map[string]interface{}{"HueShift": float32(config.HueShift)/65535 + float32(l.HueShift)/65535})
 			shaders.StartTextureShader("hueShift")
-			rl.BeginMode2D(rl.NewCamera2D(rl.Vector2{X: float32(windowWidth / 2), Y: float32(windowHeight / 2)}, rl.Vector2{X: 500 + float32(l.Tilt/32767)*1000, Y: 500 + float32(l.Tilt/32767)*1000}, float32(l.Rotate)/91, min(scaleX, scaleY)*(float32(config.Scale)/25*float32(l.Scale)/25)))
+			rl.BeginMode2D(rl.NewCamera2D(rl.Vector2{X: float32(WindowWidth/2) + 150, Y: float32(WindowHeight/2) + 150}, rl.Vector2{X: 500 + float32(l.Tilt/32767)*1000, Y: 500 + float32(l.Tilt/32767)*1000}, float32(l.Rotate)/91, min(scaleX, scaleY)*(float32(config.Scale)/25*float32(l.Scale)/25)))
 			if l.Shader != "" {
-				shaders.SetupTextureShader(l.Shader, l.ShaderParameters)
+				shaders.SetupElementShader(l.Shader, l.ShaderParameters)
 				shaders.StartElementShader(l.Shader)
 			}
 			(animation).Render(&l.Parameters, audioData)
@@ -127,7 +123,7 @@ func handleAnimation(config ws.ClientConfig, audioData *[]float64) {
 				shaders.EndElementShader(l.Shader)
 			}
 			rl.EndMode2D()
-			if len(l.TextureShader) > 0 {
+			if len(l.TextureShaderOrder) > 0 {
 				lastShader := "hueShift"
 				for _, name := range l.TextureShaderOrder {
 					shaders.SetupTextureShader(name, l.TextureShader[name])
@@ -143,4 +139,7 @@ func handleAnimation(config ws.ClientConfig, audioData *[]float64) {
 			fmt.Println("Unknown animation type:", l.AnimationID, l.Parameters)
 		}
 	}
+}
+func onWindowResize() {
+	shaders.OnWindowResize(int32(WindowWidth), int32(WindowHeight))
 }

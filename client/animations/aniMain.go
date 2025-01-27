@@ -21,7 +21,7 @@ func (a *Animation) Configure(config map[string]interface{}) {
 
 var Animations map[string]AnimationInterface
 
-func InitAnimations() map[string]AnimationInterface {
+func InitAnimations() {
 	Animations = make(map[string]AnimationInterface)
 	Animations["s1"] = NewAni10(500, 400, 300, 400, SpiralParams{
 		A:         0.10,
@@ -30,7 +30,6 @@ func InitAnimations() map[string]AnimationInterface {
 		Intensity: 0.18,
 	})
 	Animations["ani10"] = NewAni10(300, 400, 300, 400, SpiralParams{
-
 		A:         1.20,
 		B:         0.76,
 		Angle:     2.44,
@@ -41,5 +40,4 @@ func InitAnimations() map[string]AnimationInterface {
 	Animations["8"] = NewShape8()
 	Animations["square"] = NewSquare()
 	Animations["balls"] = NewBallsAnimation(10)
-	return Animations
 }
