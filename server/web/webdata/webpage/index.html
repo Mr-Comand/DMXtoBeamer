@@ -62,7 +62,7 @@
                 scale: parseInt(document.getElementById("scale").value),
             };
             clientIDvalue = document.getElementById("clientID").value || "",
-            fetch("/client/set/"+clientIDvalue, {
+            fetch("/api/client/set/"+clientIDvalue, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
