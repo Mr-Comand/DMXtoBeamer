@@ -54,14 +54,12 @@ func (b *Ball) Update() {
 	windowHeight := float64(rl.GetScreenHeight())
 
 	// Calculate the scaling factors for the window
-	scaleX := float64(windowWidth) / float64(1000)
-	scaleY := float64(windowHeight) / float64(1000)
+	scaleX := 0.0
+	scaleY := 0.0
 	if windowWidth < windowHeight {
-
-		scaleY *= scaleX
+		scaleY = (windowHeight - windowWidth) / windowWidth * 1000 / 2
 	} else if windowWidth > windowHeight {
-		scaleX *= scaleY
-	} else {
+		scaleX = (windowWidth - windowHeight) / windowHeight * 1000 / 2
 	}
 	b.velocityX -= *b.friction * b.velocityX
 	b.velocityY -= *b.friction * b.velocityY
@@ -69,20 +67,20 @@ func (b *Ball) Update() {
 	b.Particle.Position.X += b.velocityX
 	b.Particle.Position.Y += b.velocityY
 	// Collision detection and response with boundaries
-	if b.Particle.Position.X < 500-(1000*scaleX) {
-		b.Particle.Position.X = 500 - (1000 * scaleX)
+	if b.Particle.Position.X < -scaleX {
+		b.Particle.Position.X = -scaleX
 		b.velocityX = -b.velocityX // Reverse velocity on collision
 	}
-	if b.Particle.Position.X > 500+(1000*scaleX) {
-		b.Particle.Position.X = 500 + (1000 * scaleX)
+	if b.Particle.Position.X > 1000+scaleX {
+		b.Particle.Position.X = 1000 + scaleX
 		b.velocityX = -b.velocityX // Reverse velocity on collision
 	}
-	if b.Particle.Position.Y < 500-(1000*scaleY) {
-		b.Particle.Position.Y = 500 - (1000 * scaleY)
+	if b.Particle.Position.Y < -scaleY {
+		b.Particle.Position.Y = -scaleY
 		b.velocityY = -b.velocityY // Reverse velocity on collision
 	}
-	if b.Particle.Position.Y > 500+(1000*scaleY) {
-		b.Particle.Position.Y = 500 + (1000 * scaleY)
+	if b.Particle.Position.Y > 1000+scaleY {
+		b.Particle.Position.Y = 1000 + scaleY
 		b.velocityY = -b.velocityY // Reverse velocity on collision
 	}
 }
