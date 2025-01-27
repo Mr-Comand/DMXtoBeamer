@@ -3,8 +3,6 @@ package animations
 import (
 	"image/color"
 	"math"
-
-	"technikflg.com/dmxToProjector/ws"
 )
 
 type Ani10 struct {
@@ -54,8 +52,7 @@ func NewAni10(visualValueCount, baseAmplitude, bandwidth, baseRadius int, spiral
 func (a *Ani10) Reset() {
 }
 
-func (a *Ani10) Render(config *ws.AnimationConfig, data *[]float64) {
-	// fmt.Println("frame")
+func (a *Ani10) Render(config *AnimationParameters, data *[]float64) {
 	// Extract values from the data map
 	values := make([]int, 0, len(*data))
 	for _, v := range *data {

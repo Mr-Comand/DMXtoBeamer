@@ -5,8 +5,6 @@ import (
 	"math/rand/v2"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
-
-	"technikflg.com/dmxToProjector/ws"
 )
 
 type Balls struct {
@@ -88,7 +86,7 @@ func (b *Ball) Update() {
 		b.velocityY = -b.velocityY // Reverse velocity on collision
 	}
 }
-func (b *Balls) Render(*ws.AnimationConfig, *[]float64) {
+func (b *Balls) Render(*AnimationParameters, *[]float64) {
 	for i := range b.balls {
 		b.balls[i].Update()
 		b.balls[i].Draw()

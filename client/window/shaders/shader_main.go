@@ -2,6 +2,7 @@ package shaders
 
 import (
 	"fmt"
+	"image/color"
 	"log"
 	"reflect"
 
@@ -71,7 +72,7 @@ func SetupElementShader(shaderName string, parameters map[string]interface{}) {
 func StartTextureShader(shaderName string) {
 	if shader := TextureShaders[shaderName]; shader != nil {
 		rl.BeginTextureMode(TextureShaderRenderTexture[shaderName])
-		rl.ClearBackground(rl.Black)
+		rl.ClearBackground(color.RGBA{A: 0})
 	} else {
 		log.Println("Shader not found!")
 	}
@@ -79,7 +80,6 @@ func StartTextureShader(shaderName string) {
 func EndTextureShader(shaderName string) {
 	if shader := TextureShaders[shaderName]; shader != nil {
 		rl.EndTextureMode()
-		rl.ClearBackground(rl.Black)
 		shader.StartShader(TextureShaderRenderTexture[shaderName])
 		rl.DrawTexture(TextureShaderRenderTexture[shaderName].Texture, 0, 0, rl.White)
 		shader.EndShader()
@@ -90,7 +90,6 @@ func EndTextureShader(shaderName string) {
 func SetupTextureShader(shaderName string, parameters map[string]interface{}) {
 	if shader := TextureShaders[shaderName]; shader != nil {
 		shader.Setup(parameters)
-		
 	} else {
 		log.Println("Shader not found!")
 	}
@@ -100,7 +99,7 @@ func AnotherTextureShader(shaderName string, shaderName2 string) {
 		rl.EndTextureMode()
 		rl.BeginTextureMode(TextureShaderRenderTexture[shaderName2])
 		if shader := TextureShaders[shaderName]; shader != nil {
-			rl.ClearBackground(rl.Black)
+			rl.ClearBackground(color.RGBA{A: 0})
 			shader.StartShader(TextureShaderRenderTexture[shaderName])
 			rl.DrawTexture(TextureShaderRenderTexture[shaderName].Texture, 0, 0, rl.White)
 			shader.EndShader()

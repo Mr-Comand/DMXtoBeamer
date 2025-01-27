@@ -113,7 +113,7 @@ func handleAnimation(config ws.ClientConfig, audioData *[]float64) {
 			fmt.Println("skipped :", l.AnimationID, l.Parameters)
 			continue
 		}
-		animation := animationMap[l.AnimationID]
+		var animation animations.AnimationInterface = l.Animation
 		if animation != nil {
 			shaders.SetupTextureShader("hueShift", map[string]interface{}{"HueShift": float32(config.HueShift)/65535 + float32(l.HueShift)/65535})
 			shaders.StartTextureShader("hueShift")

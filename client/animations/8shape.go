@@ -4,7 +4,6 @@ import (
 	"math"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
-	"technikflg.com/dmxToProjector/ws"
 )
 
 type Shape8 struct {
@@ -17,7 +16,7 @@ func NewShape8() *Shape8 {
 }
 
 // Animate8Shape handles the 8-shape animation
-func (a *Shape8) Render(config *ws.AnimationConfig, audioData *[]float64) {
+func (a *Shape8) Render(config *AnimationParameters, audioData *[]float64) {
 	centerX := float32(800) / 2
 	centerY := float32(600) / 2
 	radius := float32(100)

@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
+	"technikflg.com/dmxToProjector/animations"
 )
 
 var (
@@ -25,11 +27,11 @@ type ClientConfig struct {
 	Scale    uint8         `json:"scale"`
 	Layers   []LayerConfig `json:"layers"`
 }
-type AnimationConfig map[string]interface{}
 
 type LayerConfig struct {
+	LayerID            uint16                            `json:"layerID"`
 	AnimationID        string                            `json:"animationID"`
-	Parameters         AnimationConfig                   `json:"parameters"`
+	Parameters         animations.AnimationParameters    `json:"parameters"`
 	Enabled            bool                              `json:"enabled"`
 	Dimmer             uint8                             `json:"dimmer"`
 	HueShift           uint16                            `json:"hueShift"`
@@ -41,6 +43,7 @@ type LayerConfig struct {
 	ShaderParameters   map[string]interface{}            `json:"shaderParameters"`
 	TextureShader      map[string]map[string]interface{} `json:"textureShaders"`
 	TextureShaderOrder []string                          `json:"textureShaderOrder"`
+	Animation          animations.AnimationInterface
 }
 
 // ConnectToWebSocket establishes a WebSocket connection to the given URL with auto-reconnect
@@ -91,8 +94,84 @@ func ListenWebSocket(url string) {
 func updateConfig(config ClientConfig) {
 	configMutex.Lock()
 	defer configMutex.Unlock()
-	currentConfig = config
+	currentConfig.Dimmer = config.Dimmer
+	currentConfig.HueShift = config.HueShift
+	currentConfig.Pan = config.Pan
+	currentConfig.Tilt = config.Tilt
+	currentConfig.Rotate = config.Rotate
+	currentConfig.Scale = config.Scale
+	Layers := make([]LayerConfig, len(config.Layers))
+	for newPosition, newLayer := range config.Layers {
+
+		var oldLayer *LayerConfig
+		for _, l := range currentConfig.Layers {
+			if l.LayerID == newLayer.LayerID {
+				oldLayer = &l
+			}
+		}
+		if oldLayer != nil && oldLayer.AnimationID == newLayer.AnimationID {
+			if oldLayer.Animation != nil {
+				oldLayer.Animation.Configure(newLayer.Parameters)
+				// oldLayer.Dimmer = newLayer.Dimmer
+				// oldLayer.Enabled = newLayer.Enabled
+				// oldLayer.HueShift = newLayer.HueShift
+				// oldLayer.Pan = newLayer.Pan
+				// oldLayer.Tilt = newLayer.Tilt
+				// oldLayer.Parameters = newLayer.Parameters
+				// oldLayer.Rotate = newLayer.Rotate
+				// oldLayer.Scale = newLayer.Scale
+				// oldLayer.Shader = newLayer.Shader
+				// oldLayer.ShaderParameters = newLayer.ShaderParameters
+				// oldLayer.TextureShader = newLayer.TextureShader
+				// oldLayer.TextureShaderOrder = newLayer.TextureShaderOrder
+				newLayer.Animation = (*oldLayer).Animation
+			}
+			Layers[newPosition] = newLayer
+		} else {
+			animation := animations.Animations[newLayer.AnimationID]
+			if animation != nil {
+				animationClone := Clone(animation)
+				newLayer.Animation = animationClone
+				newLayer.Animation.Configure(newLayer.Parameters)
+				Layers[newPosition] = newLayer
+
+				log.Println(newLayer.AnimationID, newLayer, Layers)
+			} else {
+				Layers[newPosition] = newLayer
+			}
+		}
+	}
+	currentConfig.Layers = Layers
 	log.Printf("Updated configuration: %+v\n", config)
+}
+
+// Clone creates a deep copy of a value pointed to by an interface
+func Clone(a animations.AnimationInterface) animations.AnimationInterface {
+	if a == nil {
+		return nil
+	}
+
+	// Use reflection to get the value and type
+	originalValue := reflect.ValueOf(a)
+	if originalValue.Kind() != reflect.Ptr {
+		log.Println("Clone can only handle pointers to structs")
+		return nil
+	}
+
+	originalValue = originalValue.Elem()
+	if originalValue.Kind() != reflect.Struct {
+		log.Println("Clone expects a pointer to a struct")
+		return nil
+	}
+
+	// Create a new instance of the struct
+	cloneValue := reflect.New(originalValue.Type()).Elem()
+
+	// Copy the fields from the original to the clone
+	cloneValue.Set(originalValue)
+
+	// Return the new instance as the interface
+	return cloneValue.Addr().Interface().(animations.AnimationInterface)
 }
 
 // GetConfig retrieves the current configuration in a thread-safe manner

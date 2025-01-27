@@ -3,8 +3,6 @@ package animations
 import (
 	"image/color"
 	"math"
-
-	"technikflg.com/dmxToProjector/ws"
 )
 
 type Ani6 struct {
@@ -53,7 +51,7 @@ func (a *Ani6) NormalizeIntensity(r, g, b, peakVolume float64) (int, int, int) {
 func (a *Ani6) getValue(id int, values []int) float64 {
 	return math.Pow(float64(values[a.dataMap[int(id)]])/255, 2) * float64(a.BaseAmplitude)
 }
-func (a *Ani6) Render(config *ws.AnimationConfig, data *[]float64) {
+func (a *Ani6) Render(config *AnimationParameters, data *[]float64) {
 
 	values := make([]int, 0, len(*data))
 	for _, v := range *data {
