@@ -1,0 +1,21 @@
+{
+    "animationName": "spiral2",
+    "parameters": {
+        "Speed": {
+            "type": "number",
+            "default": "100",
+            "name": "Speed",
+            "min": "-300",
+            "max": "300",
+            "stepSize": "1"
+        },
+        "FullBright": {
+            "type": "bool",
+            "default": "false",
+            "name": "FullBright",
+            "min": "",
+            "max": "",
+            "stepSize": ""
+        }
+    }
+}

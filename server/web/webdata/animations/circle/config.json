@@ -1,0 +1,53 @@
+{
+    "animationName": "Circle",
+    "parameters": {
+        "RingCount": {
+            "type": "number",
+            "default": "1",
+            "name": "RingCount",
+            "min": "",
+            "max": "",
+            "stepSize": ""
+        },
+        "BaseRadius": {
+            "type": "number",
+            "default": "100",
+            "name": "BaseRadius",
+            "min": "",
+            "max": "",
+            "stepSize": ""
+        },
+        "RingDistance": {
+            "type": "number",
+            "default": "150",
+            "name": "RingDistance",
+            "min": "",
+            "max": "",
+            "stepSize": ""
+        },
+        "ColorSegments": {
+            "type": "number",
+            "default": "1",
+            "name": "ColorSegments",
+            "min": "",
+            "max": "",
+            "stepSize": ""
+        },
+        "LineWidth": {
+            "type": "number",
+            "default": "1",
+            "name": "LineWidth",
+            "min": "",
+            "max": "",
+            "stepSize": ""
+        },
+        "FullBright": {
+            "type": "bool",
+            "default": "true",
+            "name": "FullBright",
+            "min": "",
+            "max": "",
+            "stepSize": ""
+        }
+    }
+}

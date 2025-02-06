@@ -1,0 +1,29 @@
+{
+    "animationName": "Text",
+    "parameters": {
+        "Text": {
+            "type": "text",
+            "default": "Hallo Welt!",
+            "name": "Text",
+            "min": "",
+            "max": "",
+            "stepSize": ""
+        },
+        "FontSize": {
+            "type": "number",
+            "default": "100",
+            "name": "FontSize",
+            "min": "",
+            "max": "",
+            "stepSize": ""
+        },
+        "Color": {
+            "type": "color",
+            "default": "[255,0,0]",
+            "name": "Color",
+            "min": "",
+            "max": "",
+            "stepSize": ""
+        }
+    }
+}
