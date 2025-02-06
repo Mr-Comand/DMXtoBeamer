@@ -10,7 +10,7 @@ import (
 
 type AnimationParameters map[string]interface{}
 type AnimationInterface interface {
-	Render(audioData *[]float64)
+	Render(audioData *[]float64, dt float64)
 	Unload()
 	Reset()
 	Configure(config AnimationParameters)

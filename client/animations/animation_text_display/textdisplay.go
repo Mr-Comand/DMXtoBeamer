@@ -37,7 +37,7 @@ func (g *TextDisplayGenerator) Create(config preset_animation.AnimationParameter
 
 	return &textDisplay
 }
-func (a *TextDisplay) Render(*[]float64) {
+func (a *TextDisplay) Render(data *[]float64, dt float64) {
 	// Ensure font is loaded
 	if a.Font.Texture.ID == 0 {
 		a.Font = rl.GetFontDefault() // Use default font if loading fails

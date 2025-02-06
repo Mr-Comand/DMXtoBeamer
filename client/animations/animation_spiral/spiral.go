@@ -19,12 +19,17 @@ type Ani10 struct {
 	BaseRadius       int
 	FlourCounter     bool
 	dataMap          map[int]int
+	DynamicConfig    *DynamicConfig
 }
 type SpiralParams struct {
 	A         float64
 	B         float64
 	Angle     float64
 	Intensity float64
+}
+type DynamicConfig struct {
+	Speed      float64 `parameter:"Speed,default=100"`
+	FullBright bool    `parameter:"FullBright,default=false"`
 }
 type SpiralGenerator struct {
 	Spiral           SpiralParams
@@ -43,7 +48,9 @@ func (g SpiralGenerator) Create(config preset_animation.AnimationParameters) pre
 		BaseRadius:       g.BaseRadius,
 		PeakVolume:       1,
 		Spiral:           g.Spiral,
+		DynamicConfig:    &DynamicConfig{},
 	}
+	preset_animation.Parse(config, ani.DynamicConfig)
 
 	// Initialize particles
 	ani.Particles = make([]animation_helpers.Particle, 2048)
@@ -57,6 +64,7 @@ func (g SpiralGenerator) Create(config preset_animation.AnimationParameters) pre
 	ani.dataMap = ani.generateDictionary(ani.Bandwidth, ani.VisualValueCount)
 	return ani
 }
+
 func NewSpiralGenerator(variant uint8) *SpiralGenerator {
 	g := SpiralGenerator{}
 	g.VisualValueCount = 500
@@ -88,11 +96,14 @@ func NewSpiralGenerator(variant uint8) *SpiralGenerator {
 	}
 	return &g
 }
+func (a *Ani10) Configure(config preset_animation.AnimationParameters) {
+	preset_animation.Parse(config, a.DynamicConfig)
+}
 
 func (a *Ani10) Reset() {
 }
 
-func (a *Ani10) Render(data *[]float64) {
+func (a *Ani10) Render(data *[]float64, dt float64) {
 	// Extract values from the data map
 	values := make([]int, 0, len(*data))
 	for _, v := range *data {
@@ -101,12 +112,12 @@ func (a *Ani10) Render(data *[]float64) {
 
 	// Adjust spiral angle for animation effect
 	if a.FlourCounter {
-		a.Spiral.Angle += 0.0000004 * 4
+		a.Spiral.Angle += 0.0000004 * 4 * dt * a.DynamicConfig.Speed
 		if a.Spiral.Angle >= 2.87 {
 			a.FlourCounter = false
 		}
 	} else {
-		a.Spiral.Angle -= 0.0000004 * 4
+		a.Spiral.Angle -= 0.0000004 * 4 * dt * a.DynamicConfig.Speed
 		if a.Spiral.Angle <= 2.85 {
 			a.FlourCounter = true
 		}
@@ -128,12 +139,16 @@ func (a *Ani10) Render(data *[]float64) {
 
 		// Update size and color based on data
 		particle.Size = math.Log(float64(value)/10 + 1)
-		particle.Color = animation_helpers.AsColor(int(a.getValue(10%len(a.Particles), values)), int(a.getValue(100%len(a.Particles), values)), int(a.getValue(200%len(a.Particles), values)))
+		if a.DynamicConfig.FullBright {
+			particle.Color = animation_helpers.AsFullColor(int(a.getValue(10%len(a.Particles), values)), int(a.getValue(100%len(a.Particles), values)), int(a.getValue(200%len(a.Particles), values)))
+		} else {
+			particle.Color, a.PeakVolume = animation_helpers.AsDynamicColor(int(a.getValue(10%len(a.Particles), values)), int(a.getValue(100%len(a.Particles), values)), int(a.getValue(200%len(a.Particles), values)), a.PeakVolume)
+		}
 		particle.Draw()
 	}
 
 	// Update peak volume (used for intensity scaling)
-	a.PeakVolume -= 1
+	a.PeakVolume -= 50 * dt
 }
 
 func (a *Ani10) getValue(id int, values []int) float64 {

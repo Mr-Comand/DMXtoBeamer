@@ -33,7 +33,7 @@ func (g *BallsGenerator) Create(config preset_animation.AnimationParameters) pre
 	balls := Balls{
 		balls:    make([]Ball, ballCount),
 		dataMap:  make(map[int]int),
-		friction: 0.0001,
+		friction: 0.1,
 	}
 	balls.peakVolume = 0.0
 	balls.dataMap = make(map[int]int)
@@ -41,8 +41,8 @@ func (g *BallsGenerator) Create(config preset_animation.AnimationParameters) pre
 		balls.balls[i].Init(rand.Float64()*50, 0, 500, &balls.friction)
 		balls.dataMap[i] = 0
 		// Assign random velocities
-		balls.balls[i].velocityY = rand.Float64()*8 - 4 // Random Y velocity between -10 and 10
-		balls.balls[i].velocityX = rand.Float64()*8 - 4 // Random X velocity between -5 and 5
+		balls.balls[i].velocityY = rand.Float64()*2000 - 1000 // Random Y velocity between -10 and 10
+		balls.balls[i].velocityX = rand.Float64()*2000 - 1000 // Random X velocity between -5 and 5
 	}
 	return &balls
 }
@@ -57,7 +57,7 @@ func (b *Ball) Init(size, x, y float64, friction *float64) {
 	b.friction = friction
 }
 
-func (b *Ball) Update() {
+func (b *Ball) Update(dt float64) {
 	windowWidth := float64(rl.GetScreenWidth())
 	windowHeight := float64(rl.GetScreenHeight())
 
@@ -69,11 +69,12 @@ func (b *Ball) Update() {
 	} else if windowWidth > windowHeight {
 		scaleX = (windowWidth - windowHeight) / windowHeight * 1000 / 2
 	}
-	b.velocityX -= *b.friction * b.velocityX
-	b.velocityY -= *b.friction * b.velocityY
+	b.velocityX -= *b.friction * dt * b.velocityX
+	b.velocityY -= *b.friction * dt * b.velocityY
 	// Update positions
-	b.Particle.Position.X += b.velocityX
-	b.Particle.Position.Y += b.velocityY
+
+	b.Particle.Position.X += b.velocityX * (dt)
+	b.Particle.Position.Y += b.velocityY * (dt)
 	// Collision detection and response with boundaries
 	if b.Particle.Position.X < -scaleX {
 		b.Particle.Position.X = -scaleX
@@ -92,9 +93,9 @@ func (b *Ball) Update() {
 		b.velocityY = -b.velocityY // Reverse velocity on collision
 	}
 }
-func (b *Balls) Render(*[]float64) {
+func (b *Balls) Render(data *[]float64, dt float64) {
 	for i := range b.balls {
-		b.balls[i].Update()
+		b.balls[i].Update(dt)
 		b.balls[i].Draw()
 		// b.dataMap[i] = int(b.balls[i].Particle.Position.Y)
 		if b.dataMap[i] > int(b.peakVolume) {

@@ -2,6 +2,7 @@ package window
 
 import (
 	"fmt"
+	"time"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"technikflg.com/dmxToProjector/animations"
@@ -21,6 +22,7 @@ var (
 	audioDataChannel chan []float64
 	audioData        []float64
 )
+var previousTime time.Time
 
 func InitWindow() {
 	// Initialize the window with the specified width and height (not fullscreen)
@@ -105,6 +107,9 @@ func handleAnimation(config ws.ClientConfig, audioData *[]float64) {
 	// Calculate the scaling factors for the window
 	scaleX := float32(WindowWidth) / float32(1000)
 	scaleY := float32(WindowHeight) / float32(1000)
+	currentTime := time.Now()
+	dt := currentTime.Sub(previousTime).Seconds()
+	previousTime = currentTime
 	for _, l := range config.Layers {
 		if !l.Enabled {
 			fmt.Println("skipped :", l.AnimationID, l.Parameters)
@@ -119,7 +124,8 @@ func handleAnimation(config ws.ClientConfig, audioData *[]float64) {
 				shaders.SetupElementShader(l.Shader, l.ShaderParameters)
 				shaders.StartElementShader(l.Shader)
 			}
-			(animation).Render(audioData)
+
+			(animation).Render(audioData, dt)
 			if l.Shader != "" {
 				shaders.EndElementShader(l.Shader)
 			}
