@@ -10,5 +10,5 @@ void main() {
     // Applying a ripple effect using the sine function for distortion
     vec2 uv = fragTexCoord;
     uv.x += sin(uv.y * 10.0 + time * 2.0) * 0.05; // Apply distortion based on Y
-    finalColor = texture(texture0, uv); // Sample from the texture with the new distorted coordinates
+    finalColor = texture(texture0, vec2(uv.x, 1.0 - uv.y)); // Sample from the texture with the new distorted coordinates
 }

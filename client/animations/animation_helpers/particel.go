@@ -1,4 +1,4 @@
-package animations
+package animation_helpers
 
 import (
 	"fmt"
@@ -8,10 +8,21 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+type Shape int
+
+// Define constants for the enum using iota
+const (
+	Circle Shape = iota // Starts at 0
+	Box
+	Triangle
+	Snowflake
+)
+
 type Particle struct {
 	Position Position
 	Color    color.RGBA
 	Size     float64
+	Shape    Shape
 }
 
 type Position struct {
@@ -39,5 +50,12 @@ func (p *Particle) Draw() {
 		fmt.Errorf("Partikel not defined")
 		return
 	}
-	rl.DrawCircle(int32(p.Position.X), int32(p.Position.Y), float32(p.Size), p.Color)
+	switch p.Shape {
+	default:
+		rl.DrawCircle(int32(p.Position.X), int32(p.Position.Y), float32(p.Size), p.Color)
+	case Circle:
+		rl.DrawCircle(int32(p.Position.X), int32(p.Position.Y), float32(p.Size), p.Color)
+		// case Box:
+		// 	rl.DrawPa(int32(p.Position.X), int32(p.Position.Y), float32(p.Size), p.Color)
+	}
 }

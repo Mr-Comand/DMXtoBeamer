@@ -21,6 +21,6 @@ vec3 hueShiftFunc(vec3 color, float shift) {
 }
 
 void main() {
-    vec4 color = texture(texture0, fragTexCoord);              // Use the input color
+    vec4 color = texture(texture0, vec2(fragTexCoord.x, 1.0 - fragTexCoord.y));              // Use the input color
     finalColor = vec4(hueShiftFunc(color.rgb, hueShift), color.a); // Apply hue shift
 }

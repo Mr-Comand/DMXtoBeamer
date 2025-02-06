@@ -113,7 +113,7 @@ func main() {
 	if wsURL == "" || !valid {
 		log.Fatal("WebSocket URL must be provided")
 	}
-
+	fmt.Println(wsURL)
 	// Start the pprof HTTP server for diagnostics
 	go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))

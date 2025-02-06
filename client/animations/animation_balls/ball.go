@@ -1,27 +1,35 @@
-package animations
+package animation_balls
 
 import (
 	"image/color"
 	"math/rand/v2"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
+	"technikflg.com/dmxToProjector/animations/animation_helpers"
+	"technikflg.com/dmxToProjector/animations/preset_animation"
 )
 
 type Balls struct {
-	Animation
+	preset_animation.Animation
 	balls      []Ball
 	peakVolume float32
 	dataMap    map[int]int
 	friction   float64
 }
 type Ball struct {
-	Particle
+	animation_helpers.Particle
 	velocityX float64
 	velocityY float64
 	friction  *float64
 }
+type BallsGenerator struct {
+}
 
-func NewBallsAnimation(ballCount int) *Balls {
+func NewGeneratorBallsAnimation() *BallsGenerator {
+	return &BallsGenerator{}
+}
+func (g *BallsGenerator) Create(config preset_animation.AnimationParameters) preset_animation.AnimationInterface {
+	ballCount := 5
 	balls := Balls{
 		balls:    make([]Ball, ballCount),
 		dataMap:  make(map[int]int),
@@ -84,7 +92,7 @@ func (b *Ball) Update() {
 		b.velocityY = -b.velocityY // Reverse velocity on collision
 	}
 }
-func (b *Balls) Render(*AnimationParameters, *[]float64) {
+func (b *Balls) Render(*[]float64) {
 	for i := range b.balls {
 		b.balls[i].Update()
 		b.balls[i].Draw()

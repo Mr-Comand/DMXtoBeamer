@@ -1,16 +1,17 @@
-package animations
+package animation_spiral
 
 import (
 	"image/color"
 	"math"
+
+	"technikflg.com/dmxToProjector/animations/animation_helpers"
+	"technikflg.com/dmxToProjector/animations/preset_animation"
 )
 
 type Ani10 struct {
-	Animation
-	particles        []Particle
-	peakVolume       float32
+	preset_animation.Animation
 	Spiral           SpiralParams
-	Particles        []Particle
+	Particles        []animation_helpers.Particle
 	PeakVolume       float64
 	VisualValueCount int
 	BaseAmplitude    int
@@ -25,22 +26,30 @@ type SpiralParams struct {
 	Angle     float64
 	Intensity float64
 }
+type SpiralGenerator struct {
+	Spiral           SpiralParams
+	VisualValueCount int
+	BaseAmplitude    int
+	Bandwidth        int
+	BaseRadius       int
+}
 
-func NewAni10(visualValueCount, baseAmplitude, bandwidth, baseRadius int, spiralParams SpiralParams) *Ani10 {
+func (g SpiralGenerator) Create(config preset_animation.AnimationParameters) preset_animation.AnimationInterface {
+
 	ani := &Ani10{
-		VisualValueCount: visualValueCount,
-		BaseAmplitude:    baseAmplitude,
-		Bandwidth:        bandwidth,
-		BaseRadius:       baseRadius,
+		VisualValueCount: g.VisualValueCount,
+		BaseAmplitude:    g.BaseAmplitude,
+		Bandwidth:        g.Bandwidth,
+		BaseRadius:       g.BaseRadius,
 		PeakVolume:       1,
-		Spiral:           spiralParams,
+		Spiral:           g.Spiral,
 	}
 
 	// Initialize particles
-	ani.Particles = make([]Particle, 2048)
+	ani.Particles = make([]animation_helpers.Particle, 2048)
 	for i := 0; i < 2048; i++ {
-		ani.Particles[i] = Particle{
-			Position: Position{X: 0, Y: 0},
+		ani.Particles[i] = animation_helpers.Particle{
+			Position: animation_helpers.Position{X: 0, Y: 0},
 			Color:    color.RGBA{R: 0, G: 255, B: 0},
 			Size:     2,
 		}
@@ -48,11 +57,42 @@ func NewAni10(visualValueCount, baseAmplitude, bandwidth, baseRadius int, spiral
 	ani.dataMap = ani.generateDictionary(ani.Bandwidth, ani.VisualValueCount)
 	return ani
 }
+func NewSpiralGenerator(variant uint8) *SpiralGenerator {
+	g := SpiralGenerator{}
+	g.VisualValueCount = 500
+	g.BaseAmplitude = 400
+	g.Bandwidth = 300
+	g.BaseRadius = 400
+	switch variant {
+	case 0:
+		g.Spiral = SpiralParams{
+			A:         1.20,
+			B:         0.76,
+			Angle:     2.44,
+			Intensity: 0.18,
+		}
+	case 1:
+		g.Spiral = SpiralParams{
+			A:         0.10,
+			B:         0.4,
+			Angle:     11,
+			Intensity: 0.18,
+		}
+	case 2:
+		g.Spiral = SpiralParams{
+			A:         0.70,
+			B:         0.5,
+			Angle:     5,
+			Intensity: 0.18,
+		}
+	}
+	return &g
+}
 
 func (a *Ani10) Reset() {
 }
 
-func (a *Ani10) Render(config *AnimationParameters, data *[]float64) {
+func (a *Ani10) Render(data *[]float64) {
 	// Extract values from the data map
 	values := make([]int, 0, len(*data))
 	for _, v := range *data {
@@ -88,7 +128,7 @@ func (a *Ani10) Render(config *AnimationParameters, data *[]float64) {
 
 		// Update size and color based on data
 		particle.Size = math.Log(float64(value)/10 + 1)
-		particle.Color = AsColor(int(a.getValue(10%len(a.Particles), values)), int(a.getValue(100%len(a.Particles), values)), int(a.getValue(200%len(a.Particles), values)))
+		particle.Color = animation_helpers.AsColor(int(a.getValue(10%len(a.Particles), values)), int(a.getValue(100%len(a.Particles), values)), int(a.getValue(200%len(a.Particles), values)))
 		particle.Draw()
 	}
 

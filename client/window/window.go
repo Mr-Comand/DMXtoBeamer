@@ -5,6 +5,7 @@ import (
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"technikflg.com/dmxToProjector/animations"
+	"technikflg.com/dmxToProjector/animations/preset_animation"
 	"technikflg.com/dmxToProjector/window/shaders"
 	"technikflg.com/dmxToProjector/ws"
 )
@@ -109,7 +110,7 @@ func handleAnimation(config ws.ClientConfig, audioData *[]float64) {
 			fmt.Println("skipped :", l.AnimationID, l.Parameters)
 			continue
 		}
-		var animation animations.AnimationInterface = l.Animation
+		var animation preset_animation.AnimationInterface = l.Animation
 		if animation != nil {
 			shaders.SetupTextureShader("hueShift", map[string]interface{}{"HueShift": float32(config.HueShift)/65535 + float32(l.HueShift)/65535})
 			shaders.StartTextureShader("hueShift")
@@ -118,7 +119,7 @@ func handleAnimation(config ws.ClientConfig, audioData *[]float64) {
 				shaders.SetupElementShader(l.Shader, l.ShaderParameters)
 				shaders.StartElementShader(l.Shader)
 			}
-			(animation).Render(&l.Parameters, audioData)
+			(animation).Render(audioData)
 			if l.Shader != "" {
 				shaders.EndElementShader(l.Shader)
 			}

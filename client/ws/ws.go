@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"reflect"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
 	"technikflg.com/dmxToProjector/animations"
+	"technikflg.com/dmxToProjector/animations/preset_animation"
 )
 
 var (
@@ -29,21 +29,21 @@ type ClientConfig struct {
 }
 
 type LayerConfig struct {
-	LayerID            uint16                            `json:"layerID"`
-	AnimationID        string                            `json:"animationID"`
-	Parameters         animations.AnimationParameters    `json:"parameters"`
-	Enabled            bool                              `json:"enabled"`
-	Dimmer             uint8                             `json:"dimmer"`
-	HueShift           uint16                            `json:"hueShift"`
-	Rotate             int16                             `json:"rotate"`
-	Pan                int16                             `json:"pan"`
-	Tilt               int16                             `json:"tilt"`
-	Scale              uint8                             `json:"scale"`
-	Shader             string                            `json:"shader"`
-	ShaderParameters   map[string]interface{}            `json:"shaderParameters"`
-	TextureShader      map[string]map[string]interface{} `json:"textureShaders"`
-	TextureShaderOrder []string                          `json:"textureShaderOrder"`
-	Animation          animations.AnimationInterface
+	LayerID            uint16                               `json:"layerID"`
+	AnimationID        string                               `json:"animationID"`
+	Parameters         preset_animation.AnimationParameters `json:"parameters"`
+	Enabled            bool                                 `json:"enabled"`
+	Dimmer             uint8                                `json:"dimmer"`
+	HueShift           uint16                               `json:"hueShift"`
+	Rotate             int16                                `json:"rotate"`
+	Pan                int16                                `json:"pan"`
+	Tilt               int16                                `json:"tilt"`
+	Scale              uint8                                `json:"scale"`
+	Shader             string                               `json:"shader"`
+	ShaderParameters   map[string]interface{}               `json:"shaderParameters"`
+	TextureShader      map[string]map[string]interface{}    `json:"textureShaders"`
+	TextureShaderOrder []string                             `json:"textureShaderOrder"`
+	Animation          preset_animation.AnimationInterface
 }
 
 // ConnectToWebSocket establishes a WebSocket connection to the given URL with auto-reconnect
@@ -128,10 +128,10 @@ func updateConfig(config ClientConfig) {
 			}
 			Layers[newPosition] = newLayer
 		} else {
-			animation := animations.Animations[newLayer.AnimationID]
-			if animation != nil {
-				animationClone := Clone(animation)
-				newLayer.Animation = animationClone
+			animationGenerator := animations.Animations[newLayer.AnimationID]
+			if animationGenerator != nil {
+				animation := animationGenerator.Create(newLayer.Parameters)
+				newLayer.Animation = animation
 				newLayer.Animation.Configure(newLayer.Parameters)
 				Layers[newPosition] = newLayer
 
@@ -143,35 +143,6 @@ func updateConfig(config ClientConfig) {
 	}
 	currentConfig.Layers = Layers
 	log.Printf("Updated configuration: %+v\n", config)
-}
-
-// Clone creates a deep copy of a value pointed to by an interface
-func Clone(a animations.AnimationInterface) animations.AnimationInterface {
-	if a == nil {
-		return nil
-	}
-
-	// Use reflection to get the value and type
-	originalValue := reflect.ValueOf(a)
-	if originalValue.Kind() != reflect.Ptr {
-		log.Println("Clone can only handle pointers to structs")
-		return nil
-	}
-
-	originalValue = originalValue.Elem()
-	if originalValue.Kind() != reflect.Struct {
-		log.Println("Clone expects a pointer to a struct")
-		return nil
-	}
-
-	// Create a new instance of the struct
-	cloneValue := reflect.New(originalValue.Type()).Elem()
-
-	// Copy the fields from the original to the clone
-	cloneValue.Set(originalValue)
-
-	// Return the new instance as the interface
-	return cloneValue.Addr().Interface().(animations.AnimationInterface)
 }
 
 // GetConfig retrieves the current configuration in a thread-safe manner
