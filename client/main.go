@@ -19,12 +19,12 @@ import (
 
 var ClientId string
 
-func adjustWebSocketURL(input, clientId string) (string, bool) {
+func adjustWebSocketURL(input, clientId string) (string, string, bool) {
 	// Define the regex for WebSocket URL validation
 	urlRegex := regexp.MustCompile(`^(.+?\:\/\/)?(\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})(:\d+)(\/[^?\n]*?)?(?:\?(.*?&)?client_id=([^&\n]*)?(&.*)?|\?(.*))?$`)
 	matches := urlRegex.FindStringSubmatch(input)
 	if len(matches) == 0 {
-		return "", false // Return empty if the input doesn't match at all
+		return "", "", false // Return empty if the input doesn't match at all
 	}
 
 	// If group 1 (protocol) is empty, set it to "ws://"
@@ -76,7 +76,7 @@ func adjustWebSocketURL(input, clientId string) (string, bool) {
 		}
 	}
 	// Reconstruct the full URL
-	return matches[1] + matches[2] + matches[3] + matches[4] + "?" + query, true
+	return matches[1] + matches[2] + matches[3] + matches[4] + "?" + query, clientId, true
 }
 func main() {
 
@@ -85,27 +85,27 @@ func main() {
 	ClientId = ""
 	wsURL := ""
 	if len(os.Args) == 2 {
-		wsURL, valid = adjustWebSocketURL(os.Args[1], "")
+		wsURL, ClientId, valid = adjustWebSocketURL(os.Args[1], "")
 		if !valid {
 			ClientId = wsURL
 			// If not provided, prompt the user for input
 			fmt.Print("Please enter the WebSocket URL: ")
 			scanner := bufio.NewScanner(os.Stdin)
 			if scanner.Scan() {
-				wsURL, valid = adjustWebSocketURL(scanner.Text(), ClientId)
+				wsURL, ClientId, valid = adjustWebSocketURL(scanner.Text(), ClientId)
 			}
 		}
 	} else if len(os.Args) > 2 {
-		wsURL, valid = adjustWebSocketURL(os.Args[1], os.Args[2])
+		wsURL, ClientId, valid = adjustWebSocketURL(os.Args[1], os.Args[2])
 		if !valid {
 			ClientId = os.Args[1]
-			wsURL, valid = adjustWebSocketURL(os.Args[2], ClientId)
+			wsURL, ClientId, valid = adjustWebSocketURL(os.Args[2], ClientId)
 		}
 	} else {
 		fmt.Print("Please enter the WebSocket URL: ")
 		scanner := bufio.NewScanner(os.Stdin)
 		if scanner.Scan() {
-			wsURL, valid = adjustWebSocketURL(scanner.Text(), "")
+			wsURL, ClientId, valid = adjustWebSocketURL(scanner.Text(), "")
 		}
 	}
 
@@ -120,7 +120,7 @@ func main() {
 	}()
 
 	// Initialize the window
-	window.InitWindow()
+	window.InitWindow(ClientId)
 	defer rl.CloseWindow()
 	defer portaudio.Terminate()
 

@@ -24,9 +24,9 @@ var (
 )
 var previousTime time.Time
 
-func InitWindow() {
+func InitWindow(WindowName string) {
 	// Initialize the window with the specified width and height (not fullscreen)
-	rl.InitWindow(int32(WindowWidth), int32(WindowHeight), "WebSocket-Controlled Animation")
+	rl.InitWindow(int32(WindowWidth), int32(WindowHeight), WindowName+" Animation Client")
 
 	// Set the window to be resizable by default (this is the default behavior)
 	rl.SetWindowMaxSize(100000, 1000000)
