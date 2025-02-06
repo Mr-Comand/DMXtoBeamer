@@ -3,12 +3,23 @@
 in vec2 fragTexCoord;
 out vec4 finalColor;
 
-uniform sampler2D texture0;  // The input texture (previous result or the scene)
-uniform float time;          // Time-based animation for the ripple effect
-
+uniform sampler2D texture0;  // The input texture
+uniform float time;          // Time for animation
+uniform float xSwing;
+uniform float ySwing;
+uniform float phaseShift;
 void main() {
-    // Applying a ripple effect using the sine function for distortion
     vec2 uv = fragTexCoord;
-    uv.x += sin(uv.y * 10.0 + time * 2.0) * 0.05; // Apply distortion based on Y
-    finalColor = texture(texture0, vec2(uv.x, 1.0 - uv.y)); // Sample from the texture with the new distorted coordinates
+
+    // Chromatic aberration offsets
+    float xSwingShiftAmount = xSwing * sin(time); // Time-based movement of the prism effect
+    float YSwingShiftAmount = ySwing * sin(time+(phaseShift*6.28)); // Time-based movement of the prism effect
+
+    // Separate the texture sampling for RGB channels
+    float r = texture(texture0, uv + vec2( xSwingShiftAmount, YSwingShiftAmount)).r;
+    float g = texture(texture0, uv).g;
+    float b = texture(texture0, uv - vec2( xSwingShiftAmount, YSwingShiftAmount)).b;
+
+    // Combine the colors to form a prism effect
+    finalColor = vec4(r, g, b, 1.0);
 }

@@ -1,10 +1,13 @@
 package shaders
 
 import (
+	"errors"
 	"fmt"
 	"image/color"
 	"log"
 	"reflect"
+	"strconv"
+	"strings"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -39,6 +42,7 @@ func InitShaders(windowWidth, windowHeight int32) {
 	TextureShaderRenderTexture = make(map[string]rl.RenderTexture2D)
 	TextureShaders["hueShift"] = &HueShiftShader{HueShift: 0.5}
 	TextureShaders["prism"] = &PrismShader{}
+	TextureShaders["wavy"] = &WavyShader{}
 	for name, v := range TextureShaders {
 		v.Load()
 		TextureShaderRenderTexture[name] = rl.LoadRenderTexture(windowWidth+300, windowHeight+300)
@@ -116,67 +120,77 @@ func AnotherTextureShader(shaderName string, shaderName2 string) {
 	}
 
 }
-
-func RepackageShaderParams(shader interface{}, parameters map[string]interface{}) error {
-	// Ensure that shader is a pointer to a struct or a pointer to a pointer to a struct
-	val := reflect.ValueOf(shader)
-	if val.Kind() == reflect.Ptr {
-		// If it's a pointer to a pointer (e.g. **Shader)
-		if val.Elem().Kind() == reflect.Ptr {
-			return fmt.Errorf("expected a pointer to a struct, got pointer to pointer")
-		}
-		// If it's a pointer to a struct
-		if val.Elem().Kind() == reflect.Struct {
-			val = val.Elem() // Dereference to get the struct value
-		} else {
-			return fmt.Errorf("expected a pointer to a struct, got %s", val.Elem().Kind())
-		}
-	} else {
-		return fmt.Errorf("expected a pointer to a struct, got %s", val.Kind())
+func Parse[T any](parameters map[string]interface{}, shader *T) error {
+	if shader == nil {
+		return errors.New("output struct cannot be nil")
 	}
 
-	// Iterate through the parameters map and assign to the corresponding struct fields
-	for key, paramValue := range parameters {
-		// Check if the field exists and is valid
-		field := val.FieldByName(key)
-		if !field.IsValid() {
-			log.Printf("Field %s does not exist in shader struct", key)
-			continue
+	outValue := reflect.ValueOf(shader).Elem()
+	outType := outValue.Type()
+
+	for i := 0; i < outType.NumField(); i++ {
+		field := outType.Field(i)
+		fieldValue := outValue.Field(i)
+
+		// Get the corresponding key in the map
+		tag := field.Tag.Get("parameter")
+		parts := strings.Split(tag, ",")
+		key := parts[0] // Get the field name from the JSON tag
+		defaultValue := ""
+
+		// Check if a default value is provided
+		for _, part := range parts[1:] {
+			if strings.HasPrefix(part, "default=") {
+				defaultValue = strings.TrimPrefix(part, "default=")
+			}
 		}
 
-		// Ensure the field is settable
-		if !field.CanSet() {
-			log.Printf("Field %s is not settable (likely unexported)", key)
-			continue
+		if key == "" {
+			key = field.Name // Fallback to struct field name if no JSON tag
 		}
 
-		// Check the type of the field and set the value accordingly
-		switch field.Kind() {
-		case reflect.Float32:
-			if v, ok := paramValue.(float32); ok {
-				field.SetFloat(float64(v))
-			} else {
-				log.Printf("Type mismatch for field %s: expected float32, got %T", key, paramValue)
-				return fmt.Errorf("type mismatch for field %s", key)
+		value, exists := parameters[key]
+		if !exists && defaultValue != "" {
+			// Use default value if not provided in params
+			var err error
+			value, err = convertDefaultValue(defaultValue, field.Type)
+			if err != nil {
+				return fmt.Errorf("failed to convert default value for field %s: %v", field.Name, err)
 			}
-		case reflect.Int32:
-			if v, ok := paramValue.(int32); ok {
-				field.SetInt(int64(v))
-			} else {
-				log.Printf("Type mismatch for field %s: expected int32, got %T", key, paramValue)
-				return fmt.Errorf("type mismatch for field %s", key)
+		}
+
+		if exists || defaultValue != "" {
+			val := reflect.ValueOf(value)
+
+			// Ensure the field is settable
+			if fieldValue.CanSet() {
+				// Try to convert the value to the correct type
+				if val.Type().ConvertibleTo(fieldValue.Type()) {
+					fieldValue.Set(val.Convert(fieldValue.Type()))
+				} else {
+					return fmt.Errorf("type mismatch for field %s", field.Name)
+				}
 			}
-		case reflect.String:
-			if v, ok := paramValue.(string); ok {
-				field.SetString(v)
-			} else {
-				log.Printf("Type mismatch for field %s: expected string, got %T", key, paramValue)
-				return fmt.Errorf("type mismatch for field %s", key)
-			}
-		default:
-			log.Printf("Unsupported field type for field %s: %s", key, field.Kind())
-			return fmt.Errorf("unsupported field type for field %s", key)
 		}
 	}
+
 	return nil
+}
+
+// Convert default string value to the appropriate type
+func convertDefaultValue(defaultValue string, targetType reflect.Type) (interface{}, error) {
+	switch targetType.Kind() {
+	case reflect.String:
+		return defaultValue, nil
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return strconv.ParseInt(defaultValue, 10, targetType.Bits())
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return strconv.ParseUint(defaultValue, 10, targetType.Bits())
+	case reflect.Float32, reflect.Float64:
+		return strconv.ParseFloat(defaultValue, targetType.Bits())
+	case reflect.Bool:
+		return strconv.ParseBool(defaultValue)
+	default:
+		return nil, fmt.Errorf("unsupported default type: %s", targetType.Kind())
+	}
 }

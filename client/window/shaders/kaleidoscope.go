@@ -2,7 +2,6 @@ package shaders
 
 import (
 	rl "github.com/gen2brain/raylib-go/raylib"
-	"log"
 )
 
 var kaleidoscope rl.Shader
@@ -24,10 +23,6 @@ func (k *KaleidoscopeShader) StartShader() {
 func (k *KaleidoscopeShader) EndShader() {
 	rl.EndShaderMode()
 }
-func (k *KaleidoscopeShader) Setup(parameters map[string]interface{}){
-	// Pass the pointer to the shader to the RepackageShaderParams function
-	if err := RepackageShaderParams(k, parameters); err != nil {
-		log.Printf("Error repackaging shader parameters: %v", err)
-		return
-	}
+func (k *KaleidoscopeShader) Setup(parameters map[string]interface{}) {
+	Parse(parameters, k)
 }
