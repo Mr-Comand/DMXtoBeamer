@@ -7,7 +7,7 @@ import (
 var hueShift rl.Shader
 
 type HueShiftShader struct {
-	HueShift float32
+	HueShift float32 `parameter:"HueShift,default=0"`
 }
 
 func (k *HueShiftShader) Load() {

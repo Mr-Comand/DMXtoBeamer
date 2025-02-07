@@ -117,9 +117,9 @@ func handleAnimation(config ws.ClientConfig, audioData *[]float64) {
 		}
 		var animation preset_animation.AnimationInterface = l.Animation
 		if animation != nil {
-			shaders.SetupTextureShader("hueShift", map[string]interface{}{"HueShift": float32(config.HueShift)/65535 + float32(l.HueShift)/65535})
-			shaders.StartTextureShader("hueShift")
-			rl.BeginMode2D(rl.NewCamera2D(rl.Vector2{X: float32(WindowWidth/2) + 150, Y: float32(WindowHeight/2) + 150}, rl.Vector2{X: 500 + float32(l.Tilt/32767)*1000, Y: 500 + float32(l.Tilt/32767)*1000}, float32(l.Rotate)/91, min(scaleX, scaleY)*(float32(config.Scale)/25*float32(l.Scale)/25)))
+			shaders.SetupTextureShader("general", map[string]interface{}{"HueShift": float32(config.HueShift)/65535 + float32(l.HueShift)/65535, "Dimmer": (float32(l.Dimmer) / 255) * (float32(config.Dimmer) / 255)})
+			shaders.StartTextureShader("general")
+			rl.BeginMode2D(rl.NewCamera2D(rl.Vector2{X: float32(WindowWidth/2) + 150, Y: float32(WindowHeight/2) + 150}, rl.Vector2{X: 500 + float32(l.Pan)/32767*1000, Y: 500 + float32(l.Tilt)/32767*1000}, float32(l.Rotate)/91, min(scaleX, scaleY)*(float32(config.Scale)/25*float32(l.Scale)/25)))
 			if l.Shader != "" {
 				shaders.SetupElementShader(l.Shader, l.ShaderParameters)
 				shaders.StartElementShader(l.Shader)
@@ -131,7 +131,7 @@ func handleAnimation(config ws.ClientConfig, audioData *[]float64) {
 			}
 			rl.EndMode2D()
 			if len(l.TextureShaderOrder) > 0 {
-				lastShader := "hueShift"
+				lastShader := "general"
 				for _, name := range l.TextureShaderOrder {
 					shaders.SetupTextureShader(name, l.TextureShader[name])
 					shaders.AnotherTextureShader(lastShader, name)
@@ -140,7 +140,7 @@ func handleAnimation(config ws.ClientConfig, audioData *[]float64) {
 				shaders.EndTextureShader(lastShader)
 
 			} else {
-				shaders.EndTextureShader("hueShift")
+				shaders.EndTextureShader("general")
 			}
 		} else {
 			fmt.Println("Unknown animation type:", l.AnimationID, l.Parameters)

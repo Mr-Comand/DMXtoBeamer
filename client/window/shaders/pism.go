@@ -9,7 +9,7 @@ var Prism rl.Shader
 type PrismShader struct {
 	XSwing     float32 `parameter:"XSwing,default=0.2"`
 	YSwing     float32 `parameter:"YSwing,default=0.2"`
-	PhaseShift float32 `parameter:"PhaseShift,default=0.5"`
+	PhaseShift float32 `parameter:"PhaseShift,default=0.25"`
 }
 
 func (s *PrismShader) Load() {
