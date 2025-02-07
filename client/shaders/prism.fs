@@ -10,7 +10,7 @@ uniform float ySwing;
 uniform float phaseShift;
 void main() {
     vec2 uv = fragTexCoord;
-
+uv.y = 1.0-uv.y;
     // Chromatic aberration offsets
     float xSwingShiftAmount = xSwing * sin(time); // Time-based movement of the prism effect
     float YSwingShiftAmount = ySwing * sin(time+(phaseShift*6.28)); // Time-based movement of the prism effect

@@ -40,10 +40,15 @@ func InitShaders(windowWidth, windowHeight int32) {
 
 	TextureShaders = make(map[string]TextureShaderInterface)
 	TextureShaderRenderTexture = make(map[string]rl.RenderTexture2D)
-	TextureShaders["hueShift"] = &HueShiftShader{HueShift: 0.5}
 	TextureShaders["general"] = &GeneralShader{}
-	TextureShaders["prism"] = &PrismShader{}
+	TextureShaders["hueShift"] = &HueShiftShader{HueShift: 0.5}
 	TextureShaders["wavy"] = &WavyShader{}
+	TextureShaders["wavyColors"] = &WavyColorsShader{}
+	TextureShaders["spin"] = &SpinShader{}
+	TextureShaders["pixelation"] = &PixelationShader{}
+	TextureShaders["prism"] = &PrismShader{}
+	TextureShaders["repeat"] = &RepeatShader{}
+	TextureShaders["rainbowwave"] = &RainbowShader{}
 	for name, v := range TextureShaders {
 		v.Load()
 		TextureShaderRenderTexture[name] = rl.LoadRenderTexture(windowWidth+300, windowHeight+300)
