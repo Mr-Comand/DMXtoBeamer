@@ -8,18 +8,25 @@ uniform float time;          // Time for animation
 uniform float xSwing;
 uniform float ySwing;
 uniform float phaseShift;
+
 void main() {
     vec2 uv = fragTexCoord;
-uv.y = 1.0-uv.y;
+    uv.y = 1.0 - uv.y;
+
     // Chromatic aberration offsets
-    float xSwingShiftAmount = xSwing * sin(time); // Time-based movement of the prism effect
-    float YSwingShiftAmount = ySwing * sin(time+(phaseShift*6.28)); // Time-based movement of the prism effect
+    float xSwingShiftAmount = xSwing * sin(time); 
+    float ySwingShiftAmount = ySwing * sin(time + (phaseShift * 6.28));
 
     // Separate the texture sampling for RGB channels
-    float r = texture(texture0, uv + vec2( xSwingShiftAmount, YSwingShiftAmount)).r;
-    float g = texture(texture0, uv).g;
-    float b = texture(texture0, uv - vec2( xSwingShiftAmount, YSwingShiftAmount)).b;
+    vec4 texColor = texture(texture0, uv);
+    vec4 texColorR = texture(texture0, uv + vec2(xSwingShiftAmount, ySwingShiftAmount));
+    vec4 texColorB = texture(texture0, uv - vec2(xSwingShiftAmount, ySwingShiftAmount));
+    
+    float r = texColorR.r;
+    float g = texColor.g;
+    float b = texColorB.b;
+    float a = min((texColor.a + texColorR.a + texColorB.a),1.0) ; // Averaging alpha values
 
-    // Combine the colors to form a prism effect
-    finalColor = vec4(r, g, b, 1.0);
+    // Preserve the alpha value while blending shifted positions
+    finalColor = vec4(r, g, b, a);
 }

@@ -19,9 +19,18 @@ void main() {
     float distortionY = sin(uv.x * 10.0  + time *2.0) *cos(angle) * distortionAmount;
     
     // Chromatic aberration
-    float r = texture(texture0, uv + vec2( distortionX, distortionY)).r;
-    float g = texture(texture0, uv).g;
-    float b = texture(texture0, uv - vec2( distortionX, distortionY)).b;
+    vec4 textureR = texture(texture0, uv + vec2( distortionX, distortionY));
+    vec4 textureG = texture(texture0, uv);
+    vec4 textureB = texture(texture0, uv - vec2( distortionX, distortionY));
 
-    finalColor = vec4(r, g, b, 1.0);
+    float r = textureR.r;
+    float g = textureG.g;
+    float b = textureB.b;
+    float a = min((textureR.a + textureG.a + textureB.a),1.0) ; // Averaging alpha values
+
+    
+    finalColor = vec4(r, g, b, a);
+
+
+    
 }
