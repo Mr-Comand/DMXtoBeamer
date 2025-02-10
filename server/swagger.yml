@@ -338,6 +338,7 @@ components:
             - textarea
             - number
             - color
+            - enum
         min:
           type: number
         max:
@@ -355,6 +356,12 @@ components:
           type: integer
         rows:
           type: integer
+        enumElements:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
     AnimationDefinition:
       type: object
       properties:
@@ -375,6 +382,8 @@ components:
           type: number
         default:
           type: number
+        description:
+          type: string
     ShaderDefinition:
       type: object
       properties:
