@@ -24,7 +24,7 @@ type Particle struct {
 	Size      float64
 	Shape     Shape
 	Hollow    bool
-	LineWidth int32
+	LineWidth uint8
 	Rotation  float64 // Rotation in degrees
 }
 
@@ -53,7 +53,7 @@ func (p *Particle) Draw() {
 	switch p.Shape {
 	case Circle:
 		if p.Hollow {
-			for i := int32(0); i < p.LineWidth; i++ {
+			for i := int32(0); i < int32(p.LineWidth)+1; i++ {
 				rl.DrawCircleLines(int32(p.Position.X), int32(p.Position.Y), float32(p.Size)-float32(i), p.Color)
 			}
 		} else {
@@ -74,7 +74,7 @@ func (p *Particle) Draw() {
 		p4X, p4Y := rotatePoint(p.Position.X-halfW, p.Position.Y+halfH, p.Position.X, p.Position.Y, p.Rotation)
 
 		if p.Hollow {
-			for i := int32(0); i < p.LineWidth; i++ {
+			for i := int32(0); i < int32(p.LineWidth)+1; i++ {
 				rl.DrawLine(int32(p1X)-i, int32(p1Y)-i, int32(p2X)-i, int32(p2Y)-i, p.Color)
 				rl.DrawLine(int32(p2X)-i, int32(p2Y)-i, int32(p3X)-i, int32(p3Y)-i, p.Color)
 				rl.DrawLine(int32(p3X)-i, int32(p3Y)-i, int32(p4X)-i, int32(p4Y)-i, p.Color)
@@ -99,7 +99,7 @@ func (p *Particle) Draw() {
 		p3X, p3Y := rotatePoint(p.Position.X+p.Size, p.Position.Y+p.Size, p.Position.X, p.Position.Y, p.Rotation)
 
 		if p.Hollow {
-			for i := int32(0); i < p.LineWidth; i++ {
+			for i := int32(0); i < int32(p.LineWidth)+1; i++ {
 				rl.DrawTriangleLines(
 					rl.Vector2{X: float32(p1X) - float32(i), Y: float32(p1Y) - float32(i)},
 					rl.Vector2{X: float32(p2X) - float32(i), Y: float32(p2Y) + float32(i)},
@@ -115,7 +115,7 @@ func (p *Particle) Draw() {
 			angle := float64(i)*math.Pi/3 + (p.Rotation * math.Pi / 180) // Apply rotation
 			x1 := p.Position.X + p.Size*math.Cos(angle)
 			y1 := p.Position.Y + p.Size*math.Sin(angle)
-			for j := int32(0); j < p.LineWidth; j++ {
+			for j := int32(0); j < int32(p.LineWidth); j++ {
 				rl.DrawLine(
 					int32(p.Position.X)-j, int32(p.Position.Y)-j,
 					int32(x1)-j, int32(y1)-j, p.Color,

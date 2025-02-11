@@ -22,7 +22,8 @@ type DynamicConfig struct {
 	BallCount int                     `parameter:"BallCount,default=5"`
 	Shape     int                     `parameter:"Shape,default=0"`
 	Hollow    bool                    `parameter:"Hollow,default=false"`
-	LineWidth uint16                  `parameter:"LineWidth,default=1"`
+	LineWidth uint8                   `parameter:"LineWidth,default=0"`
+	Rotation  float64                 `parameter:"Rotation,default=0"`
 	// TODO: Sound Active
 }
 type Ball struct {
@@ -59,7 +60,8 @@ func (g *BallsGenerator) Create(config preset_animation.AnimationParameters) pre
 		balls.balls[i].velocityX = rand.Float64()*2000 - 1000 // Random X velocity between -5 and 5
 		balls.balls[i].Particle.Shape = animation_helpers.Shape(balls.DynamicConfig.Shape)
 		balls.balls[i].Particle.Hollow = balls.DynamicConfig.Hollow
-		balls.balls[i].Particle.LineWidth = int32(balls.DynamicConfig.LineWidth)
+		balls.balls[i].Particle.LineWidth = balls.DynamicConfig.LineWidth
+		balls.balls[i].Particle.Rotation = balls.DynamicConfig.Rotation
 	}
 	return &balls
 }
@@ -133,6 +135,7 @@ func (a *Balls) Configure(config preset_animation.AnimationParameters) {
 	for i := range a.balls {
 		a.balls[i].Particle.Shape = animation_helpers.Shape(a.DynamicConfig.Shape)
 		a.balls[i].Particle.Hollow = a.DynamicConfig.Hollow
-		a.balls[i].Particle.LineWidth = int32(a.DynamicConfig.LineWidth)
+		a.balls[i].Particle.LineWidth = a.DynamicConfig.LineWidth
+		a.balls[i].Particle.Rotation = a.DynamicConfig.Rotation
 	}
 }
