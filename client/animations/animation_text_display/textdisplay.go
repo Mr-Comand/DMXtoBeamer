@@ -28,7 +28,9 @@ func NewTextDisplayGenerator(fontPathString string) *TextDisplayGenerator {
 	}
 	return &TextDisplayGenerator{Font: Font}
 }
-
+func (g *TextDisplayGenerator) Unload() {
+	rl.UnloadFont(g.Font)
+}
 func (g *TextDisplayGenerator) Create(config preset_animation.AnimationParameters) preset_animation.AnimationInterface {
 	textDisplay := TextDisplay{DynamicConfig: &DynamicConfig{}}
 	preset_animation.Parse(config, textDisplay.DynamicConfig)

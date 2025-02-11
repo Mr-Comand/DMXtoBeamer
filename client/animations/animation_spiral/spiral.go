@@ -39,6 +39,8 @@ type SpiralGenerator struct {
 	BaseRadius       int
 }
 
+func (g *SpiralGenerator) Unload() {
+}
 func (g SpiralGenerator) Create(config preset_animation.AnimationParameters) preset_animation.AnimationInterface {
 
 	ani := &Ani10{

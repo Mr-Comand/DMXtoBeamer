@@ -41,6 +41,8 @@ func NewGeneratorCircleAnimation() *CircleGenerator {
 		Bandwidth:        300,
 	}
 }
+func (g *CircleGenerator) Unload() {
+}
 func (g *CircleGenerator) Create(config preset_animation.AnimationParameters) preset_animation.AnimationInterface {
 	// Initialize pointers for DynamicConfig
 	ani := &CircleAnimation{

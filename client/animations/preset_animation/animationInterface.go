@@ -64,7 +64,9 @@ func Parse[T any](params AnimationParameters, out *T) error {
 			var err error
 			value, err = convertDefaultValue(defaultValue, field.Type)
 			if err != nil {
-				return fmt.Errorf("failed to convert default value for field %s: %v", field.Name, err)
+				fmt.Printf("failed to convert default value for field %s: %v", field.Name, err)
+				continue
+				// return fmt.Errorf("failed to convert default value for field %s: %v", field.Name, err)
 			}
 		}
 

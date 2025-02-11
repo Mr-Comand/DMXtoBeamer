@@ -101,6 +101,7 @@ func updateConfig(config ClientConfig) {
 	currentConfig.Rotate = config.Rotate
 	currentConfig.Scale = config.Scale
 	Layers := make([]LayerConfig, len(config.Layers))
+
 	for newPosition, newLayer := range config.Layers {
 
 		var oldLayer *LayerConfig
@@ -128,7 +129,10 @@ func updateConfig(config ClientConfig) {
 			}
 			Layers[newPosition] = newLayer
 		} else {
-			animationGenerator := animations.Animations[newLayer.AnimationID]
+			animationGenerator := animations.AnimationGenerators[newLayer.AnimationID]
+			if oldLayer != nil && oldLayer.Animation != nil {
+				(*oldLayer).Animation.Unload()
+			}
 			if animationGenerator != nil {
 				animation := animationGenerator.Create(newLayer.Parameters)
 				newLayer.Animation = animation
@@ -138,6 +142,19 @@ func updateConfig(config ClientConfig) {
 				log.Println(newLayer.AnimationID, newLayer, Layers)
 			} else {
 				Layers[newPosition] = newLayer
+			}
+		}
+	}
+	for _, oldLayer := range currentConfig.Layers {
+		var used bool
+		for _, newLayer := range config.Layers {
+			if oldLayer.LayerID == newLayer.LayerID {
+				used = true
+			}
+		}
+		if !used {
+			if oldLayer.Animation != nil {
+				oldLayer.Animation.Unload()
 			}
 		}
 	}

@@ -8,15 +8,20 @@ import (
 	"technikflg.com/dmxToProjector/animations/preset_animation"
 )
 
-var Animations map[string]preset_animation.AnimationGenerator
+var AnimationGenerators map[string]preset_animation.AnimationGenerator
 
 func InitAnimations() {
-	Animations = make(map[string]preset_animation.AnimationGenerator)
+	AnimationGenerators = make(map[string]preset_animation.AnimationGenerator)
 	// Add animations to the map
-	Animations["balls"] = animation_balls.NewGeneratorBallsAnimation()
-	Animations["spiral1"] = animation_spiral.NewSpiralGenerator(0)
-	Animations["spiral2"] = animation_spiral.NewSpiralGenerator(1)
-	Animations["spiral3"] = animation_spiral.NewSpiralGenerator(2)
-	Animations["circle"] = animation_circle.NewGeneratorCircleAnimation()
-	Animations["text"] = animation_text_display.NewTextDisplayGenerator("")
+	AnimationGenerators["balls"] = animation_balls.NewGeneratorBallsAnimation()
+	AnimationGenerators["spiral1"] = animation_spiral.NewSpiralGenerator(0)
+	AnimationGenerators["spiral2"] = animation_spiral.NewSpiralGenerator(1)
+	AnimationGenerators["spiral3"] = animation_spiral.NewSpiralGenerator(2)
+	AnimationGenerators["circle"] = animation_circle.NewGeneratorCircleAnimation()
+	AnimationGenerators["text"] = animation_text_display.NewTextDisplayGenerator("")
+}
+func UnloadAnimations() {
+	for _, v := range AnimationGenerators {
+		v.Unload()
+	}
 }

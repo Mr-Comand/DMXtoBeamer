@@ -13,6 +13,7 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/gordonklaus/portaudio"
 
+	"technikflg.com/dmxToProjector/animations"
 	"technikflg.com/dmxToProjector/window"
 	"technikflg.com/dmxToProjector/ws"
 )
@@ -120,9 +121,10 @@ func main() {
 	}()
 
 	// Initialize the window
+
+	defer end()
+
 	window.InitWindow(ClientId)
-	defer rl.CloseWindow()
-	defer portaudio.Terminate()
 
 	// Start the WebSocket listener in a goroutine
 	go ws.ListenWebSocket(wsURL)
@@ -131,4 +133,17 @@ func main() {
 	for !rl.WindowShouldClose() {
 		window.Render()
 	}
+}
+func end() {
+	window.StopAudioChannel <- true
+	config := ws.GetConfig()
+	for _, v := range config.Layers {
+		if v.Animation != nil {
+			v.Animation.Unload()
+			v.Animation = nil
+		}
+	}
+	animations.UnloadAnimations()
+	portaudio.Terminate()
+	rl.CloseWindow()
 }

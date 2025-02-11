@@ -11,12 +11,12 @@ import (
 )
 
 var audioProcessor *AudioProcessor
-var stopAudioChannel chan bool // Channel to signal stopping the goroutine
+var StopAudioChannel chan bool // Channel to signal stopping the goroutine
 
 // Initialize PortAudio and create a new audio stream
 func InitAudioProcessor(bufferSize int, deviceIndex int) {
-	if stopAudioChannel != nil {
-		stopAudioChannel <- true           // Signal the previous goroutine to stop
+	if StopAudioChannel != nil {
+		StopAudioChannel <- true           // Signal the previous goroutine to stop
 		time.Sleep(250 * time.Millisecond) // Sleep for 250ms to give time for cleanup
 	}
 
@@ -25,7 +25,7 @@ func InitAudioProcessor(bufferSize int, deviceIndex int) {
 	}
 
 	// Reinitialize the stop channel to restart the process
-	stopAudioChannel = make(chan bool)
+	StopAudioChannel = make(chan bool)
 
 	err := portaudio.Initialize()
 	if err != nil {
@@ -34,7 +34,7 @@ func InitAudioProcessor(bufferSize int, deviceIndex int) {
 	// Create a new AudioProcessor instance
 	audioProcessor = NewAudioProcessor(bufferSize, deviceIndex)
 	audioProcessor.Start()
-	go continuesProcessAudio(audioDataChannel, stopAudioChannel)
+	go continuesProcessAudio(audioDataChannel, StopAudioChannel)
 }
 
 // AudioProcessor struct to manage audio capture and FFT processing

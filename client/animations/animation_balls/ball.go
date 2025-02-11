@@ -11,10 +11,19 @@ import (
 
 type Balls struct {
 	preset_animation.Animation
-	balls      []Ball
-	peakVolume float32
-	dataMap    map[int]int
-	friction   float64
+	balls         []Ball
+	peakVolume    float32
+	dataMap       map[int]int
+	friction      float64
+	DynamicConfig *DynamicConfig
+}
+type DynamicConfig struct {
+	Color     animation_helpers.Color `parameter:"Color,default=ff0000"` //TODO
+	BallCount int                     `parameter:"BallCount,default=5"`
+	Shape     int                     `parameter:"Shape,default=0"`
+	Hollow    bool                    `parameter:"Hollow,default=false"`
+	LineWidth uint16                  `parameter:"LineWidth,default=1"`
+	// TODO: Sound Active
 }
 type Ball struct {
 	animation_helpers.Particle
@@ -28,12 +37,17 @@ type BallsGenerator struct {
 func NewGeneratorBallsAnimation() *BallsGenerator {
 	return &BallsGenerator{}
 }
+func (g *BallsGenerator) Unload() {
+}
 func (g *BallsGenerator) Create(config preset_animation.AnimationParameters) preset_animation.AnimationInterface {
-	ballCount := 5
+	dynamic := &DynamicConfig{}
+	preset_animation.Parse(config, dynamic)
+	ballCount := dynamic.BallCount
 	balls := Balls{
-		balls:    make([]Ball, ballCount),
-		dataMap:  make(map[int]int),
-		friction: 0.1,
+		balls:         make([]Ball, ballCount),
+		dataMap:       make(map[int]int),
+		friction:      0.1,
+		DynamicConfig: dynamic,
 	}
 	balls.peakVolume = 0.0
 	balls.dataMap = make(map[int]int)
@@ -43,6 +57,9 @@ func (g *BallsGenerator) Create(config preset_animation.AnimationParameters) pre
 		// Assign random velocities
 		balls.balls[i].velocityY = rand.Float64()*2000 - 1000 // Random Y velocity between -10 and 10
 		balls.balls[i].velocityX = rand.Float64()*2000 - 1000 // Random X velocity between -5 and 5
+		balls.balls[i].Particle.Shape = animation_helpers.Shape(balls.DynamicConfig.Shape)
+		balls.balls[i].Particle.Hollow = balls.DynamicConfig.Hollow
+		balls.balls[i].Particle.LineWidth = int32(balls.DynamicConfig.LineWidth)
 	}
 	return &balls
 }
@@ -109,5 +126,13 @@ func (b *Balls) Reset() {
 func (b *Balls) Draw() {
 	for i := range b.balls {
 		b.balls[i].Draw()
+	}
+}
+func (a *Balls) Configure(config preset_animation.AnimationParameters) {
+	preset_animation.Parse(config, a.DynamicConfig)
+	for i := range a.balls {
+		a.balls[i].Particle.Shape = animation_helpers.Shape(a.DynamicConfig.Shape)
+		a.balls[i].Particle.Hollow = a.DynamicConfig.Hollow
+		a.balls[i].Particle.LineWidth = int32(a.DynamicConfig.LineWidth)
 	}
 }
