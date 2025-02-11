@@ -18,6 +18,7 @@ type DynamicConfig struct {
 	Hollow    bool                    `parameter:"Shape,default=false"`
 	Size      float64                 `parameter:"Size,default=50"`
 	LineWidth uint8                   `parameter:"LineWidth,default=50"`
+	Rotation  float64                 `parameter:"Rotation,default=0"`
 }
 type StaticShapeGenerator struct {
 }
@@ -44,4 +45,5 @@ func (a *StaticShape) Configure(config preset_animation.AnimationParameters) {
 	a.Particle.Shape = a.DynamicConfig.Shape
 	a.Particle.LineWidth = a.DynamicConfig.LineWidth
 	a.Particle.Hollow = a.DynamicConfig.Hollow
+	a.Particle.Rotation = a.DynamicConfig.Rotation
 }
