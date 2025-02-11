@@ -46,7 +46,7 @@ func rotatePoint(x, y, cx, cy, angle float64) (float64, float64) {
 
 func (p *Particle) Draw() {
 	if p == nil {
-		fmt.Errorf("Particle not defined")
+		fmt.Println("Particle not defined")
 		return
 	}
 

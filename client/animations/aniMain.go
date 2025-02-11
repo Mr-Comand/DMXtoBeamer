@@ -4,6 +4,7 @@ import (
 	"technikflg.com/dmxToProjector/animations/animation_balls"
 	"technikflg.com/dmxToProjector/animations/animation_circle"
 	"technikflg.com/dmxToProjector/animations/animation_spiral"
+	"technikflg.com/dmxToProjector/animations/animation_static_shape"
 	"technikflg.com/dmxToProjector/animations/animation_text_display"
 	"technikflg.com/dmxToProjector/animations/preset_animation"
 )
@@ -19,6 +20,7 @@ func InitAnimations() {
 	AnimationGenerators["spiral3"] = animation_spiral.NewSpiralGenerator(2)
 	AnimationGenerators["circle"] = animation_circle.NewGeneratorCircleAnimation()
 	AnimationGenerators["text"] = animation_text_display.NewTextDisplayGenerator("")
+	AnimationGenerators["static"] = animation_static_shape.NewStaticShapeGenerator()
 }
 func UnloadAnimations() {
 	for _, v := range AnimationGenerators {

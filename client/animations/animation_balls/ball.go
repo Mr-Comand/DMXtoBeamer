@@ -53,7 +53,7 @@ func (g *BallsGenerator) Create(config preset_animation.AnimationParameters) pre
 	balls.peakVolume = 0.0
 	balls.dataMap = make(map[int]int)
 	for i := range balls.balls {
-		balls.balls[i].Init(rand.Float64()*50, 0, 500, &balls.friction)
+		balls.balls[i].Init(rand.Float64()*50, 500, 500, &balls.friction)
 		balls.dataMap[i] = 0
 		// Assign random velocities
 		balls.balls[i].velocityY = rand.Float64()*2000 - 1000 // Random Y velocity between -10 and 10
