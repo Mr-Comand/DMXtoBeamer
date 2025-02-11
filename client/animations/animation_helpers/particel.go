@@ -32,8 +32,8 @@ type Position struct {
 	X, Y float64
 }
 
-// rotatePoint rotates a point around a given origin
-func rotatePoint(x, y, cx, cy, angle float64) (float64, float64) {
+// RotatePoint rotates a point around a given origin
+func RotatePoint(x, y, cx, cy, angle float64) (float32, float32) {
 	rad := angle * (math.Pi / 180) // Convert degrees to radians
 	sin, cos := math.Sin(rad), math.Cos(rad)
 
@@ -41,7 +41,7 @@ func rotatePoint(x, y, cx, cy, angle float64) (float64, float64) {
 	newX := cos*(x-cx) - sin*(y-cy) + cx
 	newY := sin*(x-cx) + cos*(y-cy) + cy
 
-	return newX, newY
+	return float32(newX), float32(newY)
 }
 
 func (p *Particle) Draw() {
@@ -68,10 +68,10 @@ func (p *Particle) Draw() {
 
 		// Define the four corners of the rectangle/square
 		halfW, halfH := width/2, height/2
-		p1X, p1Y := rotatePoint(p.Position.X-halfW, p.Position.Y-halfH, p.Position.X, p.Position.Y, p.Rotation)
-		p2X, p2Y := rotatePoint(p.Position.X+halfW, p.Position.Y-halfH, p.Position.X, p.Position.Y, p.Rotation)
-		p3X, p3Y := rotatePoint(p.Position.X+halfW, p.Position.Y+halfH, p.Position.X, p.Position.Y, p.Rotation)
-		p4X, p4Y := rotatePoint(p.Position.X-halfW, p.Position.Y+halfH, p.Position.X, p.Position.Y, p.Rotation)
+		p1X, p1Y := RotatePoint(p.Position.X-halfW, p.Position.Y-halfH, p.Position.X, p.Position.Y, p.Rotation)
+		p2X, p2Y := RotatePoint(p.Position.X+halfW, p.Position.Y-halfH, p.Position.X, p.Position.Y, p.Rotation)
+		p3X, p3Y := RotatePoint(p.Position.X+halfW, p.Position.Y+halfH, p.Position.X, p.Position.Y, p.Rotation)
+		p4X, p4Y := RotatePoint(p.Position.X-halfW, p.Position.Y+halfH, p.Position.X, p.Position.Y, p.Rotation)
 
 		if p.Hollow {
 			for i := int32(0); i < int32(p.LineWidth)+1; i++ {
@@ -94,9 +94,9 @@ func (p *Particle) Draw() {
 		}
 	case Triangle:
 		// Define triangle vertices
-		p1X, p1Y := rotatePoint(p.Position.X, p.Position.Y-p.Size, p.Position.X, p.Position.Y, p.Rotation)
-		p2X, p2Y := rotatePoint(p.Position.X-p.Size, p.Position.Y+p.Size, p.Position.X, p.Position.Y, p.Rotation)
-		p3X, p3Y := rotatePoint(p.Position.X+p.Size, p.Position.Y+p.Size, p.Position.X, p.Position.Y, p.Rotation)
+		p1X, p1Y := RotatePoint(p.Position.X, p.Position.Y-p.Size, p.Position.X, p.Position.Y, p.Rotation)
+		p2X, p2Y := RotatePoint(p.Position.X-p.Size, p.Position.Y+p.Size, p.Position.X, p.Position.Y, p.Rotation)
+		p3X, p3Y := RotatePoint(p.Position.X+p.Size, p.Position.Y+p.Size, p.Position.X, p.Position.Y, p.Rotation)
 
 		if p.Hollow {
 			for i := int32(0); i < int32(p.LineWidth)+1; i++ {
