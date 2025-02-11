@@ -360,6 +360,7 @@ components:
           type: array
           items:
             type: string
+          description: The index of the selected element should be used as the value in the setConfig endpoint
         description:
           type: string
     AnimationDefinition:
