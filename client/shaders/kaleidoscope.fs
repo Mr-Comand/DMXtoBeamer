@@ -1,36 +1,54 @@
 #version 330
 
-in vec2 fragTexCoord;    // Fragment's texture coordinate (screen space)
-out vec4 finalColor;     // Output color
-in vec4 fragColor;
-uniform vec2 resolution; // Resolution of the screen
-uniform float segments;  // Number of mirrored segments (e.g. 6 for a hexagon)
+in vec2 fragTexCoord;
+out vec4 finalColor;
 
-void main() {
-    // Center the coordinates around the middle of the screen
-    vec2 centeredCoord = fragTexCoord * resolution - resolution / 2.0;
+uniform sampler2D texture0;  
+uniform float time;
 
-    // Convert the coordinates to polar (angle and radius)
-    float angle = atan(centeredCoord.y, centeredCoord.x);
-    float radius = length(centeredCoord);
+// Default values
+uniform float segments  = 8.0;     // Number of reflections
+uniform float levels    = 4.0;     // Recursive depth
+uniform float rotation  = 0.0;     // Base rotation
+uniform float zoom      = 1.2;     // Adjusted zoom
+uniform float distortion = 0.02;   // Reduced distortion to keep visibility
+uniform float fade      = 0.05;    // Softer fade effect only at edges
+uniform float speed     = 1.0;     // Speed of animation
+vec3 getPos(vec2 uv, float rotation){
+    float angle = atan(uv.y, uv.x) + rotation + time * 0.1 * speed;
+    float radius = length(uv) * zoom;
+    
+    // Calculate alpha: start at 1.0, which will be faded near edges
+    float alpha = 1.0;
 
-    // Map the angle to one of the segments to create the kaleidoscope effect
-    float segmentAngle = 3.14159 / segments; // Angle for each segment
-    angle = mod(angle, segmentAngle); // Wrap the angle into the segment
-    angle += floor(abs(angle) / segmentAngle) * segmentAngle;
+    // Apply recursive kaleidoscope effect
+    for (float i = 1.0; i <= levels; i++) {
+        float segmentAngle = 3.14159 / (segments * i);
+        
+        // Add subtle distortion to segment boundaries
+        float distortionOffset = sin(angle * segments * 2.0 + time * speed) * distortion / i;
+        angle = mod(angle + distortionOffset, segmentAngle * 2.0) - segmentAngle;
+        
+        radius = mix(radius, radius * 0.9, 0.5); // Prevent excessive shrinking
+        
+        // Apply the alpha fade only near the edges (not the center)
+        float edgeFactor = (cos(angle * segments))*0.5+0.5;
+        alpha *= (pow(edgeFactor, 1.0/fade));
+       
+    }
 
     // Convert back to Cartesian coordinates
-    vec2 finalCoord = vec2(cos(angle), sin(angle)) * radius;
+    return vec3(cos(angle) * radius + 0.5, sin(angle) * radius + 0.5, alpha);
+}
 
-    // Map the final coordinates back to texture space
-    finalCoord += resolution / 2.0;
-    finalCoord /= resolution;
-
-    // Check if the point is within the circle radius
-    float circleRadius = 0.2; // Circle radius in normalized space (0 to 1)
-    if (length(finalCoord - vec2(0.5, 0.5)) < circleRadius) {
-        finalColor = fragColor; // Red color for the circle
-    } else {
-        finalColor = vec4(0.0, 0.0, 0.0, 0.0); // Transparent outside the circle
-    }
+void main() {
+    vec2 uv = fragTexCoord; 
+    uv.y = 1 - uv.y;
+    uv -= 0.5;
+    vec3 kaleidoUV = getPos(uv, rotation);
+    vec3 kaleido2UV = getPos(uv, rotation+3.14/segments);
+    vec4 texColor = texture(texture0, kaleidoUV.xy)*kaleidoUV.z+texture(texture0, kaleido2UV.xy)*kaleido2UV.z;
+    
+    // Keep a strong center and smooth fade on the edges
+    finalColor = vec4(texColor.rgb, texColor.a);
 }

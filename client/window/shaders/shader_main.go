@@ -32,7 +32,7 @@ type TextureShaderInterface interface {
 func InitShaders(windowWidth, windowHeight int32) {
 
 	ElementShaders = make(map[string]ElementShaderInterface)
-	ElementShaders["kaleidoscope"] = &KaleidoscopeShader{Segments: 6}
+	ElementShaders["kaleidoscope"] = &KpKaleidoscopeShader{Segments: 6}
 
 	for _, v := range ElementShaders {
 		v.Load()
@@ -49,6 +49,7 @@ func InitShaders(windowWidth, windowHeight int32) {
 	TextureShaders["prism"] = &PrismShader{}
 	TextureShaders["repeat"] = &RepeatShader{}
 	TextureShaders["rainbowwave"] = &RainbowShader{}
+	TextureShaders["kaleidoscope"] = &KaleidoscopeShader{}
 	for name, v := range TextureShaders {
 		v.Load()
 		TextureShaderRenderTexture[name] = rl.LoadRenderTexture(windowWidth+300, windowHeight+300)
