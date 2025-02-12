@@ -112,7 +112,6 @@ func handleAnimation(config ws.ClientConfig, audioData *[]float64) {
 	previousTime = currentTime
 	for _, l := range config.Layers {
 		if !l.Enabled {
-			fmt.Println("skipped :", l.AnimationID, l.Parameters)
 			continue
 		}
 		var animation preset_animation.AnimationInterface = l.Animation
@@ -133,7 +132,10 @@ func handleAnimation(config ws.ClientConfig, audioData *[]float64) {
 			if len(l.TextureShaderOrder) > 0 {
 				lastShader := "general"
 				for _, name := range l.TextureShaderOrder {
-					shaders.SetupTextureShader(name, l.TextureShader[name])
+					exists := shaders.SetupTextureShader(name, l.TextureShader[name])
+					if !exists {
+						continue
+					}
 					shaders.AnotherTextureShader(lastShader, name)
 					lastShader = name
 				}

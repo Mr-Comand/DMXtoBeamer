@@ -102,11 +102,13 @@ func EndTextureShader(shaderName string) {
 		log.Println("Shader not found!")
 	}
 }
-func SetupTextureShader(shaderName string, parameters map[string]interface{}) {
+func SetupTextureShader(shaderName string, parameters map[string]interface{}) bool {
 	if shader := TextureShaders[shaderName]; shader != nil {
 		shader.Setup(parameters)
+		return true
 	} else {
 		log.Println("Shader not found!")
+		return false
 	}
 }
 func AnotherTextureShader(shaderName string, shaderName2 string) {
