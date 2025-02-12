@@ -3,6 +3,7 @@ package animations
 import (
 	"technikflg.com/dmxToProjector/animations/animation_balls"
 	"technikflg.com/dmxToProjector/animations/animation_circle"
+	"technikflg.com/dmxToProjector/animations/animation_dynamic_line"
 	"technikflg.com/dmxToProjector/animations/animation_frequency_bar"
 	"technikflg.com/dmxToProjector/animations/animation_spiral"
 	"technikflg.com/dmxToProjector/animations/animation_static_line"
@@ -25,6 +26,7 @@ func InitAnimations() {
 	AnimationGenerators["static"] = animation_static_shape.NewStaticShapeGenerator()
 	AnimationGenerators["line"] = animation_static_line.NewStaticLineGenerator()
 	AnimationGenerators["bars"] = animation_frequency_bar.NewFrequencyBarGenerator()
+	AnimationGenerators["dline"] = animation_dynamic_line.NewDynamicLineGenerator()
 }
 func UnloadAnimations() {
 	for _, v := range AnimationGenerators {
