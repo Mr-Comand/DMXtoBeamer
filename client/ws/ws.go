@@ -19,12 +19,12 @@ var (
 )
 
 type ClientConfig struct {
-	Dimmer   uint8         `json:"dimmer"`
-	HueShift uint16        `json:"hueShift"`
-	Rotate   int16         `json:"rotate"`
+	Dimmer   float32       `json:"dimmer"`
+	HueShift float32       `json:"hueShift"`
+	Rotate   float32       `json:"rotate"`
 	Pan      int16         `json:"pan"`
 	Tilt     int16         `json:"tilt"`
-	Scale    uint8         `json:"scale"`
+	Scale    float32       `json:"scale"`
 	Layers   []LayerConfig `json:"layers"`
 }
 
@@ -33,12 +33,12 @@ type LayerConfig struct {
 	AnimationID        string                               `json:"animationID"`
 	Parameters         preset_animation.AnimationParameters `json:"parameters"`
 	Enabled            bool                                 `json:"enabled"`
-	Dimmer             uint8                                `json:"dimmer"`
-	HueShift           uint16                               `json:"hueShift"`
-	Rotate             int16                                `json:"rotate"`
+	Dimmer             float32                              `json:"dimmer"`
+	HueShift           float32                              `json:"hueShift"`
+	Rotate             float32                              `json:"rotate"`
 	Pan                int16                                `json:"pan"`
 	Tilt               int16                                `json:"tilt"`
-	Scale              uint8                                `json:"scale"`
+	Scale              float32                              `json:"scale"`
 	Shader             string                               `json:"shader"`
 	ShaderParameters   map[string]interface{}               `json:"shaderParameters"`
 	TextureShader      map[string]map[string]interface{}    `json:"textureShaders"`
@@ -113,18 +113,6 @@ func updateConfig(config ClientConfig) {
 		if oldLayer != nil && oldLayer.AnimationID == newLayer.AnimationID {
 			if oldLayer.Animation != nil {
 				oldLayer.Animation.Configure(newLayer.Parameters)
-				// oldLayer.Dimmer = newLayer.Dimmer
-				// oldLayer.Enabled = newLayer.Enabled
-				// oldLayer.HueShift = newLayer.HueShift
-				// oldLayer.Pan = newLayer.Pan
-				// oldLayer.Tilt = newLayer.Tilt
-				// oldLayer.Parameters = newLayer.Parameters
-				// oldLayer.Rotate = newLayer.Rotate
-				// oldLayer.Scale = newLayer.Scale
-				// oldLayer.Shader = newLayer.Shader
-				// oldLayer.ShaderParameters = newLayer.ShaderParameters
-				// oldLayer.TextureShader = newLayer.TextureShader
-				// oldLayer.TextureShaderOrder = newLayer.TextureShaderOrder
 				newLayer.Animation = (*oldLayer).Animation
 			}
 			Layers[newPosition] = newLayer
