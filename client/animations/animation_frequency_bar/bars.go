@@ -1,7 +1,6 @@
 package animation_frequency_bar
 
 import (
-	"image/color"
 	"math"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -17,7 +16,7 @@ type FrequencyBar struct {
 	DynamicConfig *DynamicConfig
 }
 type DynamicConfig struct {
-	Color            animation_helpers.Color `parameter:"Color,default=ff0000"` //TODO
+	Color            animation_helpers.Color `parameter:"Color,default=#ff0000"`
 	LineWidth        uint8                   `parameter:"LineWidth,default=5"`
 	VisualValueCount uint16                  `parameter:"VisualValueCount,default=200"`
 	Bandwidth        uint16                  `parameter:"Bandwidth,default=300"`
@@ -51,7 +50,7 @@ func (a *FrequencyBar) Render(data *[]float64, dt float64) {
 		value := a.getValue(int(i), values)
 		statX, startY := animation_helpers.RotatePoint(float64(i)*(1200/float64(a.DynamicConfig.VisualValueCount))-100, 500+value, 500, 500, a.Rotation)
 		endX, endY := animation_helpers.RotatePoint(float64(i)*(1200/float64(a.DynamicConfig.VisualValueCount))-100, 500-value, 500, 500, a.Rotation)
-		rl.DrawLineEx(rl.Vector2{X: statX, Y: startY}, rl.Vector2{X: endX, Y: endY}, float32(a.DynamicConfig.LineWidth), color.RGBA{R: 255, G: 0, B: 0, A: 255})
+		rl.DrawLineEx(rl.Vector2{X: statX, Y: startY}, rl.Vector2{X: endX, Y: endY}, float32(a.DynamicConfig.LineWidth), a.DynamicConfig.Color.RGBA)
 	}
 }
 func (a *FrequencyBar) Configure(config preset_animation.AnimationParameters) {

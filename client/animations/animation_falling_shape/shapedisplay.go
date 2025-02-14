@@ -1,7 +1,6 @@
 package animation_falling_shape
 
 import (
-	"image/color"
 	"math"
 	"math/rand"
 
@@ -20,7 +19,7 @@ type FallingShape struct {
 }
 
 type DynamicConfig struct {
-	Color            animation_helpers.Color `parameter:"Color,default=ff0000"`
+	Color            animation_helpers.Color `parameter:"Color,default=#ff0000"`
 	Shape            animation_helpers.Shape `parameter:"Shape,default=1"`
 	Hollow           bool                    `parameter:"Hollow,default=false"`
 	Size             float64                 `parameter:"Size,default=50"`
@@ -148,7 +147,7 @@ func (ob *FallObject) Reset(config *DynamicConfig, scaleX, scaleY float64) {
 	ob.Particle.Position.X = (rand.Float64() * (1000 + (scaleX * 2))) - scaleX
 	ob.Particle.Position.Y = -rand.Float64()*100 - ob.Size - scaleY
 	ob.Speed = config.Gravity + rand.Float64()*config.Gravity/2
-	ob.Particle.Color = color.RGBA{R: 255, G: 0, B: 0, A: 255}
+	ob.Particle.Color = config.Color.RGBA
 	ob.Particle.LineWidth = config.LineWidth
 	ob.Particle.Hollow = config.Hollow
 	ob.Particle.Rotation = config.Rotation

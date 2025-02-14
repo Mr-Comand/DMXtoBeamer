@@ -17,12 +17,13 @@ type Balls struct {
 	DynamicConfig *DynamicConfig
 }
 type DynamicConfig struct {
-	Color     animation_helpers.Color `parameter:"Color,default=#00ff00"` //TODO
-	BallCount int                     `parameter:"BallCount,default=5"`
-	Shape     int                     `parameter:"Shape,default=0"`
-	Hollow    bool                    `parameter:"Hollow,default=false"`
-	LineWidth uint8                   `parameter:"LineWidth,default=0"`
-	Rotation  float64                 `parameter:"Rotation,default=0"`
+	Color        animation_helpers.Color `parameter:"Color,default=#00ff00"`
+	BallCount    int                     `parameter:"BallCount,default=5"`
+	Shape        int                     `parameter:"Shape,default=0"`
+	Hollow       bool                    `parameter:"Hollow,default=false"`
+	LineWidth    uint8                   `parameter:"LineWidth,default=0"`
+	Rotation     float64                 `parameter:"Rotation,default=0"`
+	AverageSpeed float64                 `parameter:"AverageSpeed,default=0"`
 	// TODO: Sound Active
 }
 type Ball struct {

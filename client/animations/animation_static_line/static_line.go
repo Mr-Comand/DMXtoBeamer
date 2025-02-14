@@ -1,7 +1,6 @@
 package animation_static_line
 
 import (
-	"image/color"
 	"math"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -16,7 +15,7 @@ type StaticLine struct {
 	DynamicConfig *DynamicConfig
 }
 type DynamicConfig struct {
-	Color                 animation_helpers.Color `parameter:"Color,default=ff0000"` //TODO
+	Color                 animation_helpers.Color `parameter:"Color,default=#ff0000"`
 	LineWidth             uint8                   `parameter:"LineWidth,default=50"`
 	Rotation              float64                 `parameter:"Rotation,default=0"`
 	RotationSpeed         float64                 `parameter:"RotationSpeed,default=0"`
@@ -50,7 +49,7 @@ func (a *StaticLine) Render(data *[]float64, dt float64) {
 	}
 	statX, startY := animation_helpers.RotatePoint(-1000, a.Y+500, 500, 500, a.Rotation)
 	endX, endY := animation_helpers.RotatePoint(2000, a.Y+500, 500, 500, a.Rotation)
-	rl.DrawLineEx(rl.Vector2{X: statX, Y: startY}, rl.Vector2{X: endX, Y: endY}, float32(a.DynamicConfig.LineWidth), color.RGBA{R: 255, G: 0, B: 0, A: 255})
+	rl.DrawLineEx(rl.Vector2{X: statX, Y: startY}, rl.Vector2{X: endX, Y: endY}, float32(a.DynamicConfig.LineWidth), a.DynamicConfig.Color.RGBA)
 }
 func (a *StaticLine) Configure(config preset_animation.AnimationParameters) {
 	preset_animation.Parse(config, a.DynamicConfig)

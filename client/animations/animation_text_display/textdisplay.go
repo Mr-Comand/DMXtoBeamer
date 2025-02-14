@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
+	"technikflg.com/dmxToProjector/animations/animation_helpers"
 	"technikflg.com/dmxToProjector/animations/preset_animation"
 )
 
@@ -13,8 +14,9 @@ type TextDisplay struct {
 	Font          rl.Font
 }
 type DynamicConfig struct {
-	Text     string `parameter:"Text,default=Hallo Welt!"`
-	FontSize uint16 `parameter:"FontSize,default=100"`
+	Color    animation_helpers.Color `parameter:"Color,default=#ff0000"`
+	Text     string                  `parameter:"Text,default=Hallo Welt!"`
+	FontSize uint16                  `parameter:"FontSize,default=100"`
 }
 type TextDisplayGenerator struct {
 	Font rl.Font
@@ -52,7 +54,7 @@ func (a *TextDisplay) Render(data *[]float64, dt float64) {
 	x := (500 - (textWidth / 2))
 	y := (500 - (textHeight / 2))
 
-	rl.DrawTextEx(a.Font, a.DynamicConfig.Text, rl.Vector2{X: x, Y: y}, textSize, 2, rl.Red)
+	rl.DrawTextEx(a.Font, a.DynamicConfig.Text, rl.Vector2{X: x, Y: y}, textSize, 2, a.DynamicConfig.Color.RGBA)
 
 }
 func (a *TextDisplay) Configure(config preset_animation.AnimationParameters) {

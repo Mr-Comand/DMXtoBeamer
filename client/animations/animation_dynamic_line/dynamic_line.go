@@ -1,7 +1,6 @@
 package animation_dynamic_line
 
 import (
-	"image/color"
 	"math"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -17,7 +16,7 @@ type DynamicLine struct {
 	DynamicConfig *DynamicConfig
 }
 type DynamicConfig struct {
-	Color            animation_helpers.Color `parameter:"Color,default=ff0000"` //TODO
+	Color            animation_helpers.Color `parameter:"Color,default=#ff0000"` //TODO
 	LineWidth        uint8                   `parameter:"LineWidth,default=5"`
 	VisualValueCount uint16                  `parameter:"VisualValueCount,default=100"`
 	Bandwidth        uint16                  `parameter:"Bandwidth,default=300"`
@@ -53,12 +52,12 @@ func (a *DynamicLine) Render(data *[]float64, dt float64) {
 		statX, startY := animation_helpers.RotatePoint((float64(i)-1)*(1200/float64(a.DynamicConfig.VisualValueCount))-100, 500-oldValue, 500, 500, a.Rotation)
 		endX, endY := animation_helpers.RotatePoint(float64(i)*(1200/float64(a.DynamicConfig.VisualValueCount))-100, 500-value, 500, 500, a.Rotation)
 		oldValue = value
-		rl.DrawLineEx(rl.Vector2{X: statX, Y: startY}, rl.Vector2{X: endX, Y: endY}, float32(a.DynamicConfig.LineWidth), color.RGBA{R: 255, G: 0, B: 0, A: 255})
+		rl.DrawLineEx(rl.Vector2{X: statX, Y: startY}, rl.Vector2{X: endX, Y: endY}, float32(a.DynamicConfig.LineWidth), a.DynamicConfig.Color.RGBA)
 	}
 	value := 0.0
 	statX, startY := animation_helpers.RotatePoint((float64(a.DynamicConfig.VisualValueCount)-1)*(1200/float64(a.DynamicConfig.VisualValueCount))-100, 500-oldValue, 500, 500, a.Rotation)
 	endX, endY := animation_helpers.RotatePoint(float64(a.DynamicConfig.VisualValueCount)*(1200/float64(a.DynamicConfig.VisualValueCount))-100, 500-value, 500, 500, a.Rotation)
-	rl.DrawLineEx(rl.Vector2{X: statX, Y: startY}, rl.Vector2{X: endX, Y: endY}, float32(a.DynamicConfig.LineWidth), color.RGBA{R: 255, G: 0, B: 0, A: 255})
+	rl.DrawLineEx(rl.Vector2{X: statX, Y: startY}, rl.Vector2{X: endX, Y: endY}, float32(a.DynamicConfig.LineWidth), a.DynamicConfig.Color.RGBA)
 }
 func (a *DynamicLine) Configure(config preset_animation.AnimationParameters) {
 	preset_animation.Parse(config, a.DynamicConfig)
