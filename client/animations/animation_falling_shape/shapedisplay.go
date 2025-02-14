@@ -27,11 +27,11 @@ type DynamicConfig struct {
 	SizeVariation    float64                 `parameter:"SizeVariation,default=10"`
 	LineWidth        uint8                   `parameter:"LineWidth,default=50"`
 	Rotation         float64                 `parameter:"Rotation,default=0"`
-	FreeSpin         bool                    `parameter:"FreeSpin,default=true"`
+	SpinSpeed        float64                 `parameter:"SpinSpeed,default=0.5"`
 	Swing            bool                    `parameter:"Swing,default=true"`
 	Gravity          float64                 `parameter:"Gravity,default=100"`
 	ParticleCount    int                     `parameter:"ParticleCount,default=10"`
-	WindgutsStrength float32                 `parameter:"WindgutsStrength,default=500"`
+	WindgutsStrength float32                 `parameter:"WindgutsStrength,default=0"`
 }
 type FallObject struct {
 	animation_helpers.Particle
@@ -108,8 +108,8 @@ func (a *FallingShape) Update(dt float64) {
 		}
 
 		// Rotate if FreeSpin is enabled
-		if a.DynamicConfig.FreeSpin {
-			a.FallObjects[i].Rotation += (rand.Float64() - 0.5) * 2 * dt
+		if a.DynamicConfig.SpinSpeed >= 0 {
+			a.FallObjects[i].Rotation += math.Cos(time+p.Phase) * dt * 100 * a.DynamicConfig.SpinSpeed
 		}
 
 		// Reset position if it falls out of bounds
@@ -174,5 +174,5 @@ func (a *FallingShape) TriggerWindGust() {
 	if rand.Float64() < 0.5 {
 		a.WindDirection = -1
 	}
-	a.WindStrength = rand.Float64() * float64(a.DynamicConfig.WindgutsStrength)
+	a.WindStrength = rand.Float64() * float64(a.DynamicConfig.WindgutsStrength) * 20
 }
