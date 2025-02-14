@@ -1,8 +1,11 @@
 package animation_helpers
 
 import (
+	"fmt"
 	"image/color"
 	"math"
+	"strconv"
+	"strings"
 )
 
 type Color struct {
@@ -40,4 +43,72 @@ func AsDynamicColor[T int | float64](r, g, b T, peakVolume float64) (color.RGBA,
 		B: uint8(normalizedBlue * 255),
 		A: 255,
 	}, peakVolume
+}
+
+// SetHex sets the color from a hex string (supports #RGB, #RGBA, #RRGGBB, and #RRGGBBAA formats)
+func (c *Color) SetHex(hex string) error {
+	hex = strings.TrimPrefix(hex, "#")
+	switch len(hex) {
+	case 3: // #RGB format
+		r, _ := strconv.ParseUint(string(hex[0])+string(hex[0]), 16, 8)
+		g, _ := strconv.ParseUint(string(hex[1])+string(hex[1]), 16, 8)
+		b, _ := strconv.ParseUint(string(hex[2])+string(hex[2]), 16, 8)
+		c.RGBA = color.RGBA{uint8(r), uint8(g), uint8(b), 255}
+	case 4: // #RGB format
+		r, _ := strconv.ParseUint(string(hex[0])+string(hex[0]), 16, 8)
+		g, _ := strconv.ParseUint(string(hex[1])+string(hex[1]), 16, 8)
+		b, _ := strconv.ParseUint(string(hex[2])+string(hex[2]), 16, 8)
+		a, _ := strconv.ParseUint(string(hex[3])+string(hex[3]), 16, 8)
+		c.RGBA = color.RGBA{uint8(r), uint8(g), uint8(b), uint8(a)}
+	case 6: // #RRGGBB format
+		r, err := strconv.ParseUint(hex[0:2], 16, 8)
+		if err != nil {
+			return err
+		}
+		g, err := strconv.ParseUint(hex[2:4], 16, 8)
+		if err != nil {
+			return err
+		}
+		b, err := strconv.ParseUint(hex[4:6], 16, 8)
+		if err != nil {
+			return err
+		}
+		c.RGBA = color.RGBA{uint8(r), uint8(g), uint8(b), 255}
+	case 8: // #RRGGBBAA format
+		r, err := strconv.ParseUint(hex[0:2], 16, 8)
+		if err != nil {
+			return err
+		}
+		g, err := strconv.ParseUint(hex[2:4], 16, 8)
+		if err != nil {
+			return err
+		}
+		b, err := strconv.ParseUint(hex[4:6], 16, 8)
+		if err != nil {
+			return err
+		}
+		a, err := strconv.ParseUint(hex[6:8], 16, 8)
+		if err != nil {
+			return err
+		}
+		c.RGBA = color.RGBA{uint8(r), uint8(g), uint8(b), uint8(a)}
+	default:
+		return fmt.Errorf("invalid hex format")
+	}
+	return nil
+}
+
+// Hex returns the color as a hex string (e.g., "#RRGGBB")
+func (c Color) Hex() string {
+	return fmt.Sprintf("#%02X%02X%02X", c.R, c.G, c.B)
+}
+
+// FromString creates a Color from a hex string
+func FromString(hex string) (Color, error) {
+	var c Color
+	err := c.SetHex(hex)
+	if err != nil {
+		return Color{}, err
+	}
+	return c, nil
 }

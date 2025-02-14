@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+
+	"technikflg.com/dmxToProjector/animations/animation_helpers"
 )
 
 type AnimationParameters map[string]interface{}
@@ -72,12 +74,15 @@ func Parse[T any](params AnimationParameters, out *T) error {
 
 		if exists || defaultValue != "" {
 			val := reflect.ValueOf(value)
-
-			// Ensure the field is settable
 			if fieldValue.CanSet() {
-				// Try to convert the value to the correct type
 				if val.Type().ConvertibleTo(fieldValue.Type()) {
 					fieldValue.Set(val.Convert(fieldValue.Type()))
+				} else if field.Type == reflect.TypeOf(animation_helpers.Color{}) {
+					c, err := animation_helpers.FromString(value.(string))
+					if err != nil {
+						return fmt.Errorf("invalid color format for field %s", field.Name)
+					}
+					fieldValue.Set(reflect.ValueOf(c))
 				} else {
 					return fmt.Errorf("type mismatch for field %s", field.Name)
 				}
@@ -101,6 +106,11 @@ func convertDefaultValue(defaultValue string, targetType reflect.Type) (interfac
 		return strconv.ParseFloat(defaultValue, targetType.Bits())
 	case reflect.Bool:
 		return strconv.ParseBool(defaultValue)
+	case reflect.Struct:
+		if targetType == reflect.TypeOf(animation_helpers.Color{}) { // Correctly compare with Color{}
+			return animation_helpers.FromString(defaultValue)
+		}
+		return nil, fmt.Errorf("unsupported default type: %s", targetType.Kind())
 	default:
 		return nil, fmt.Errorf("unsupported default type: %s", targetType.Kind())
 	}

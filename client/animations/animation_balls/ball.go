@@ -1,7 +1,6 @@
 package animation_balls
 
 import (
-	"image/color"
 	"math/rand/v2"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -18,7 +17,7 @@ type Balls struct {
 	DynamicConfig *DynamicConfig
 }
 type DynamicConfig struct {
-	Color     animation_helpers.Color `parameter:"Color,default=ff0000"` //TODO
+	Color     animation_helpers.Color `parameter:"Color,default=#00ff00"` //TODO
 	BallCount int                     `parameter:"BallCount,default=5"`
 	Shape     int                     `parameter:"Shape,default=0"`
 	Hollow    bool                    `parameter:"Hollow,default=false"`
@@ -53,7 +52,7 @@ func (g *BallsGenerator) Create(config preset_animation.AnimationParameters) pre
 	balls.peakVolume = 0.0
 	balls.dataMap = make(map[int]int)
 	for i := range balls.balls {
-		balls.balls[i].Init(rand.Float64()*50, 500, 500, &balls.friction)
+		balls.balls[i].Init(rand.Float64()*50, 500, 500, &balls.friction, dynamic.Color)
 		balls.dataMap[i] = 0
 		// Assign random velocities
 		balls.balls[i].velocityY = rand.Float64()*2000 - 1000 // Random Y velocity between -10 and 10
@@ -66,12 +65,12 @@ func (g *BallsGenerator) Create(config preset_animation.AnimationParameters) pre
 	return &balls
 }
 
-func (b *Ball) Init(size, x, y float64, friction *float64) {
+func (b *Ball) Init(size, x, y float64, friction *float64, color animation_helpers.Color) {
 	b.velocityX = 0
 	b.velocityY = 0
 	b.Particle.Position.X = x
 	b.Particle.Position.Y = y
-	b.Particle.Color = color.RGBA{255, 0, 0, 255}
+	b.Particle.Color = color.RGBA
 	b.Particle.Size = size
 	b.friction = friction
 }
