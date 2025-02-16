@@ -11,7 +11,7 @@ type StaticShape struct {
 	DynamicConfig *DynamicConfig
 }
 type DynamicConfig struct {
-	Color     animation_helpers.Color `parameter:"Color,default=ff0000"`
+	Color     animation_helpers.Color `parameter:"Color,default=#ff0000"`
 	Shape     animation_helpers.Shape `parameter:"Shape,default=0"`
 	Hollow    bool                    `parameter:"Shape,default=false"`
 	Size      float64                 `parameter:"Size,default=50"`
