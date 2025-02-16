@@ -8,18 +8,17 @@ import (
 	"technikflg.com/dmxToProjector/animations/preset_animation"
 )
 
-type Ani10 struct {
+type AniSpiral struct {
 	preset_animation.Animation
-	Spiral           SpiralParams
-	Particles        []animation_helpers.Particle
-	PeakVolume       float64
-	VisualValueCount int
-	BaseAmplitude    int
-	Bandwidth        int
-	BaseRadius       int
-	FlourCounter     bool
-	dataMap          map[int]int
-	DynamicConfig    *DynamicConfig
+	Spiral        SpiralParams
+	Particles     []animation_helpers.Particle
+	PeakVolume    float64
+	BaseAmplitude int
+	Bandwidth     int
+	FlourCounter  bool
+	dataMap       map[int]int
+	DynamicConfig *DynamicConfig
+	tooUpdate     bool
 }
 type SpiralParams struct {
 	A         float64
@@ -28,51 +27,36 @@ type SpiralParams struct {
 	Intensity float64
 }
 type DynamicConfig struct {
-	Speed      float64 `parameter:"Speed,default=100"`
-	FullBright bool    `parameter:"FullBright,default=false"`
+	Speed            float64 `parameter:"Speed,default=100"`
+	FullBright       bool    `parameter:"FullBright,default=false"`
+	VisualValueCount int     `parameter:"VisualValueCount,default=30"`
+	ParticleCount    int     `parameter:"ParticleCount,default=512"`
 }
 type SpiralGenerator struct {
-	Spiral           SpiralParams
-	VisualValueCount int
-	BaseAmplitude    int
-	Bandwidth        int
-	BaseRadius       int
+	Spiral        SpiralParams
+	BaseAmplitude int
+	Bandwidth     int
 }
 
-func (g *SpiralGenerator) Unload() {
-}
+func (g *SpiralGenerator) Unload() {}
+
 func (g SpiralGenerator) Create(config preset_animation.AnimationParameters) preset_animation.AnimationInterface {
-
-	ani := &Ani10{
-		VisualValueCount: g.VisualValueCount,
-		BaseAmplitude:    g.BaseAmplitude,
-		Bandwidth:        g.Bandwidth,
-		BaseRadius:       g.BaseRadius,
-		PeakVolume:       1,
-		Spiral:           g.Spiral,
-		DynamicConfig:    &DynamicConfig{},
+	ani := &AniSpiral{
+		BaseAmplitude: g.BaseAmplitude,
+		Bandwidth:     g.Bandwidth,
+		PeakVolume:    1,
+		Spiral:        g.Spiral,
+		DynamicConfig: &DynamicConfig{},
 	}
-	preset_animation.Parse(config, ani.DynamicConfig)
+	ani.Configure(config)
 
-	// Initialize particles
-	ani.Particles = make([]animation_helpers.Particle, 2048)
-	for i := 0; i < 2048; i++ {
-		ani.Particles[i] = animation_helpers.Particle{
-			Position: animation_helpers.Position{X: 0, Y: 0},
-			Color:    color.RGBA{R: 0, G: 255, B: 0},
-			Size:     2,
-		}
-	}
-	ani.dataMap = ani.generateDictionary(ani.Bandwidth, ani.VisualValueCount)
 	return ani
 }
 
 func NewSpiralGenerator(variant uint8) *SpiralGenerator {
 	g := SpiralGenerator{}
-	g.VisualValueCount = 500
 	g.BaseAmplitude = 400
 	g.Bandwidth = 300
-	g.BaseRadius = 400
 	switch variant {
 	case 0:
 		g.Spiral = SpiralParams{
@@ -98,14 +82,31 @@ func NewSpiralGenerator(variant uint8) *SpiralGenerator {
 	}
 	return &g
 }
-func (a *Ani10) Configure(config preset_animation.AnimationParameters) {
+
+func (a *AniSpiral) Configure(config preset_animation.AnimationParameters) {
+	// Parse dynamic configuration
 	preset_animation.Parse(config, a.DynamicConfig)
+	a.tooUpdate = true
 }
 
-func (a *Ani10) Reset() {
-}
+func (a *AniSpiral) Reset() {}
+func (a *AniSpiral) Render(data *[]float64, dt float64) {
+	if a.tooUpdate {
+		a.tooUpdate = false
 
-func (a *Ani10) Render(data *[]float64, dt float64) {
+		// Reinitialize particles based on updated ParticleCount
+		a.Particles = make([]animation_helpers.Particle, a.DynamicConfig.ParticleCount)
+		for i := 0; i < a.DynamicConfig.ParticleCount; i++ {
+			a.Particles[i] = animation_helpers.Particle{
+				Position: animation_helpers.Position{X: 0, Y: 0},
+				Color:    color.RGBA{R: 0, G: 255, B: 0},
+				Size:     2,
+			}
+		}
+
+		// Re-generate the data map based on the updated VisualValueCount and Bandwidth
+		a.dataMap = a.generateDictionary(a.Bandwidth, a.DynamicConfig.VisualValueCount)
+	}
 	// Extract values from the data map
 	values := make([]int, 0, len(*data))
 	for _, v := range *data {
@@ -126,25 +127,26 @@ func (a *Ani10) Render(data *[]float64, dt float64) {
 	}
 
 	// Update the particle positions, sizes, and colors based on data values
-	for i := range a.Particles {
-		particle := &a.Particles[i]
-		value := a.getValue(i, values)
+	for i, particle := range a.Particles {
+		// particle := &a.Particles[i]
+		pos := float64(i) * (float64(2048) / float64(a.DynamicConfig.ParticleCount))
+		value := a.getValue((pos), values)
 		// fmt.Print(", ", value)
 		// value = (value * 10) * (value * 10)
 		// Calculate positions using an Archimedean spiral with a wavy pattern
-		particle.Position.X = (((a.Spiral.A+a.Spiral.B*((a.Spiral.Angle/100)*float64(i)))*
-			math.Cos((a.Spiral.Angle/100)*float64(i)) +
-			math.Sin(float64(i)/(a.Spiral.Angle/100))*17) + 50) * 10
-		particle.Position.Y = (((a.Spiral.A+a.Spiral.B*((a.Spiral.Angle/100)*float64(i)))*
-			math.Sin((a.Spiral.Angle/100)*float64(i)) +
-			math.Cos(float64(i)/(a.Spiral.Angle/100))*17) + 50) * 10
+		particle.Position.X = (((a.Spiral.A+a.Spiral.B*((a.Spiral.Angle/100)*float64(pos)))*
+			math.Cos((a.Spiral.Angle/100)*float64(pos)) +
+			math.Sin(float64(pos)/(a.Spiral.Angle/100))*17) + 50) * 10
+		particle.Position.Y = (((a.Spiral.A+a.Spiral.B*((a.Spiral.Angle/100)*float64(pos)))*
+			math.Sin((a.Spiral.Angle/100)*float64(pos)) +
+			math.Cos(float64(pos)/(a.Spiral.Angle/100))*17) + 50) * 10
 
 		// Update size and color based on data
 		particle.Size = math.Log(float64(value)/10 + 1)
 		if a.DynamicConfig.FullBright {
-			particle.Color = animation_helpers.AsFullColor(int(a.getValue(10%len(a.Particles), values)), int(a.getValue(100%len(a.Particles), values)), int(a.getValue(200%len(a.Particles), values)))
+			particle.Color = animation_helpers.AsFullColor(int(a.getValue(float64(10%len(a.Particles)), values)), int(a.getValue(float64(100%len(a.Particles)), values)), int(a.getValue(float64(200%len(a.Particles)), values)))
 		} else {
-			particle.Color, a.PeakVolume = animation_helpers.AsDynamicColor(int(a.getValue(10%len(a.Particles), values)), int(a.getValue(100%len(a.Particles), values)), int(a.getValue(200%len(a.Particles), values)), a.PeakVolume)
+			particle.Color, a.PeakVolume = animation_helpers.AsDynamicColor(int(a.getValue(float64(10%len(a.Particles)), values)), int(a.getValue(float64(100%len(a.Particles)), values)), int(a.getValue(float64(200%len(a.Particles)), values)), a.PeakVolume)
 		}
 		particle.Draw()
 	}
@@ -153,12 +155,28 @@ func (a *Ani10) Render(data *[]float64, dt float64) {
 	a.PeakVolume -= 50 * dt
 }
 
-func (a *Ani10) getValue(id int, values []int) float64 {
+func (a *AniSpiral) getValue(id float64, values []int) float64 {
+	// Prevent divide by zero if len(a.Particles) is 0
+	if len(a.Particles) == 0 {
+		return 0
+	}
+
+	// Prevent division by zero if len(a.dataMap) is zero
+	if len(a.dataMap) == 0 {
+		return 0
+	}
+
 	// Access data based on `id` and values
-	return math.Pow(float64(values[a.dataMap[int(id/(len(a.Particles)/len(a.dataMap)))]])/255, 2) * float64(a.BaseAmplitude)
+	particleIndex := int(float64(id) / (float64(len(a.Particles)) / float64(len(a.dataMap))))
+	// Ensure we don't access out of bounds in dataMap
+	if particleIndex >= len(a.dataMap) {
+		particleIndex = len(a.dataMap) - 1
+	}
+	// Access data based on `id` and values
+	return math.Pow(float64(values[a.dataMap[particleIndex]])/255, 2) * float64(a.BaseAmplitude)
 }
 
-func (a *Ani10) generateDictionary(start, end int) map[int]int {
+func (a *AniSpiral) generateDictionary(start, end int) map[int]int {
 	result := make(map[int]int)
 	for i := 0; i <= end; i++ {
 		result[i] = int(math.Abs(float64(i-(end/2))) * float64(start) / 177) // Custom transformation logic
