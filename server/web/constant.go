@@ -155,7 +155,7 @@ func HandleClientGet(w http.ResponseWriter, r *http.Request) {
 
 	if !exists {
 
-		HttpError(w, fmt.Sprintf("Client %s has no Config.", clientID), http.StatusBadRequest)
+		HttpError(w, fmt.Sprintf("Client %s has no Config.", clientID), http.StatusNoContent)
 		return
 	}
 
@@ -181,13 +181,17 @@ func HandleWS(w http.ResponseWriter, r *http.Request) {
 
 	clientMapMutex.Lock()
 	clientMap[clientID] = conn
-	clientMapMutex.Unlock()
 	config, exists := clientConfigs[clientID]
+	clientMapMutex.Unlock()
 	if exists {
 		// Send the updated configuration to the client
 		if err := conn.WriteJSON(config); err != nil {
 			log.Printf("Error sending config to client %s: %v", clientID, err)
 		}
+	} else {
+		clientMapMutex.Lock()
+		clientConfigs[clientID] = ClientConfig{Dimmer: 255, Scale: 25, Layers: []Layer{}}
+		clientMapMutex.Unlock()
 	}
 
 	log.Printf("Client connected: %s", clientID)
