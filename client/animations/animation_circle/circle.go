@@ -18,27 +18,27 @@ type CircleAnimation struct {
 	FlourCounter     bool
 	dataMap          map[int]int
 	DynamicConfig    *DynamicConfig
+	Update           bool
 }
 type DynamicConfig struct {
-	RingCount     int     `parameter:"RingCount,default=1"`
-	BaseRadius    float64 `parameter:"BaseRadius,default=100"`
-	RingDistance  float64 `parameter:"RingDistance,default=150"`
-	ColorSegments uint8   `parameter:"ColorSegments,default=1"`
-	LineWidth     uint16  `parameter:"LineWidth,default=1"`
-	FullBright    bool    `parameter:"FullBright,default=false"`
+	RingCount        int     `parameter:"RingCount,default=1"`
+	BaseRadius       float64 `parameter:"BaseRadius,default=100"`
+	RingDistance     float64 `parameter:"RingDistance,default=150"`
+	ColorSegments    uint8   `parameter:"ColorSegments,default=1"`
+	LineWidth        uint16  `parameter:"LineWidth,default=1"`
+	FullBright       bool    `parameter:"FullBright,default=false"`
+	VisualValueCount int     `parameter:"VisualValueCount,default=200"`
 }
 type CircleGenerator struct {
-	VisualValueCount int
-	BaseAmplitude    int
-	Bandwidth        int
+	BaseAmplitude int
+	Bandwidth     int
 }
 
 func NewGeneratorCircleAnimation() *CircleGenerator {
 
 	return &CircleGenerator{
-		VisualValueCount: 200,
-		BaseAmplitude:    400,
-		Bandwidth:        300,
+		BaseAmplitude: 400,
+		Bandwidth:     300,
 	}
 }
 func (g *CircleGenerator) Unload() {
@@ -46,15 +46,12 @@ func (g *CircleGenerator) Unload() {
 func (g *CircleGenerator) Create(config preset_animation.AnimationParameters) preset_animation.AnimationInterface {
 	// Initialize pointers for DynamicConfig
 	ani := &CircleAnimation{
-		VisualValueCount: g.VisualValueCount,
-		BaseAmplitude:    g.BaseAmplitude,
-		Bandwidth:        g.Bandwidth,
-		peakVolume:       1,
-		DynamicConfig:    &DynamicConfig{},
+		BaseAmplitude: g.BaseAmplitude,
+		Bandwidth:     g.Bandwidth,
+		peakVolume:    1,
+		DynamicConfig: &DynamicConfig{},
 	}
-	preset_animation.Parse(config, ani.DynamicConfig)
-	fmt.Println(ani.DynamicConfig)
-	ani.dataMap = GenerateDictionary(ani.Bandwidth, ani.VisualValueCount)
+	ani.Configure(config)
 	return ani
 
 }
@@ -68,9 +65,7 @@ func GenerateDictionary(start, end int) map[int]int {
 }
 func (a *CircleAnimation) Configure(config preset_animation.AnimationParameters) {
 	preset_animation.Parse(config, a.DynamicConfig)
-	fmt.Println()
-	fmt.Println(a.DynamicConfig)
-	fmt.Println()
+	a.Update = true
 }
 
 func (a *CircleAnimation) DrawSmoothLine(coordinates [][3]float64) {
@@ -87,6 +82,11 @@ func (a *CircleAnimation) getValue(id int, values []int) float64 {
 	return math.Pow(math.Log10(math.Pow(float64(values[a.dataMap[int(id)]])/255, 2)*float64(a.BaseAmplitude)+1), 2) * 10
 }
 func (a *CircleAnimation) Render(data *[]float64, dt float64) {
+	if a.Update {
+		a.dataMap = GenerateDictionary(a.Bandwidth, max(a.DynamicConfig.VisualValueCount, 15))
+		a.VisualValueCount = max(a.DynamicConfig.VisualValueCount, 15)
+		a.Update = false
+	}
 	values := make([]int, 0, len(*data))
 	for _, v := range *data {
 		values = append(values, int(v*10))
