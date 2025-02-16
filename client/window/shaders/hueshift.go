@@ -16,7 +16,7 @@ func (k *HueShiftShader) Load() {
 }
 func (k *HueShiftShader) StartShader(renderTexture rl.RenderTexture2D) {
 	rl.BeginShaderMode(hueShift)
-	rl.SetShaderValue(hueShift, rl.GetShaderLocation(hueShift, "hueShift"), []float32{k.HueShift}, rl.ShaderUniformFloat)
+	rl.SetShaderValue(hueShift, rl.GetShaderLocation(hueShift, "hueShift"), []float32{k.HueShift / 360}, rl.ShaderUniformFloat)
 	rl.SetShaderValueTexture(hueShift, rl.GetShaderLocation(hueShift, "texture0"), renderTexture.Texture)
 
 }

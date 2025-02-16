@@ -23,7 +23,7 @@ func (k *RainbowShader) StartShader(renderTexture rl.RenderTexture2D) {
 	rl.SetShaderValue(RainbowRlShader, rl.GetShaderLocation(RainbowRlShader, "time"), []float32{float32(rl.GetTime())}, rl.ShaderUniformFloat)
 	rl.SetShaderValue(RainbowRlShader, rl.GetShaderLocation(RainbowRlShader, "speed"), []float32{k.Speed}, rl.ShaderUniformFloat)
 	rl.SetShaderValue(RainbowRlShader, rl.GetShaderLocation(RainbowRlShader, "elements"), []float32{k.Tiles}, rl.ShaderUniformFloat)
-	rl.SetShaderValue(RainbowRlShader, rl.GetShaderLocation(RainbowRlShader, "baseRotation"), []float32{k.BaseRotation}, rl.ShaderUniformFloat)
+	rl.SetShaderValue(RainbowRlShader, rl.GetShaderLocation(RainbowRlShader, "baseRotation"), []float32{k.BaseRotation / 360}, rl.ShaderUniformFloat)
 	rl.SetShaderValue(RainbowRlShader, rl.GetShaderLocation(RainbowRlShader, "rotatingSpeed"), []float32{k.RotatingSpeed}, rl.ShaderUniformFloat)
 	rl.SetShaderValue(RainbowRlShader, rl.GetShaderLocation(RainbowRlShader, "shape"), []float32{k.Shape}, rl.ShaderUniformFloat)
 
