@@ -38,7 +38,7 @@ vec3 getPos(vec2 uv, float rotation){
     }
 
     // Convert back to Cartesian coordinates
-    return vec3(cos(angle) * radius + 0.5, sin(angle) * radius + 0.5, alpha);
+    return vec3(cos(angle+time * speed) * radius + 0.5, sin(angle+time * speed) * radius + 0.5, alpha);
 }
 
 void main() {
