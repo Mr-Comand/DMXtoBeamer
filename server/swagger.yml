@@ -278,7 +278,7 @@ components:
               - type: number
               - $ref: '#/components/schemas/Color'
         enabled:
-          type: integer
+          type: boolean
         dimmer:
           type: integer
         hueShift:
