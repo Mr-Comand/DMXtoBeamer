@@ -1,0 +1,3 @@
+[submodule "server/web/webdata/webpage"]
+	path = server/web/webdata/webpage
+	url = https://github.com/Mr-Comand/DMXtoBeamer-Controlpage
