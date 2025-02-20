@@ -1,0 +1,68 @@
+{
+    "animationName": "Flash Shape",
+    "parameters": {
+        "Color": {
+            "type": "color",
+            "default": "#ff0000"
+        }, 
+        "Shape": {
+            "type": "enum",
+            "enumElements": [
+                "Circle",
+                "Square",
+                "Rectangle",
+                "Triangle",
+                "Snowflake"
+            ]
+        },
+        "Hollow": {
+            "type": "bool",
+            "default": false
+        },
+        "Size": {
+            "type": "number",
+            "min": 1,
+            "max": 100,
+            "default": 50,
+            "stepSize": 1
+        },
+        "TODO_SizeVariation": {
+            "type": "number",
+            "min": 1,
+            "max": 100,
+            "default": 10,
+            "stepSize": 1
+        },
+        "LineWidth": {
+            "type": "number",
+            "min": 1,
+            "max": 100,
+            "default": 50,
+            "stepSize": 1
+        },
+        "Rotation": {
+            "type": "number",
+            "min": 0,
+            "max": 360,
+            "default": 0,
+            "stepSize": 1
+        },
+        "FlashDuration": {
+            "type": "number",
+            "min": 0,
+            "max": 10,
+            "default": 0.1,
+            "stepSize": 0.05
+        },
+        "BPM": {
+            "type": "number",
+            "min": -1,
+            "max": 200,
+            "default": -1,
+            "stepSize": 1
+        }
+        
+
+    }
+}
+    

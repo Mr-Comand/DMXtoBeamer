@@ -1,0 +1,44 @@
+{
+    "animationName": "Dynamic Line",
+    "parameters": {
+        "Color": {
+            "type": "color",
+            "stepSize": "#ff000"
+        },
+        "LineWidth": {
+            "type": "number",
+            "default": 5,
+            "min": 1,
+            "max": 50,
+            "stepSize": 1
+        },
+        "VisualValueCount": {
+            "type": "number",
+            "default": 100,
+            "min": 1,
+            "max": 200,
+            "stepSize": 1
+        },
+        "Bandwidth": {
+            "type": "number",
+            "default": 300,
+            "min": 1,
+            "max": 500,
+            "stepSize": 1
+        },
+        "Rotation": {
+            "type": "number",
+            "default": 0,
+            "min": 1,
+            "max": 360,
+            "stepSize": 1
+        },
+        "RotationSpeed": {
+            "type": "number",
+            "default": 0,
+            "min": 0,
+            "max": 360,
+            "stepSize": 1
+        }
+    }
+}

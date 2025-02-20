@@ -1,0 +1,14 @@
+{
+    "shaderName": "Wavy Colors",
+    "parameters": {
+        "DistortionAmount": {
+            "default": 0.1
+        },
+        "RotatingSpeed": {
+            "default": 1
+        },
+        "baseRotation": {
+            "default": 0
+        }
+    }
+}

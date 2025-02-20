@@ -1,0 +1,20 @@
+{
+    "shaderName": "Prism",
+    "parameters": {
+        "XSwing": {
+            "default": 0.2,
+            "min": 0,
+            "max": 2
+        },
+        "YSwing": {
+            "default": 0.2,
+            "min": 0,
+            "max": 3
+        },
+        "PhaseShift": {
+            "default": 0.25,
+            "min": 0,
+            "max": 1
+        }
+    }
+}

@@ -1,5 +1,5 @@
 {
-    "animationName": "spiral2",
+    "animationName": "Spiral 2",
     "parameters": {
         "Speed": {
             "type": "number",
@@ -16,6 +16,21 @@
             "min": "",
             "max": "",
             "stepSize": ""
+        },
+        "VisualValueCount": {
+            "type": "number",
+            "default": 30,
+            "min": 0,
+            "max": 300,
+            "stepSize": 1
+        },
+        "ParticleCount": {
+            "type": "number",
+            "default": 30,
+            "name": "Speed",
+            "min": 0,
+            "max": 2048,
+            "stepSize": 512
         }
     }
 }

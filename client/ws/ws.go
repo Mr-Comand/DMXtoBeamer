@@ -29,7 +29,7 @@ type ClientConfig struct {
 }
 
 type LayerConfig struct {
-	LayerID            uint16                               `json:"layerID"`
+	LayerID            uint64                               `json:"layerID"`
 	AnimationID        string                               `json:"animationID"`
 	Parameters         preset_animation.AnimationParameters `json:"parameters"`
 	Enabled            bool                                 `json:"enabled"`

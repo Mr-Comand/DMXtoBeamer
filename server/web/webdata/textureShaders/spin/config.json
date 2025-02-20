@@ -1,0 +1,8 @@
+{
+    "shaderName": "Spin",
+    "parameters": {
+        "Speed": {
+            "default": 1
+        }
+    }
+}

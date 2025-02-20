@@ -8,11 +8,11 @@ var Kaleidoscope rl.Shader
 
 type KaleidoscopeShader struct {
 	Segments   float32 `parameter:"Segments,default=8.0"`
-	Levels     float32 `parameter:"Levels,default=4.0"`
+	Levels     float32 `parameter:"Levels,default=1.0"`
 	Rotation   float32 `parameter:"Rotation,default=0.0"`
 	Zoom       float32 `parameter:"Zoom,default=1.2"`
 	Distortion float32 `parameter:"Distortion,default=0.02"`
-	Fade       float32 `parameter:"Fade,default=0.05"`
+	Fade       float32 `parameter:"Fade,default=1"`
 	Speed      float32 `parameter:"Speed,default=1"`
 }
 

@@ -3,19 +3,31 @@
     "parameters": {
         "Speed": {
             "type": "number",
-            "default": "100",
+            "default": 100,
             "name": "Speed",
-            "min": "-300",
-            "max": "300",
-            "stepSize": "1"
+            "min": -300,
+            "max": 300,
+            "stepSize": 1
         },
         "FullBright": {
             "type": "bool",
-            "default": "false",
-            "name": "FullBright",
-            "min": "",
-            "max": "",
-            "stepSize": ""
+            "default": false,
+            "name": "FullBright"
+        },
+        "VisualValueCount": {
+            "type": "number",
+            "default": 30,
+            "min": 0,
+            "max": 300,
+            "stepSize": 1
+        },
+        "ParticleCount": {
+            "type": "number",
+            "default": 30,
+            "name": "Speed",
+            "min": 0,
+            "max": 2048,
+            "stepSize": 512
         }
     }
 }

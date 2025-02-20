@@ -3,51 +3,48 @@
     "parameters": {
         "RingCount": {
             "type": "number",
-            "default": "1",
+            "default": 0,
             "name": "RingCount",
-            "min": "",
-            "max": "",
-            "stepSize": ""
+            "min": 0,
+            "max": 5,
+            "stepSize": 1
         },
         "BaseRadius": {
             "type": "number",
-            "default": "100",
+            "default": 100,
             "name": "BaseRadius",
-            "min": "",
-            "max": "",
-            "stepSize": ""
+            "min": 0,
+            "max": 500,
+            "stepSize": 10
         },
         "RingDistance": {
             "type": "number",
-            "default": "150",
+            "default": 150,
             "name": "RingDistance",
-            "min": "",
-            "max": "",
-            "stepSize": ""
+            "min": 0,
+            "max": 200,
+            "stepSize": 10
         },
         "ColorSegments": {
             "type": "number",
-            "default": "1",
+            "default": 1,
             "name": "ColorSegments",
-            "min": "",
-            "max": "",
-            "stepSize": ""
+            "min": 1,
+            "max": 10,
+            "stepSize": 1
         },
         "LineWidth": {
             "type": "number",
-            "default": "1",
+            "default": 1,
             "name": "LineWidth",
-            "min": "",
-            "max": "",
-            "stepSize": ""
+            "min": 1,
+            "max": 100,
+            "stepSize": 1
         },
         "FullBright": {
             "type": "bool",
-            "default": "true",
-            "name": "FullBright",
-            "min": "",
-            "max": "",
-            "stepSize": ""
+            "default": false,
+            "name": "FullBright"
         }
     }
 }
