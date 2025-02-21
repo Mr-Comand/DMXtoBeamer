@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -e  # Exit immediately if a command exits with a non-zero status
 echo "Building the Go project..."
 
 OUTPUT_DIR="build"
@@ -13,7 +13,7 @@ mkdir -p "$OUTPUT_DIR"
 # rm -rf "$OUTPUT_DIR"/*  # Uncomment this if you want to clear the directory before building
 
 # Build the Go executable
-go build -tags production -o build/client.exe main.go
+go build -tags production -o build/client.exe main.go || { echo "Go build failed"; exit 1; }
 
 # Copy the shared library file to the output directory
 cp "$DLL_FILE" "$OUTPUT_DIR/"
