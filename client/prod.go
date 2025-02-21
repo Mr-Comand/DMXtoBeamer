@@ -3,8 +3,6 @@
 package main
 
 /*
-#cgo LDFLAGS: -L/path/to/libportaudio -lportaudio
-#cgo CFLAGS: -I/path/to/portaudio/include
 #include <portaudio.h>
 */
 import "C"
