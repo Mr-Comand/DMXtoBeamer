@@ -64,6 +64,14 @@ jobs:
         run: |
           export CGO_LDFLAGS="-L/usr/local/lib -lportaudio"
           export CGO_CFLAGS="-I/usr/local/include"
+          
+      - name: Set environment variables for cross-compilation toolchain
+        run: |
+          export CGO_ENABLED=1
+          export GOOS=windows
+          export GOARCH=amd64
+          # Remove -mthreads if present
+          export CGO_LDFLAGS=$(echo $CGO_LDFLAGS | sed 's/-mthreads//g')
 
       - name: Make build script executable
         working-directory: client
@@ -71,12 +79,7 @@ jobs:
 
       - name: Build Client with Static Linking
         working-directory: client
-        run: |
-          # Set environment variables for cross-compilation toolchain
-          export CGO_ENABLED=1
-          export GOOS=windows
-          export GOARCH=amd64
-          sh build.sh
+        run: sh build.sh
 
       - name: Upload client artifacts
         uses: actions/upload-artifact@v4
