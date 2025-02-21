@@ -17,7 +17,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version: "1.19"
+          go-version: "1.23"
       - name: Make build script executable
         working-directory: server
         run: chmod +x build.sh
@@ -47,11 +47,11 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version: "1.19"
+          go-version: "1.23"
 
       - name: Make build script executable
         working-directory: client
-        run: chmod +x client/build.sh
+        run: chmod +x build.sh
 
       - name: Build Client
         working-directory: client
