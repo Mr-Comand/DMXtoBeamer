@@ -13,7 +13,7 @@ mkdir -p "$OUTPUT_DIR"
 # rm -rf "$OUTPUT_DIR"/*  # Uncomment this if you want to clear the directory before building
 
 # Build the Go executable
-GOOS=windows GOARCH=amd64 go build -o "$OUTPUT_DIR/client.exe" main.go  # Update to create a .exe file
+go build -tags production -o build/client.exe main.go
 
 # Copy the shared library file to the output directory
 cp "$DLL_FILE" "$OUTPUT_DIR/"

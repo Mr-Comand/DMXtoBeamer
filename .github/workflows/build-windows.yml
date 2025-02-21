@@ -49,11 +49,26 @@ jobs:
         with:
           go-version: "1.23"
 
+      - name: Install Cross-compilation Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libsndfile-dev mingw-w64
+          git clone https://github.com/PortAudio/portaudio.git
+          cd portaudio
+          ./configure --host=x86_64-w64-mingw32 --enable-static --disable-shared
+          make
+          make install
+  
+      - name: Set environment variables for PortAudio
+        run: |
+          export CGO_LDFLAGS="-L/usr/local/lib -lportaudio"
+          export CGO_CFLAGS="-I/usr/local/include"
+
       - name: Make build script executable
         working-directory: client
         run: chmod +x build.sh
 
-      - name: Build Client
+      - name: Build Client with Static Linking
         working-directory: client
         run: sh build.sh
 

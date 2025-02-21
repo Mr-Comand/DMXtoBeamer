@@ -1,7 +1,13 @@
-//go:build !production
+//go:build production
 
 package main
 
+/*
+#cgo LDFLAGS: -L/path/to/libportaudio -lportaudio
+#cgo CFLAGS: -I/path/to/portaudio/include
+#include <portaudio.h>
+*/
+import "C"
 import (
 	"bufio"
 	"fmt"
@@ -81,6 +87,7 @@ func adjustWebSocketURL(input, clientId string) (string, string, bool) {
 	// Reconstruct the full URL
 	return matches[1] + matches[2] + matches[3] + matches[4] + "?" + query, clientId, true
 }
+
 func main() {
 
 	// Check if a config is provided as a command-line argument
@@ -117,6 +124,7 @@ func main() {
 		log.Fatal("WebSocket URL must be provided")
 	}
 	fmt.Println(wsURL)
+
 	// Start the pprof HTTP server for diagnostics
 	go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
@@ -136,6 +144,7 @@ func main() {
 		window.Render()
 	}
 }
+
 func end() {
 	window.StopAudioChannel <- true
 	config := ws.GetConfig()
