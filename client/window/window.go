@@ -123,8 +123,16 @@ func handleAnimation(config ws.ClientConfig, audioData *[]float64) {
 				shaders.SetupElementShader(l.Shader, l.ShaderParameters)
 				shaders.StartElementShader(l.Shader)
 			}
+			// Create a new slice to store the modified values
+			newAudioData := make([]float64, len(*audioData))
 
-			(animation).Render(audioData, dt)
+			// Multiply each value by 5 and store it in the new slice
+			for i, v := range *audioData {
+				newAudioData[i] = v * 4
+				// fmt.Println(newAudioData[i], v, l.Volume)
+			}
+
+			(animation).Render(&newAudioData, dt)
 			if l.Shader != "" {
 				shaders.EndElementShader(l.Shader)
 			}
