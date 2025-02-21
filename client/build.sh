@@ -20,7 +20,7 @@ cp "$DLL_FILE" "$OUTPUT_DIR/"
 
 # Copy the shaders directory
 mkdir -p "$OUTPUT_DIR/shaders/"
-cp -r "$SHADERS" "$OUTPUT_DIR/shaders/"
+cp -r "$SHADERS" "$OUTPUT_DIR"
 
 # Create a zip archive of the build
 zip -r "$OUTPUT_DIR/client.zip" "$OUTPUT_DIR"/*
