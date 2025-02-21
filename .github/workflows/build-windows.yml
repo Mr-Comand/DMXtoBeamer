@@ -30,13 +30,12 @@ jobs:
         run: GOOS=windows GOARCH=amd64 go build -tags production -o build/server.exe main.go
 
       - name: Upload server artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: server
           path: |
             server/build/server.exe
             server/build/server.zip
-        if: success()
 
   build-client:
     runs-on: ubuntu-latest
@@ -57,11 +56,10 @@ jobs:
         run: sh build.sh
 
       - name: Upload client artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: client
           path: |
             client/build/client.exe
             client/build/client.zip
             client/build/libportaudio.dll
-        if: success()
