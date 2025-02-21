@@ -1,0 +1,67 @@
+name: Build on Windows
+
+on:
+  push:
+    branches:
+      - go-rewrite
+
+jobs:
+  build-server:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.19"
+      - name: Make build script executable
+        run: chmod +x server/build.sh
+
+      - name: Build Server
+        working-directory: server
+        run: sh build.sh
+
+      - name: Build Server for Windows
+        working-directory: server
+        run: GOOS=windows GOARCH=amd64 go build -tags production -o build/server.exe main.go
+
+      - name: Upload server artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: server
+          path: |
+            server/build/server.exe
+            server/build/server.zip
+        if: success()
+
+  build-client:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.19"
+
+      - name: Make build script executable
+        run: chmod +x client/build.sh
+
+      - name: Build Client
+        working-directory: client
+        run: sh build.sh
+
+      - name: Upload client artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: client
+          path: |
+            client/build/client.exe
+            client/build/client.zip
+            client/build/libportaudio.dll
+        if: success()
