@@ -39,7 +39,7 @@ jobs:
             server/build/server.exe
             server/build/server.zip
 
-  build-client:
+    build-client:
     runs-on: windows-latest
     steps:
       - name: Checkout code
@@ -49,14 +49,6 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: "1.23"
-
-      - name: Install PortAudio
-        run: |
-          git clone https://github.com/PortAudio/portaudio.git
-          cd portaudio
-          .\configure.bat
-          nmake
-          copy .\bin\Release\portaudio.dll ..\..\client\resources\
 
       - name: Make build script executable
         working-directory: client
@@ -71,5 +63,5 @@ jobs:
         with:
           name: client
           path: |
-            client/build/client.zip
             client/build/client.exe
+            client/build/client.zip
