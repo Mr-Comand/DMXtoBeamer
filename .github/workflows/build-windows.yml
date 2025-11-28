@@ -51,7 +51,6 @@ jobs:
           go-version: "1.23"
       - name: Download portaudio.h
         run: |
-          mkdir -p client/resources
           curl -L https://raw.githubusercontent.com/PortAudio/portaudio/refs/heads/master/include/portaudio.h -o client/resources/portaudio.h
 
       - name: Make build script executable
