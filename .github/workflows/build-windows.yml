@@ -58,20 +58,6 @@ jobs:
           # Download portaudio.h
           Invoke-WebRequest -Uri "https://raw.githubusercontent.com/PortAudio/portaudio/refs/heads/master/include/portaudio.h" -OutFile "$resDir/portaudio.h"
 
-      - name: Patch portaudio wrapper to use local DLL
-        shell: bash
-        working-directory: client
-        run: |
-          go mod tidy
-          PORTAUDIO_MOD=$(go env GOPATH)/pkg/mod/github.com/gordonklaus/portaudio@*
-          for d in $PORTAUDIO_MOD; do
-            if [ -f "$d/portaudio.go" ]; then
-              echo "Patching $d/portaudio.go"
-              sed -i 's|#cgo pkg-config: portaudio-2.0|#cgo CFLAGS: -I$PWD/client/resources\n#cgo LDFLAGS: -L$PWD/client/resources -lportaudio|' "$d/portaudio.go"
-            fi
-          done
-      - name: Check patched portaudio.go
-        run: cat $(go env GOPATH)/pkg/mod/github.com/gordonklaus/portaudio@*/portaudio.go | grep cgo
       - name: Make build script executable
         working-directory: client
         run: chmod +x build.sh
