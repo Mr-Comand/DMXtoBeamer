@@ -60,6 +60,7 @@ jobs:
 
       - name: Patch portaudio wrapper to use local DLL
         shell: bash
+        working-directory: client
         run: |
           go mod tidy
           PORTAUDIO_MOD=$(go env GOPATH)/pkg/mod/github.com/gordonklaus/portaudio@*
