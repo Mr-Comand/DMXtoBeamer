@@ -25,7 +25,7 @@ mkdir -p "$OUTPUT_DIR"
 CGO_ENABLED=1 GOOS=windows GOARCH=amd64 \
 CGO_CFLAGS="-I$PWD/resources" \
 CGO_LDFLAGS="-L$PWD/resources -lportaudio" \
-go build -tags production -o "$OUTPUT_DIR/client.exe" main.go || { echo "Go build failed"; exit 1; }
+go build -x -v -tags production -o "$OUTPUT_DIR/client.exe" main.go
 
 # Copy PortAudio DLL if it exists
 if [ -f "$DLL_FILE" ]; then
