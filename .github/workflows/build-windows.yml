@@ -50,21 +50,16 @@ jobs:
         with:
           go-version: "1.23"
 
-      - name: Set environment for PortAudio
-        run: |
-          setx CGO_ENABLED 1
-          setx GOOS windows
-          setx GOARCH amd64
-          setx CGO_CFLAGS "-I%CD%\client\resources"
-          setx CGO_LDFLAGS "-L%CD%\client\resources -lportaudio"
-
-      - name: Make build script executable
-        working-directory: client
-        run: chmod +x build.sh
-
       - name: Build Client
         working-directory: client
-        run: sh build.sh
+        shell: bash
+        run: |
+          export CGO_ENABLED=1
+          export GOOS=windows
+          export GOARCH=amd64
+          export CGO_CFLAGS="-I$PWD/resources"
+          export CGO_LDFLAGS="-L$PWD/resources -lportaudio"
+          sh build.sh
 
       - name: Upload client artifacts
         uses: actions/upload-artifact@v4
