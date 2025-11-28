@@ -10,7 +10,10 @@ SHADERS="./shaders"
 # Create output directory
 mkdir -p "$OUTPUT_DIR"
 
-# Build the Go executable
+# Build the Go executable with explicit CGO flags
+CGO_ENABLED=1 GOOS=windows GOARCH=amd64 \
+CGO_CFLAGS="-I$PWD/resources" \
+CGO_LDFLAGS="-L$PWD/resources -lportaudio" \
 go build -tags production -o "$OUTPUT_DIR/client.exe" main.go || { echo "Go build failed"; exit 1; }
 
 # Copy PortAudio DLL
