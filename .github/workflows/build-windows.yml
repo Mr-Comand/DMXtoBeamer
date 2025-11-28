@@ -38,7 +38,7 @@ jobs:
           path: |
             server/build/server.exe
             server/build/server.zip
-jobs:
+
   build-client:
     runs-on: windows-latest
     steps:
