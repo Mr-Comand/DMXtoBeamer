@@ -49,9 +49,27 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: "1.23"
-      - name: Download portaudio.h
+
+      - name: Download PortAudio header and DLL
+        shell: pwsh
         run: |
-          curl -L https://raw.githubusercontent.com/PortAudio/portaudio/refs/heads/master/include/portaudio.h -o client/resources/portaudio.h
+          $resDir = "client/resources"
+          if (-Not (Test-Path $resDir)) { New-Item -ItemType Directory -Path $resDir -Force }
+          # Download portaudio.h
+          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/PortAudio/portaudio/refs/heads/master/include/portaudio.h" -OutFile "$resDir/portaudio.h"
+          # Download prebuilt libportaudio.dll (replace URL with your hosted DLL)
+          Invoke-WebRequest -Uri "https://example.com/libportaudio.dll" -OutFile "$resDir/libportaudio.dll"
+
+      - name: Patch portaudio wrapper to skip pkg-config
+        shell: bash
+        run: |
+          PORTAUDIO_MOD=$(go env GOPATH)/pkg/mod/github.com/gordonklaus/portaudio@*
+          for d in $PORTAUDIO_MOD; do
+            if [ -f "$d/portaudio.go" ]; then
+              echo "Patching $d/portaudio.go"
+              sed -i 's|#cgo pkg-config: portaudio-2.0|#cgo CFLAGS: -I$PWD/client/resources\n#cgo LDFLAGS: -L$PWD/client/resources -lportaudio|' "$d/portaudio.go"
+            fi
+          done
 
       - name: Make build script executable
         working-directory: client
@@ -61,7 +79,6 @@ jobs:
         working-directory: client
         shell: bash
         run: |
-          # Build the client using precompiled DLL and headers
           sh build.sh
 
       - name: Upload client artifacts
