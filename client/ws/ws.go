@@ -39,6 +39,7 @@ type LayerConfig struct {
 	Pan                int16                                `json:"pan"`
 	Tilt               int16                                `json:"tilt"`
 	Scale              float32                              `json:"scale"`
+	Volume             float64                              `json:"volume"`
 	Shader             string                               `json:"shader"`
 	ShaderParameters   map[string]interface{}               `json:"shaderParameters"`
 	TextureShader      map[string]map[string]interface{}    `json:"textureShaders"`

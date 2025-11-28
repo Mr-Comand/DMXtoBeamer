@@ -32,12 +32,13 @@ type Layer struct {
 	AnimationID        string                            `json:"animationID"`
 	Parameters         AnimationConfig                   `json:"parameters"`
 	Enabled            bool                              `json:"enabled"`
-	Dimmer             uint8                             `json:"dimmer"`
-	HueShift           uint16                            `json:"hueShift"`
-	Rotate             int16                             `json:"rotate"`
+	Dimmer             float32                           `json:"dimmer"`
+	HueShift           float32                           `json:"hueShift"`
+	Rotate             float32                           `json:"rotate"`
 	Pan                int16                             `json:"pan"`
 	Tilt               int16                             `json:"tilt"`
-	Scale              uint8                             `json:"scale"`
+	Scale              float32                           `json:"scale"`
+	Volume             float64                           `json:"volume"`
 	Shader             string                            `json:"shader"`
 	ShaderParameters   map[string]interface{}            `json:"shaderParameters"`
 	TextureShader      map[string]map[string]interface{} `json:"textureShaders"`
@@ -46,9 +47,9 @@ type Layer struct {
 
 type ClientConfig struct {
 	Layers   []Layer `json:"layers"`
-	Dimmer   uint8   `json:"dimmer"`
-	HueShift uint16  `json:"hueshift"`
-	Rotate   int16   `json:"rotate"`
+	Dimmer   float32 `json:"dimmer"`
+	HueShift float32 `json:"hueShift"`
+	Rotate   float32 `json:"rotate"`
 	Pan      int16   `json:"pan"`
 	Tilt     int16   `json:"tilt"`
 	Scale    uint8   `json:"scale"`
