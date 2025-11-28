@@ -40,7 +40,7 @@ jobs:
             server/build/server.zip
 
   build-client:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -50,34 +50,19 @@ jobs:
         with:
           go-version: "1.23"
 
-      - name: Install Cross-compilation Dependencies
+      - name: Install PortAudio
         run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential libsndfile-dev mingw-w64 libwayland-dev libx11-dev libxkbcommon-dev
           git clone https://github.com/PortAudio/portaudio.git
           cd portaudio
-          ./configure --host=x86_64-w64-mingw32 --enable-static --disable-shared
-          make
-          sudo make install
-
-      - name: Set environment variables for PortAudio
-        run: |
-          export CGO_LDFLAGS="-L/usr/local/lib -lportaudio"
-          export CGO_CFLAGS="-I/usr/local/include"
-          
-      - name: Set environment variables for cross-compilation toolchain
-        run: |
-          export CGO_ENABLED=1
-          export GOOS=windows
-          export GOARCH=amd64
-          # Remove -mthreads if present
-          export CGO_LDFLAGS=$(echo $CGO_LDFLAGS | sed 's/-mthreads//g')
+          .\configure.bat
+          nmake
+          copy .\bin\Release\portaudio.dll ..\..\client\resources\
 
       - name: Make build script executable
         working-directory: client
         run: chmod +x build.sh
 
-      - name: Build Client with Static Linking
+      - name: Build Client
         working-directory: client
         run: sh build.sh
 
@@ -87,3 +72,4 @@ jobs:
           name: client
           path: |
             client/build/client.zip
+            client/build/client.exe
