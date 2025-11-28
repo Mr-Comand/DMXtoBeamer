@@ -5,7 +5,7 @@ echo "Building the Go client..."
 
 OUTPUT_DIR="build"
 HEADER_FILE="./resources/portaudio.h"
-DLL_FILE="./resources/libportaudio.dll"
+DLL_FILE="./resources/portaudio_x64.dll"
 SHADERS="./shaders"
 
 # Check required files
