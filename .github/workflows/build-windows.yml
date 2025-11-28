@@ -57,8 +57,6 @@ jobs:
           if (-Not (Test-Path $resDir)) { New-Item -ItemType Directory -Path $resDir -Force }
           # Download portaudio.h
           Invoke-WebRequest -Uri "https://raw.githubusercontent.com/PortAudio/portaudio/refs/heads/master/include/portaudio.h" -OutFile "$resDir/portaudio.h"
-          # Download prebuilt libportaudio.dll (replace URL with your hosted DLL)
-          Invoke-WebRequest -Uri "https://example.com/libportaudio.dll" -OutFile "$resDir/libportaudio.dll"
 
       - name: Patch portaudio wrapper to skip pkg-config
         shell: bash
