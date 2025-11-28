@@ -4,8 +4,19 @@ set -e
 echo "Building the Go client..."
 
 OUTPUT_DIR="build"
+HEADER_FILE="./resources/portaudio.h"
 DLL_FILE="./resources/libportaudio.dll"
 SHADERS="./shaders"
+
+# Check required files
+if [ ! -f "$HEADER_FILE" ]; then
+    echo "Error: $HEADER_FILE not found. Make sure portaudio.h is in resources/"
+    exit 1
+fi
+
+if [ ! -f "$DLL_FILE" ]; then
+    echo "Warning: $DLL_FILE not found. Make sure libportaudio.dll is in resources/"
+fi
 
 # Create output directory
 mkdir -p "$OUTPUT_DIR"
@@ -16,11 +27,9 @@ CGO_CFLAGS="-I$PWD/resources" \
 CGO_LDFLAGS="-L$PWD/resources -lportaudio" \
 go build -tags production -o "$OUTPUT_DIR/client.exe" main.go || { echo "Go build failed"; exit 1; }
 
-# Copy PortAudio DLL
+# Copy PortAudio DLL if it exists
 if [ -f "$DLL_FILE" ]; then
     cp "$DLL_FILE" "$OUTPUT_DIR/"
-else
-    echo "Warning: $DLL_FILE not found. Make sure libportaudio.dll is in resources."
 fi
 
 # Copy shaders directory
