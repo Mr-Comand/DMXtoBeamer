@@ -39,29 +39,29 @@ jobs:
             server/build/server.exe
             server/build/server.zip
 
-    build-client:
-    runs-on: windows-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+  build-client:
+  runs-on: windows-latest
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Setup Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: "1.23"
+    - name: Setup Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: "1.23"
 
-      - name: Make build script executable
-        working-directory: client
-        run: chmod +x build.sh
+    - name: Make build script executable
+      working-directory: client
+      run: chmod +x build.sh
 
-      - name: Build Client
-        working-directory: client
-        run: sh build.sh
+    - name: Build Client
+      working-directory: client
+      run: sh build.sh
 
-      - name: Upload client artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: client
-          path: |
-            client/build/client.exe
-            client/build/client.zip
+    - name: Upload client artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: client
+        path: |
+          client/build/client.exe
+          client/build/client.zip
