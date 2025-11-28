@@ -38,6 +38,7 @@ jobs:
           path: |
             server/build/server.exe
             server/build/server.zip
+
   build-client:
     runs-on: windows-latest
     steps:
@@ -48,6 +49,14 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: "1.23"
+
+      - name: Set environment for PortAudio
+        run: |
+          setx CGO_ENABLED 1
+          setx GOOS windows
+          setx GOARCH amd64
+          setx CGO_CFLAGS "-I%CD%\client\resources"
+          setx CGO_LDFLAGS "-L%CD%\client\resources -lportaudio"
 
       - name: Make build script executable
         working-directory: client

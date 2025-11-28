@@ -16,7 +16,7 @@ GOOS=windows GOARCH=amd64 go build -o "$OUTPUT_DIR/server.exe" main.go  # Update
 
 # Copy the shaders directory
 mkdir -p "$OUTPUT_DIR/web/webdata"
-cp -r "$SHADERS" "$OUTPUT_DIR/web/webdata"
+cp -r "$WEBDATA" "$OUTPUT_DIR/web/webdata"
 
 # Create a zip archive of the build
 zip -r "$OUTPUT_DIR/server.zip" "$OUTPUT_DIR"/*
