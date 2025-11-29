@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - go-rewrite
+    tags:
+      - 'v*.*.*'  # only trigger on semantic version tags
 
 jobs:
   build-server:
@@ -81,33 +83,22 @@ jobs:
             client/build/client.zip
   release:
     needs: [build-server, build-client]
+    if: startsWith(github.ref, 'refs/tags/v')  # only run for v*.*.* tags
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: server
-          path: server_build
-      - uses: actions/download-artifact@v4
-        with:
-          name: client
-          path: client_build
-
+      - uses: actions/checkout@v3
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: go-rewrite-$(date +%Y%m%d%H%M)
+          tag_name: ${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Upload release assets
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ github.ref_name }}
           files: |
-            server_build/server.zip
-            client_build/client.zip
+            server/build/server.zip
+            client/build/client.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

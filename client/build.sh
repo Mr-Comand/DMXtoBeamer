@@ -5,7 +5,7 @@ echo "Building the Go client..."
 
 OUTPUT_DIR="build"
 HEADER_FILE="./resources/portaudio.h"
-DLL_FILE="./resources/portaudio_x64.dll"
+DLL_FILE="./resources/libportaudio.dll"
 SHADERS="./shaders"
 
 # Check required files
@@ -29,7 +29,7 @@ go build -tags production -o "$OUTPUT_DIR/client.exe" main.go
 
 # Copy PortAudio DLL if it exists
 if [ -f "$DLL_FILE" ]; then
-    cp "$DLL_FILE" "$OUTPUT_DIR/"
+    cp "$DLL_FILE" "$OUTPUT_DIR/portaudio_x64.dll"
 fi
 
 # Copy shaders directory
