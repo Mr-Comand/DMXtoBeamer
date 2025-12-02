@@ -1,6 +1,7 @@
 package animations
 
 import (
+	"technikflg.com/dmxToProjector/animations/animation_MH"
 	"technikflg.com/dmxToProjector/animations/animation_balls"
 	"technikflg.com/dmxToProjector/animations/animation_circle"
 	"technikflg.com/dmxToProjector/animations/animation_dynamic_line"
@@ -33,6 +34,7 @@ func InitAnimations() {
 	AnimationGenerators["dline"] = animation_dynamic_line.NewDynamicLineGenerator()
 	AnimationGenerators["flash"] = animation_flash_shape.NewFlashShapeGenerator()
 	AnimationGenerators["img"] = animation_image_display.NewImageDisplayGenerator()
+	AnimationGenerators["MH"] = animation_MH.NewMHGenerator()
 }
 func UnloadAnimations() {
 	for _, v := range AnimationGenerators {
