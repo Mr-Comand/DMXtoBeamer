@@ -126,9 +126,13 @@ func handleAnimation(config ws.ClientConfig, audioData *[]float64) {
 			// Create a new slice to store the modified values
 			newAudioData := make([]float64, len(*audioData))
 
+			volume := float64(l.Volume)
+			if volume <= 0 {
+				volume = 1
+			}
 			// Multiply each value by 5 and store it in the new slice
 			for i, v := range *audioData {
-				newAudioData[i] = v * 4 * float64(l.Volume)
+				newAudioData[i] = v * 4 * volume
 
 				// fmt.Println(newAudioData[i], v, l.Volume)
 			}
