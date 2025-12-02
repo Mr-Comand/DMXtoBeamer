@@ -23,8 +23,8 @@ type MH struct {
 }
 
 type DynamicConfig struct {
-	Universe int    `parameter:"Universe,default=0"`
-	Address  int    `parameter:"Address,default=1"`
+	Universe int    `parameter:"Universe,default=0,min=0"`
+	Address  int    `parameter:"Address,default=1,min=1,max=502"`
 	Text     string `parameter:"Text,default=Hello World!"`
 }
 
