@@ -101,8 +101,12 @@ func (a *TextDisplay) Render(data *[]float64, dt float64) {
 	x := (500 - (textWidth / 2))
 	y := (500 - (textHeight / 2))
 
-	// Draw the text on the screen
-	rl.DrawTextEx(a.Font, fmt.Sprintf("FPS: %d", rl.GetFPS()), rl.Vector2{X: x, Y: y}, finalFontSize, 2, a.DynamicConfig.Color.RGBA)
+	// Draw the text on the screen^
+	if a.DynamicConfig.ShowFPS {
+		rl.DrawTextEx(a.Font, fmt.Sprintf("FPS: %d", rl.GetFPS()), rl.Vector2{X: x, Y: y}, finalFontSize, 2, a.DynamicConfig.Color.RGBA)
+	} else {
+		rl.DrawTextEx(a.Font, a.DynamicConfig.Text, rl.Vector2{X: x, Y: y}, finalFontSize, 2, a.DynamicConfig.Color.RGBA)
+	}
 }
 
 // Configure allows updating the configuration for the TextDisplay (e.g., new font path or text)
