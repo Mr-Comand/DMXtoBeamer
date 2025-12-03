@@ -25,6 +25,10 @@
         "ScaleToSound": {
             "type": "bool",
             "default": true
+        },
+        "ShowFPS": {
+            "type": "bool",
+            "default": false
         }
     }
 }

@@ -23,6 +23,7 @@ type DynamicConfig struct {
 	FontSize     uint16                  `parameter:"FontSize,default=100"`
 	FontPath     string                  `parameter:"FontPath,default=resources/font.ttf"`
 	ScaleToSound bool                    `parameter:"ScaleToSound,default=true"`
+	ShowFPS      bool                    `parameter:"ShowFPS,default=false"`
 }
 
 type TextDisplayGenerator struct {
@@ -101,7 +102,7 @@ func (a *TextDisplay) Render(data *[]float64, dt float64) {
 	y := (500 - (textHeight / 2))
 
 	// Draw the text on the screen
-	rl.DrawTextEx(a.Font, a.DynamicConfig.Text, rl.Vector2{X: x, Y: y}, finalFontSize, 2, a.DynamicConfig.Color.RGBA)
+	rl.DrawTextEx(a.Font, fmt.Sprintf("FPS: %d", rl.GetFPS()), rl.Vector2{X: x, Y: y}, finalFontSize, 2, a.DynamicConfig.Color.RGBA)
 }
 
 // Configure allows updating the configuration for the TextDisplay (e.g., new font path or text)
