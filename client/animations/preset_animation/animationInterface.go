@@ -75,35 +75,38 @@ func Parse[T any](params AnimationParameters, out *T) error {
 			if err != nil {
 				fmt.Printf("failed to convert default value for field %s: %v", field.Name, err)
 				continue
-				// return fmt.Errorf("failed to convert default value for field %s: %v", field.Name, err)
 			}
 		}
 		if exists || defaultValue != "" {
 
 			val := reflect.ValueOf(value)
-			if fieldValue.CanSet() {
-				if val.Type().ConvertibleTo(fieldValue.Type()) {
-					val = val.Convert(fieldValue.Type())
-				} else if field.Type == reflect.TypeOf(animation_helpers.Color{}) {
-					c, err := animation_helpers.FromString(value.(string))
-					if err != nil {
-						return fmt.Errorf("invalid color format for field %s", field.Name)
-					}
-					val = reflect.ValueOf(c)
-				} else {
-					return fmt.Errorf("type mismatch for field %s", field.Name)
-				}
 
-				// Apply min/max after conversion
-				if minRaw != "" || maxRaw != "" {
-					val = applyMinMax(val, field.Type, minRaw, maxRaw)
+			if val.Type().ConvertibleTo(fieldValue.Type()) {
+				val = val.Convert(fieldValue.Type())
+			} else if field.Type == reflect.TypeOf(animation_helpers.Color{}) {
+				c, err := animation_helpers.FromString(value.(string))
+				if err != nil {
+					return fmt.Errorf("invalid color format for field %s", field.Name)
 				}
-				// Assign final value
-				if fieldValue.CanSet() {
-					fieldValue.Set(val)
-				}
+				val = reflect.ValueOf(c)
+			} else {
+				fmt.Printf("Type mismatch for field %s: expected %s but got %s\n", field.Name, field.Type, val.Type())
+				return fmt.Errorf("type mismatch for field %s", field.Name)
 			}
 
+			// Apply min/max after conversion
+			if minRaw != "" || maxRaw != "" {
+				val = applyMinMax(val, field.Type, minRaw, maxRaw)
+			}
+			// Assign final value
+			if fieldValue.CanSet() {
+				fieldValue.Set(val)
+			} else {
+				fmt.Printf("Cannot set field %s\n", field.Name)
+			}
+
+		} else {
+			fmt.Printf("Parameter %s not found and no default value provided\n", key)
 		}
 	}
 

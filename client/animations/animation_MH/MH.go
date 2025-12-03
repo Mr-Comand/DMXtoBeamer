@@ -23,9 +23,9 @@ type MH struct {
 }
 
 type DynamicConfig struct {
-	Universe int    `parameter:"Universe,default=0,min=0"`
-	Address  int    `parameter:"Address,default=1,min=1,max=502"`
-	Text     string `parameter:"Text,default=Hello World!"`
+	Universe int  `parameter:"Universe,default=0,min=0"`
+	Address  int  `parameter:"Address,default=1,min=1,max=502"`
+	XYMode   bool `parameter:"XYMode,default=false"`
 }
 
 type MhState struct {
@@ -63,8 +63,8 @@ func (data *MhState) FromDMX(dmx [512]byte, startAddr int) {
 	} else {
 		data.Hollow = true
 		shapeVal -= shapeCount
-		data.LineWidth = shapeVal % 50
-		shapeVal /= 50
+		data.LineWidth = shapeVal % 51
+		shapeVal /= 51
 	}
 	switch shapeVal {
 	case 0:
@@ -120,10 +120,17 @@ func (a *MH) Render(data *[]float64, dt float64) {
 	a.particle.LineWidth = mhState.LineWidth
 	a.particle.Size = float64(mhState.Size) * 2.0
 
-	angle := float64(mhState.Pan)/65535.0*360.0 - 180.0
-	dmxY := float64(mhState.Tilt)/65535.0*1500.0 - 250.0
-	x, y := animation_helpers.RotatePoint(500, dmxY, 500, 500, angle)
-	a.particle.Position = animation_helpers.Position{X: float64(x), Y: float64(y)}
+	if a.DynamicConfig.XYMode {
+		x := (-float64(mhState.Pan)/65535.0+1)*1500.0 - 250.0
+		y := (-float64(mhState.Tilt)/65535.0+1)*1500.0 - 250.0
+		a.particle.Position = animation_helpers.Position{X: x, Y: y}
+	} else {
+		angle := float64(mhState.Pan)/65535.0*360.0 - 180.0
+		dmxY := (-float64(mhState.Tilt)/65535.0+1)*1500.0 - 250.0
+		x, y := animation_helpers.RotatePoint(500, dmxY, 500, 500, angle)
+		a.particle.Position = animation_helpers.Position{X: float64(x), Y: float64(y)}
+
+	}
 	a.particle.Draw()
 }
 
