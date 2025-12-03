@@ -6,7 +6,8 @@ on:
       - go-rewrite
     tags:
       - 'v*.*.*'  # only trigger on semantic version tags
-
+permissions:
+  contents: write
 jobs:
   build-server:
     runs-on: ubuntu-latest
