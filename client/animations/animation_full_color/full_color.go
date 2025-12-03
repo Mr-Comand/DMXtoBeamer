@@ -53,7 +53,7 @@ func (g *DMXColorGenerator) Create(config preset_animation.AnimationParameters) 
 
 	DMXColor := DMXColor{
 		DynamicConfig: &DynamicConfig{},
-		artnetnode:    artnet.GetArtnet("10.144.92.3/24", "MH-animation-node"),
+		artnetnode:    artnet.GetArtnet("10.8.8.1/24", "MH-animation-node"),
 	}
 
 	(&DMXColor).Configure(config)

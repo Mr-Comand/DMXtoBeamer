@@ -7,6 +7,7 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"technikflg.com/dmxToProjector/animations"
 	"technikflg.com/dmxToProjector/animations/preset_animation"
+	"technikflg.com/dmxToProjector/config"
 	"technikflg.com/dmxToProjector/window/shaders"
 	"technikflg.com/dmxToProjector/ws"
 )
@@ -33,8 +34,11 @@ func InitWindow(WindowName string) {
 	rl.SetWindowMinSize(10, 10)
 	rl.SetWindowState(rl.FlagWindowResizable)
 	rl.SetWindowState(rl.FlagWindowTopmost)
-	rl.SetConfigFlags(rl.FlagVsyncHint)
-	rl.SetTargetFPS(0) // Cap to 60 FPS
+	if config.Cfg.Window.Vsync {
+		rl.SetConfigFlags(rl.FlagVsyncHint)
+	}
+	rl.SetConfigFlags(rl.FlagWindowAlwaysRun)
+	rl.SetTargetFPS(config.Cfg.Window.MaxFPS) // Cap to 60 FPS
 	// Set the initial background to black
 	rl.ClearBackground(rl.Black)
 

@@ -96,7 +96,7 @@ func (g *MHGenerator) Unload() {
 func (g *MHGenerator) Create(config preset_animation.AnimationParameters) preset_animation.AnimationInterface {
 	MH := MH{
 		DynamicConfig: &DynamicConfig{},
-		artnetnode:    artnet.GetArtnet("10.144.92.3/24", "MH-animation-node"),
+		artnetnode:    artnet.GetArtnet("10.8.8.1/24", "MH-animation-node"),
 		particle:      animation_helpers.Particle{Shape: animation_helpers.Circle, Size: 50, Position: animation_helpers.Position{X: 500, Y: 500}},
 	}
 	MH.Configure(config)

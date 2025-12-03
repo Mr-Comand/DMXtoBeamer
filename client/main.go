@@ -16,6 +16,8 @@ import (
 	"github.com/gordonklaus/portaudio"
 
 	"technikflg.com/dmxToProjector/animations"
+	"technikflg.com/dmxToProjector/artnet"
+	"technikflg.com/dmxToProjector/config"
 	"technikflg.com/dmxToProjector/window"
 	"technikflg.com/dmxToProjector/ws"
 )
@@ -82,6 +84,7 @@ func adjustWebSocketURL(input, clientId string) (string, string, bool) {
 	return matches[1] + matches[2] + matches[3] + matches[4] + "?" + query, clientId, true
 }
 func main() {
+	config.Load("config.yaml")
 
 	// Check if a config is provided as a command-line argument
 	var valid bool
@@ -116,7 +119,9 @@ func main() {
 	if wsURL == "" || !valid {
 		log.Fatal("WebSocket URL must be provided")
 	}
+
 	fmt.Println(wsURL)
+	artnet.GetArtnet(config.Cfg.Artnet.Interface, "Proj-"+ClientId)
 	// Start the pprof HTTP server for diagnostics
 	go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))

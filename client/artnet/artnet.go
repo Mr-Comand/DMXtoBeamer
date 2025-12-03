@@ -77,7 +77,7 @@ func NewArtnet(artsubnet string, nodeName string) *Artnet {
 	// register callback for any packet
 	a.node.RegisterCallback(code.OpDMX, func(p packet.ArtNetPacket) {
 		dmx := p.(*packet.ArtDMXPacket)
-		fmt.Printf("DMX universe %d len %d\n", dmx.SubUni, dmx.Length)
+		// fmt.Printf("DMX universe %d len %d\n", dmx.SubUni, dmx.Length)
 		a.storeDMXData(int(dmx.SubUni), dmx.Data)
 	})
 
