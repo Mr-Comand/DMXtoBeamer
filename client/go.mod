@@ -11,10 +11,15 @@ require (
 	github.com/mjibson/go-dsp v0.0.0-20180508042940-11479a337f12
 )
 
+require github.com/sirupsen/logrus v1.9.3 // indirect
+
 require (
 	github.com/ebitengine/purego v0.7.1 // indirect
+	github.com/jsimonetti/go-artnet v0.0.0-20251001161948-ff57fcafff73
 	golang.org/x/exp v0.0.0-20240506185415-9bf2ced13842 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 )
 
 replace github.com/gordonklaus/portaudio => ./portaudio-local
+
+replace github.com/jsimonetti/go-artnet => ./artnet/go-artnet

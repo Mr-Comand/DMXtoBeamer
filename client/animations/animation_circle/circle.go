@@ -24,7 +24,7 @@ type DynamicConfig struct {
 	RingCount        int     `parameter:"RingCount,default=1"`
 	BaseRadius       float64 `parameter:"BaseRadius,default=100"`
 	RingDistance     float64 `parameter:"RingDistance,default=150"`
-	ColorSegments    uint8   `parameter:"ColorSegments,default=1"`
+	ColorSegments    uint8   `parameter:"ColorSegments,default=1,min=1"`
 	LineWidth        uint16  `parameter:"LineWidth,default=1"`
 	FullBright       bool    `parameter:"FullBright,default=false"`
 	VisualValueCount int     `parameter:"VisualValueCount,default=200"`

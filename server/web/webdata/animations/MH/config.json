@@ -1,0 +1,24 @@
+{
+    "animationName": "MH",
+    "parameters": {
+        "Address": {
+            "type": "number",
+            "min": 1,
+            "max": 512,
+            "default": 1,
+            "stepSize": 1
+        },
+        "Universe": {
+            "type": "number",
+            "min": 0,
+            "max": 512,
+            "default": 0,
+            "stepSize": 1
+        },
+        "XYMode": {
+            "type": "bool",
+            "default": false
+        }
+    }
+}
+

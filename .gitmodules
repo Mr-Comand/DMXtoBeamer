@@ -4,3 +4,9 @@
 [submodule "client/portaudio-local"]
 	path = client/portaudio-local
 	url = https://github.com/Mr-Comand/portaudio
+[submodule "artnet/go-artnet"]
+	path = client/artnet/go-artnet
+	url = https://github.com/jsimonetti/go-artnet.git
+[submodule "client/artnet/go-artnet"]
+	path = client/artnet/go-artnet
+	url = https://github.com/jsimonetti/go-artnet.git
