@@ -8,6 +8,7 @@ import (
 	"technikflg.com/dmxToProjector/animations/animation_falling_shape"
 	"technikflg.com/dmxToProjector/animations/animation_flash_shape"
 	"technikflg.com/dmxToProjector/animations/animation_frequency_bar"
+	"technikflg.com/dmxToProjector/animations/animation_full_color"
 	"technikflg.com/dmxToProjector/animations/animation_image_display"
 	"technikflg.com/dmxToProjector/animations/animation_spiral"
 	"technikflg.com/dmxToProjector/animations/animation_static_line"
@@ -35,6 +36,7 @@ func InitAnimations() {
 	AnimationGenerators["flash"] = animation_flash_shape.NewFlashShapeGenerator()
 	AnimationGenerators["img"] = animation_image_display.NewImageDisplayGenerator()
 	AnimationGenerators["MH"] = animation_MH.NewMHGenerator()
+	AnimationGenerators["fullColor"] = animation_full_color.NewDMXColorGenerator()
 }
 func UnloadAnimations() {
 	for _, v := range AnimationGenerators {

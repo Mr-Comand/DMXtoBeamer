@@ -1,0 +1,26 @@
+{
+    "animationName": "Full Color",
+    "parameters": {
+        "Color": {
+            "type": "color",
+            "default": "#ff0000",
+            "stepSize": 1
+        },
+        "UseDMX": {
+            "type": "bool",
+            "default": true
+        },
+        "Universe": {
+            "type": "number",
+            "default": 0,
+            "min": 0
+        },
+        "Address": {
+            "type": "number",
+            "default": 1,
+            "min": 1,
+            "max": 502
+        }
+    }
+}
+
