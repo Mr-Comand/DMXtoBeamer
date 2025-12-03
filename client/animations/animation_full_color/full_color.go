@@ -1,6 +1,8 @@
 package animation_full_color
 
 import (
+	"image/color"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"technikflg.com/dmxToProjector/animations/animation_helpers"
 	"technikflg.com/dmxToProjector/animations/preset_animation"
@@ -71,7 +73,8 @@ func (a *DMXColor) Render(data *[]float64, dt float64) {
 	dmxState := DMXState{}
 	dmxState.FromDMX(dmxData, a.DynamicConfig.Address)
 
-	rl.ClearBackground(rl.NewColor(dmxState.Red, dmxState.Green, dmxState.Blue, dmxState.Intensity))
+	//BUG: For some reason ClearBackground expects values 0-100 for A
+	rl.ClearBackground(color.RGBA{R: dmxState.Red, G: dmxState.Green, B: dmxState.Blue, A: uint8(float64(dmxState.Intensity) / 2.55)})
 }
 func (a *DMXColor) Configure(config preset_animation.AnimationParameters) {
 	preset_animation.Parse(config, a.DynamicConfig)
