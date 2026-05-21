@@ -25,6 +25,8 @@ type ClientConfig struct {
 	Pan      int16         `json:"pan"`
 	Tilt     int16         `json:"tilt"`
 	Scale    float32       `json:"scale"`
+	StretchX float32       `json:"stretchX"`
+	StretchY float32       `json:"stretchY"`
 	Layers   []LayerConfig `json:"layers"`
 }
 
@@ -40,6 +42,8 @@ type LayerConfig struct {
 	Tilt               int16                                `json:"tilt"`
 	Scale              float32                              `json:"scale"`
 	Volume             float64                              `json:"volume"`
+	StretchX           float32                              `json:"stretchX"`
+	StretchY           float32                              `json:"stretchY"`
 	Shader             string                               `json:"shader"`
 	ShaderParameters   map[string]interface{}               `json:"shaderParameters"`
 	TextureShader      map[string]map[string]interface{}    `json:"textureShaders"`
@@ -101,6 +105,8 @@ func updateConfig(config ClientConfig) {
 	currentConfig.Tilt = config.Tilt
 	currentConfig.Rotate = config.Rotate
 	currentConfig.Scale = config.Scale
+	currentConfig.StretchX = config.StretchX
+	currentConfig.StretchY = config.StretchY
 	Layers := make([]LayerConfig, len(config.Layers))
 
 	for newPosition, newLayer := range config.Layers {

@@ -120,7 +120,7 @@ func handleAnimation(config ws.ClientConfig, audioData *[]float64) {
 		}
 		var animation preset_animation.AnimationInterface = l.Animation
 		if animation != nil {
-			shaders.SetupTextureShader("general", map[string]interface{}{"HueShift": float32(config.HueShift/360) + float32(l.HueShift/360), "Dimmer": (float32(l.Dimmer) / 100) * (float32(config.Dimmer) / 100)})
+			shaders.SetupTextureShader("general", map[string]interface{}{"HueShift": float32(config.HueShift/360) + float32(l.HueShift/360), "Dimmer": (float32(l.Dimmer) / 100) * (float32(config.Dimmer) / 100), "StretchX": float32((config.StretchX+100)*(l.StretchX+100)) / 10000, "StretchY": float32((config.StretchY+100)*(l.StretchY+100)) / 10000})
 			shaders.StartTextureShader("general")
 			rl.BeginMode2D(rl.NewCamera2D(rl.Vector2{X: float32(WindowWidth/2) + 150, Y: float32(WindowHeight/2) + 150}, rl.Vector2{X: 500 + float32(l.Pan), Y: 500 + float32(l.Tilt)}, float32(l.Rotate), min(scaleX, scaleY)*(float32(config.Scale)/25*float32(l.Scale)/25)))
 			if l.Shader != "" {

@@ -4,6 +4,8 @@
 in vec2 fragTexCoord;
 out vec4 finalColor;
 
+uniform vec2 stretch; // x = horizontal, y = vertical
+
 uniform sampler2D texture0;  // The input texture (previous result or the scene)
 uniform float hueShift; // Hue shift value (-1.0 to 1.0)
 uniform float dimmer;
@@ -22,6 +24,19 @@ vec3 hueShiftFunc(vec3 color, float shift) {
 }
 
 void main() {
-    vec4 color = texture(texture0, vec2(fragTexCoord.x, 1.0 - fragTexCoord.y));              // Use the input color
-    finalColor = vec4(hueShiftFunc(color.rgb, hueShift), color.a*dimmer); // Apply hue shift
+    vec2 uv = vec2(fragTexCoord.x, 1.0 - fragTexCoord.y);
+
+    // center UV
+    uv -= vec2(0.5);
+
+    // X/Y stretch
+    uv.x /= stretch.x;
+    uv.y /= stretch.y;
+
+    // back to 0..1
+    uv += vec2(0.5);
+
+    vec4 color = texture(texture0, uv);
+
+    finalColor = vec4(hueShiftFunc(color.rgb, hueShift), color.a * dimmer);
 }

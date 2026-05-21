@@ -295,6 +295,10 @@ components:
           type: integer
         shader:
           type: string
+        stretchX:
+          type: integer
+        stretchY:
+          type: integer
         shaderParameters:
           type: object
           additionalProperties: {type: number}
@@ -327,6 +331,10 @@ components:
         tilt:
           type: integer
         scale:
+          type: integer
+        stretchX:
+          type: integer
+        stretchY:
           type: integer
     AnimationParameterDefinition:
       type: object

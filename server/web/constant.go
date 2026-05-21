@@ -40,6 +40,8 @@ type Layer struct {
 	Scale              float32                           `json:"scale"`
 	Volume             float64                           `json:"volume"`
 	Shader             string                            `json:"shader"`
+	StretchX           float32                           `json:"stretchX"`
+	StretchY           float32                           `json:"stretchY"`
 	ShaderParameters   map[string]interface{}            `json:"shaderParameters"`
 	TextureShader      map[string]map[string]interface{} `json:"textureShaders"`
 	TextureShaderOrder []string                          `json:"textureShaderOrder"`
@@ -53,6 +55,8 @@ type ClientConfig struct {
 	Pan      int16   `json:"pan"`
 	Tilt     int16   `json:"tilt"`
 	Scale    uint8   `json:"scale"`
+	StretchX float32 `json:"stretchX"`
+	StretchY float32 `json:"stretchY"`
 }
 
 var clientConfigs = make(map[string]ClientConfig)

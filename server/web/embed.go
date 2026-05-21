@@ -14,7 +14,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-//go:embed webdata/webpage/*.html webdata/webpage/css/* webdata/webpage/js/* webdata/webpage/javascript-client-generated/*
+//go:embed webdata/webpage/*.html webdata/webpage/css/* webdata/webpage/js/*
 var webpageFS embed.FS
 
 //go:embed webdata/animations/*
