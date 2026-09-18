@@ -1,0 +1,86 @@
+{
+    "animationName": "falling Shape",
+    "parameters": {
+        "Color": {
+            "type": "color",
+            "default": "#ff0000"
+        }, 
+        "Shape": {
+            "type": "enum",
+            "enumElements": [
+                "Circle",
+                "Square",
+                "Rectangle",
+                "Triangle",
+                "Snowflake"
+            ]
+        },
+        "Hollow": {
+            "type": "bool",
+            "default": false
+        },
+        "Size": {
+            "type": "number",
+            "min": 1,
+            "max": 100,
+            "default": 50,
+            "stepSize": 1
+        },
+        "SizeVariation": {
+            "type": "number",
+            "min": 1,
+            "max": 100,
+            "default": 10,
+            "stepSize": 1
+        },
+        "LineWidth": {
+            "type": "number",
+            "min": 1,
+            "max": 100,
+            "default": 50,
+            "stepSize": 1
+        },
+        "Rotation": {
+            "type": "number",
+            "min": 0,
+            "max": 360,
+            "default": 0,
+            "stepSize": 1
+        },
+        "SpinSpeed": {
+            "type": "number",
+            "min": 0,
+            "max": 5,
+            "default": 0.5,
+            "stepSize": 0.1
+        },
+        "Swing": {
+            "type": "bool",
+            "default": true
+        },
+        "Gravity": {
+            "type": "number",
+            "min": 1,
+            "max": 1000,
+            "default": 100,
+            "stepSize": 10
+        },
+        "ParticleCount": {
+            "type": "number",
+            "min": 1,
+            "max": 100,
+            "default": 10,
+            "stepSize": 1
+        },
+        "WindgutsStrength": {
+            "type": "number",
+            "min": 1,
+            "max": 50,
+            "default": 0,
+            "stepSize": 1
+        }
+        
+
+    }
+}
+    

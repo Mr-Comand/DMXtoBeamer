@@ -1,0 +1,77 @@
+{
+    "animationName": "Balls",
+    "parameters": {
+        "Color": {
+            "type": "color",
+            "default": "#ff0000",
+            "stepSize": 1
+        },
+        "BallCount": {
+            "type": "number",
+            "min": 1,
+            "max": 50,
+            "default": 5,
+            "stepSize": 1
+        },
+        "Shape": {
+            "type": "enum",
+            "enumElements": [
+                "Circle",
+                "Square",
+                "Rectangle",
+                "Triangle",
+                "Snowflake"
+            ]
+        },
+        "Hollow": {
+            "type": "bool",
+            "default": false
+        },
+        "Size": {
+            "type": "number",
+            "min": 1,
+            "max": 100,
+            "default": 10,
+            "stepSize": 1
+        },
+        "SizeVariation": {
+            "type": "number",
+            "min": 1,
+            "max": 100,
+            "default": 50,
+            "stepSize": 1
+        },
+        "LineWidth": {
+            "type": "number",
+            "min": 1,
+            "max": 50,
+            "default": 0,
+            "stepSize": 1
+        },
+        "Rotation": {
+            "type": "number",
+            "min": 1,
+            "max": 50,
+            "default": 0,
+            "stepSize": 1
+        },
+        "AverageSpeed": {
+            "type": "number",
+            "min": 1,
+            "max": 5000,
+            "default": 1000,
+            "stepSize": 1
+        },
+        "SoundActive": {
+            "type": "bool",
+            "default": true
+        },
+        "PushProbability": {
+            "type": "number",
+            "min": 0,
+            "max": 1,
+            "default": 0.005,
+            "stepSize": 0.001
+        }
+    }
+}

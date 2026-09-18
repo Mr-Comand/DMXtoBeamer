@@ -1,0 +1,34 @@
+{
+    "animationName": "Text",
+    "parameters": {
+        "Color": {
+            "type": "color",
+            "default": "#ff0000"
+        },
+        "Text": {
+            "type": "textarea",
+            "default": "Hallo Welt!",
+            "name": "Text"
+        },
+        "FontSize": {
+            "type": "number",
+            "default": 100,
+            "name": "FontSize",
+            "min": 1,
+            "max": 200,
+            "stepSize": 1
+        },
+        "FontPath": {
+            "type": "text",
+            "default": ""
+        },
+        "ScaleToSound": {
+            "type": "bool",
+            "default": true
+        },
+        "ShowFPS": {
+            "type": "bool",
+            "default": false
+        }
+    }
+}

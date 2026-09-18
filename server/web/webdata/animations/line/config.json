@@ -1,0 +1,99 @@
+{
+    "animationName": "Line",
+    "parameters": {
+        "Color": {
+            "type": "color",
+            "default": "#ff0000"
+        },
+        "LineWidth": {
+            "type": "number",
+            "min": 1,
+            "max": 100,
+            "default": 50
+        },
+        "Rotation": {
+            "type": "number",
+            "min": 0,
+            "max": 360,
+            "default": 0,
+            "stepSize": 1
+        },
+        "RotationSpeed": {
+            "type": "number",
+            "min": 0,
+            "max": 3600,
+            "default": 0,
+            "stepSize": 1
+        },
+        "PositionSwingDistance": {
+            "type": "number",
+            "min": 0,
+            "max": 1000,
+            "default": 500,
+            "stepSize": 10
+        },
+        "PositionSwingSpeed": {
+            "type": "number",
+            "min": 0,
+            "max": 5000,
+            "default": 0,
+            "stepSize": 1
+        },
+        "PositionSwingEase": {
+            "type": "enum",
+            "enumElements":[
+                "sin",
+                "linear"
+            ]
+        },
+        "SegmentCount": {
+            "type": "number",
+            "min": 0,
+            "max": 200,
+            "default": 0,
+            "stepSize": 1
+        },
+        "SegmentShape": {
+            "type": "enum",
+            "enumElements": [
+                "Circle",
+                "Square",
+                "Rectangle",
+                "Triangle",
+                "Snowflake"
+            ]
+        },
+        "SegmentSize": {
+            "type": "number",
+            "min": 1,
+            "max": 100,
+            "default": 10,
+            "stepSize": 1
+        },
+        "SegmentHollow": {
+            "type": "bool",
+            "default": false
+        },
+        "SegmentSplits": {
+            "type": "number",
+            "min": 0,
+            "max": 10,
+            "default": 0,
+            "stepSize": 1
+        },
+        "SegmentSplitsSpeed": {
+            "type": "number",
+            "min": 0,
+            "max": 100,
+            "default": 0,
+            "stepSize": 1
+        },
+        "LineLength": {
+            "type": "number",
+            "min": 0,
+            "max": 1000,
+            "default": 1000,
+            "stepSize": 10
+        }
+    }
+}

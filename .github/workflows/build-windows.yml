@@ -1,0 +1,112 @@
+name: Build on Windows
+
+on:
+  push:
+    branches:
+      - go-rewrite
+    tags:
+      - 'v*.*.*'  # only trigger on semantic version tags
+permissions:
+  contents: write
+jobs:
+  build-server:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.23"
+      
+      - name: Make build script executable
+        working-directory: server
+        run: chmod +x build.sh
+
+      - name: Build Server
+        working-directory: server
+        run: sh build.sh
+
+      - name: Build Server for Windows
+        working-directory: server
+        run: GOOS=windows GOARCH=amd64 go build -tags production -o build/server.exe main.go
+
+      - name: Upload server artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: server
+          path: |
+            server/build/server.exe
+            server/build/server.zip
+
+  build-client:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.23"
+
+      - name: Download PortAudio header and DLL
+        shell: pwsh
+        run: |
+          $resDir = "client/resources"
+          if (-Not (Test-Path $resDir)) { New-Item -ItemType Directory -Path $resDir -Force }
+          # Download portaudio.h
+          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/PortAudio/portaudio/refs/heads/master/include/portaudio.h" -OutFile "$resDir/portaudio.h"
+      
+      - name: Install zip
+        run: choco install zip
+      
+      - name: Make build script executable
+        working-directory: client
+        run: chmod +x build.sh
+
+      - name: Build Client
+        working-directory: client
+        shell: bash
+        run: |
+          sh build.sh
+
+      - name: Upload client artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: client
+          path: |
+            client/build/client.exe
+            client/build/client.zip
+  release:
+    needs: [build-server, build-client]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: |
+            artifacts/server/server.zip
+            artifacts/client/client.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
