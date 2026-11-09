@@ -157,7 +157,8 @@ jobs:
   # Built natively on the free arm64 hosted runner (ubuntu-24.04-arm,
   # available for public repos). This replaces fragile cross-compilation,
   # which needs multiarch apt (arm64 indexes are only on ports.ubuntu.com,
-  # not on the amd64-only host archives) plus a cross toolchain.
+  # not on the amd64-only host archives) plus a cross toolchain. The binary
+  # runs directly on Raspberry Pi OS 64-bit (Bookworm/Bullseye).
   build-client-linux-arm64:
     runs-on: ubuntu-24.04-arm
     steps:
@@ -183,7 +184,7 @@ jobs:
         working-directory: client
         run: chmod +x build-linux.sh
 
-      - name: Build Client for Raspberry Pi 64-bit (native arm64)
+      - name: Build Client for Raspberry Pi 64-bit
         working-directory: client
         run: ./build-linux.sh native
 
