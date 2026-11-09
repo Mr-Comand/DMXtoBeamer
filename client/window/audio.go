@@ -151,7 +151,15 @@ func (ap *AudioProcessor) Process() []float64 {
 	// Read data from the microphone stream
 	err := ap.Stream.Read()
 	if err != nil {
-		log.Fatalf("Failed to read from audio stream: %v", err)
+		if err == portaudio.InputOverflowed {
+			// The device ring buffer overflowed because this loop did not
+			// read fast enough (startup transient, GC pause, a slow frame
+			// or a busy machine). The samples just read are still valid, so
+			// keep going instead of killing the client.
+			log.Println("audio input overflowed, continuing")
+		} else {
+			log.Fatalf("Failed to read from audio stream: %v", err)
+		}
 	}
 
 	// Check if data is populated
