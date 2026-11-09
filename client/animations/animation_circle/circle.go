@@ -79,7 +79,11 @@ func (a *CircleAnimation) DrawSmoothLine(coordinates [][3]float64) {
 	fmt.Println()
 }
 func (a *CircleAnimation) getValue(id int, values []int) float64 {
-	return math.Pow(math.Log10(math.Pow(float64(values[a.dataMap[int(id)]])/255, 2)*float64(a.BaseAmplitude)+1), 2) * 10
+	idx := a.dataMap[int(id)]
+	if idx < 0 || idx >= len(values) {
+		return 0
+	}
+	return math.Pow(math.Log10(math.Pow(float64(values[idx])/255, 2)*float64(a.BaseAmplitude)+1), 2) * 10
 }
 func (a *CircleAnimation) Render(data *[]float64, dt float64) {
 	if a.Update {

@@ -173,7 +173,11 @@ func (a *AniSpiral) getValue(id float64, values []int) float64 {
 		particleIndex = len(a.dataMap) - 1
 	}
 	// Access data based on `id` and values
-	return math.Pow(float64(values[a.dataMap[particleIndex]])/255, 2) * float64(a.BaseAmplitude)
+	valueIdx := a.dataMap[particleIndex]
+	if valueIdx < 0 || valueIdx >= len(values) {
+		return 0
+	}
+	return math.Pow(float64(values[valueIdx])/255, 2) * float64(a.BaseAmplitude)
 }
 
 func (a *AniSpiral) generateDictionary(start, end int) map[int]int {

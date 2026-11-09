@@ -38,7 +38,11 @@ func (g *DynamicLineGenerator) Create(config preset_animation.AnimationParameter
 	return &StaticShape
 }
 func (a *DynamicLine) getValue(id int, values []int) float64 {
-	return math.Pow(math.Log10(math.Pow(float64(values[a.dataMap[int(id)]])/255, 2)*float64(a.BaseAmplitude)+1), 2) * 10
+	idx := a.dataMap[int(id)]
+	if idx < 0 || idx >= len(values) {
+		return 0
+	}
+	return math.Pow(math.Log10(math.Pow(float64(values[idx])/255, 2)*float64(a.BaseAmplitude)+1), 2) * 10
 }
 func (a *DynamicLine) Render(data *[]float64, dt float64) {
 	a.Rotation = math.Mod((a.DynamicConfig.RotationSpeed*rl.GetTime())+a.DynamicConfig.Rotation, 360.0)
