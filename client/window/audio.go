@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"runtime"
 	"time"
 
 	"github.com/gordonklaus/portaudio"
@@ -43,6 +44,7 @@ type AudioProcessor struct {
 	BufferSize int
 	SampleRate float64
 	Data       []float32
+	Channels   int // Number of interleaved input channels in Data
 }
 
 // NewAudioProcessor initializes the PortAudio stream and prepares the data buffer
@@ -56,6 +58,21 @@ func NewAudioProcessor(bufferSize int, deviceIndex int) *AudioProcessor {
 			log.Fatalf("Failed to get devices: %v", err)
 		}
 		fmt.Println("Using default device: " + device.Name)
+		// On Linux the ALSA "default" PCM (often a PipeWire/PulseAudio
+		// virtual device) frequently fails to configure in PortAudio, while
+		// the raw "sysdefault" device works. Fall back to it when available.
+		if runtime.GOOS == "linux" {
+			devices, derr := portaudio.Devices()
+			if derr == nil {
+				for _, d := range devices {
+					if d.MaxInputChannels > 0 && d.Name == "sysdefault" {
+						fmt.Println("Falling back to sysdefault device (ALSA default is unreliable)")
+						device = d
+						break
+					}
+				}
+			}
+		}
 	} else {
 		// Set device index (default is 0)
 		devices, err := portaudio.Devices()
@@ -74,12 +91,22 @@ func NewAudioProcessor(bufferSize int, deviceIndex int) *AudioProcessor {
 
 	fmt.Println("-------------------------------------------")
 	fmt.Println("Using:                                    "+device.Name, device.DefaultSampleRate)
+	// On Linux ALSA devices only open reliably with all of their native
+	// input channels, so open every channel the device provides and
+	// downmix to mono later. Other platforms keep the original mono stream.
+	channels := 1
+	if runtime.GOOS == "linux" {
+		channels = device.MaxInputChannels
+		if channels <= 0 {
+			channels = 1
+		}
+	}
 	// Data buffer to store audio samples
-	data := make([]float32, bufferSize)
+	data := make([]float32, bufferSize*channels)
 	sampleRate := device.DefaultSampleRate
-	// Open the default audio stream (1 input channel, 0 output channels)
+	// Open the default audio stream (input only)
 	stream, err := portaudio.OpenStream(portaudio.StreamParameters{
-		Input:      portaudio.StreamDeviceParameters{Device: device, Channels: 1, Latency: device.DefaultLowInputLatency},
+		Input:      portaudio.StreamDeviceParameters{Device: device, Channels: channels, Latency: device.DefaultLowInputLatency},
 		SampleRate: sampleRate,
 	}, data)
 
@@ -93,6 +120,7 @@ func NewAudioProcessor(bufferSize int, deviceIndex int) *AudioProcessor {
 		BufferSize: bufferSize,
 		SampleRate: sampleRate,
 		Data:       data,
+		Channels:   channels,
 	}
 }
 
@@ -131,8 +159,8 @@ func (ap *AudioProcessor) Process() []float64 {
 		log.Fatalf("No audio data received from stream")
 	}
 
-	// Convert float32 data to float64
-	data := toFloat64Slice(ap.Data)
+	// Downmix the interleaved input channels to a single mono signal
+	data := toMonoFloat64(ap.Data, ap.Channels)
 
 	// Ensure fftSize samples are available
 	if len(data) < fftSize {
@@ -167,6 +195,29 @@ func (ap *AudioProcessor) Process() []float64 {
 	}
 
 	return frequencies
+}
+
+// toMonoFloat64 converts an interleaved multi-channel float32 buffer into a
+// mono float64 slice by averaging all channels.
+func toMonoFloat64(interleaved []float32, channels int) []float64 {
+	if channels <= 1 {
+		result := make([]float64, len(interleaved))
+		for i, v := range interleaved {
+			result[i] = float64(v)
+		}
+		return result
+	}
+	frames := len(interleaved) / channels
+	result := make([]float64, frames)
+	inv := 1.0 / float64(channels)
+	for f := 0; f < frames; f++ {
+		sum := 0.0
+		for c := 0; c < channels; c++ {
+			sum += float64(interleaved[f*channels+c])
+		}
+		result[f] = sum * inv
+	}
+	return result
 }
 
 // Helper function to convert float32 slice to float64 slice
