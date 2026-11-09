@@ -43,6 +43,18 @@ func ShouldShutdown() bool { return shutdownRequested.Load() }
 func IsWindowReady() bool { return rl.IsWindowReady() }
 
 func InitWindow(WindowName string) {
+	// The production client does not load config.yaml (configuration comes
+	// from the server via WebSocket), so Cfg may be nil here. Fall back to
+	// the defaults used elsewhere.
+	vsync := false
+	maxFPS := int32(60)
+	if cfg := config.Cfg; cfg != nil {
+		vsync = cfg.Window.Vsync
+		if cfg.Window.MaxFPS > 0 {
+			maxFPS = cfg.Window.MaxFPS
+		}
+	}
+
 	// Initialize the window with the specified width and height (not fullscreen)
 	rl.InitWindow(int32(WindowWidth), int32(WindowHeight), WindowName+" Animation Client")
 
@@ -51,11 +63,11 @@ func InitWindow(WindowName string) {
 	rl.SetWindowMinSize(10, 10)
 	rl.SetWindowState(rl.FlagWindowResizable)
 	rl.SetWindowState(rl.FlagWindowTopmost)
-	if config.Cfg.Window.Vsync {
+	if vsync {
 		rl.SetConfigFlags(rl.FlagVsyncHint)
 	}
 	rl.SetConfigFlags(rl.FlagWindowAlwaysRun)
-	rl.SetTargetFPS(config.Cfg.Window.MaxFPS) // Cap to 60 FPS
+	rl.SetTargetFPS(maxFPS) // Cap FPS
 	// Set the initial background to black
 	rl.ClearBackground(rl.Black)
 
