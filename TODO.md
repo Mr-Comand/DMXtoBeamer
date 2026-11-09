@@ -100,7 +100,7 @@ OpenGL pipeline) — only the final framebuffer is additionally read back and se
 - [x] Document that NDI runtime must be installed by the user (not bundled)
   and where to get it (ndi.video / ndi.video/tools), with the link requirement
   from the NDI SDK license.
-- [x] Trademark footnote in README.md and LINUX.md.
+- [x] Trademark footnote in LINUX.md (no root README.md exists — see above).
 
 ## Testing / verification
 
@@ -113,6 +113,13 @@ OpenGL pipeline) — only the final framebuffer is additionally read back and se
 - [x] Without NDI runtime installed: binary links fine (no NDI linkage at
   build time), window mode starts normally and logs a clear error explaining
   how to install the runtime; `--ndi-only` likewise logs and exits.
+- [x] Clean SIGINT/SIGTERM shutdown in headless mode: signal handler sets a
+  shutdown flag checked by the render loop; `end()` no longer blocks on a
+  nil audio stop channel (`StopAudioProcessor` guards it); SIGTERM smoke
+  test exits cleanly.
+- [x] `InitWindowHeadless` hardened: nil-safe config fallback (production
+  builds never load config.yaml), failed window init is detected and the
+  render loop is skipped instead of crashing on raylib calls.
 - [ ] Window mode (`--ndi`): window opens as before, NDI sender registers
   (visible in NDI Studio Monitor), frames flow — requires a machine with
   the NDI runtime installed.
