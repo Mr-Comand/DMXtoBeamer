@@ -158,6 +158,10 @@ func (ap *AudioProcessor) Stop() {
 // Process reads audio samples and performs FFT to get frequency data
 const fftSize = 4096 // Set fftSize to 4096 to get 2048 frequency bins
 
+// lastAudioLog rate-limits logAudioError so a permanently broken device does
+// not flood the log.
+var lastAudioLog time.Time
+
 func (ap *AudioProcessor) Process() []float64 {
 
 	// Read data from the microphone stream
@@ -171,12 +175,17 @@ func (ap *AudioProcessor) Process() []float64 {
 			log.Println("audio input overflowed, skipping this frame")
 			return nil
 		}
-		log.Fatalf("Failed to read from audio stream: %v", err)
+		// A hard stream error usually means the device disappeared (the
+		// audio daemon restarted or the device was unplugged). Keep the
+		// client running without audio instead of killing the whole app.
+		logAudioError(err)
+		return nil
 	}
 
 	// Check if data is populated
 	if len(ap.Data) == 0 {
-		log.Fatalf("No audio data received from stream")
+		logAudioError(fmt.Errorf("no audio data received from stream"))
+		return nil
 	}
 
 	// Downmix the interleaved input channels to a single mono signal
@@ -240,6 +249,20 @@ func toMonoFloat64(interleaved []float32, channels int) []float64 {
 	return result
 }
 
+// logAudioError reports a persistent audio stream problem without exiting.
+// Audio is optional for the client (the animations simply fall back to
+// zeros), so a dead device must not take the whole app down. To avoid
+// flooding the log when a device is gone for good, the same message is only
+// printed once every 10 seconds.
+func logAudioError(err error) {
+	now := time.Now()
+	if now.Sub(lastAudioLog) < 10*time.Second {
+		return
+	}
+	lastAudioLog = now
+	log.Printf("audio stream problem (client keeps running): %v", err)
+}
+
 // Helper function to convert float32 slice to float64 slice
 func toFloat64Slice(data []float32) []float64 {
 	result := make([]float64, len(data))
@@ -278,6 +301,11 @@ func continuesProcessAudio(audioDataChannel chan<- []float64, stopChannel <-chan
 			default:
 				// If the channel is full (you can handle the case here if needed)
 			}
+
+			// Pace the loop: in blocking read mode this only matters when a
+			// read fails instantly (e.g. device gone), where an unpaced loop
+			// would spin at 100% CPU and flood PortAudio with failing reads.
+			time.Sleep(5 * time.Millisecond)
 		}
 	}
 }
