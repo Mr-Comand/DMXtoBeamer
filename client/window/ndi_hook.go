@@ -38,7 +38,13 @@ func enableNDI(w, h int32) {
 	if ndiManager == nil || ndiManager.Enabled() {
 		return
 	}
-	if err := ndiManager.Enable(w, h, config.Cfg.Window.MaxFPS); err != nil {
+	// config.Cfg may be nil in production (configuration arrives via
+	// WebSocket); fall back to the same 60 fps default as window init.
+	fps := int32(60)
+	if cfg := config.Cfg; cfg != nil && cfg.Window.MaxFPS > 0 {
+		fps = cfg.Window.MaxFPS
+	}
+	if err := ndiManager.Enable(w, h, fps); err != nil {
 		// NDI runtime missing: windowed mode keeps running without NDI,
 		// headless mode cannot fulfill its purpose and exits in main().
 		log.Printf("NDI® output disabled: %v", err)
