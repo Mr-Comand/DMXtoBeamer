@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - linux
+      - ndi
     tags:
       - 'v*.*.*'  # only trigger on semantic version tags
 permissions:
