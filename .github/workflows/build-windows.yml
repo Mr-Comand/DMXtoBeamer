@@ -3,7 +3,8 @@ name: Build on Windows
 on:
   push:
     branches:
-      - go-rewrite
+      - main
+      - linux
     tags:
       - 'v*.*.*'  # only trigger on semantic version tags
 permissions:
@@ -82,8 +83,119 @@ jobs:
           path: |
             client/build/client.exe
             client/build/client.zip
+
+  build-server-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.23"
+
+      - name: Build Server for Linux
+        working-directory: server
+        run: |
+          mkdir -p build/server
+          cp -r web/webdata build/server/web
+          go build -tags production -o build/server/server main.go
+
+      - name: Create zip archive
+        working-directory: server/build
+        run: zip -r server-linux.zip server
+
+      - name: Upload Linux server artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-linux
+          path: server/build/server-linux.zip
+
+  build-client-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.23"
+
+      - name: Install PortAudio and ALSA development packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y portaudio19-dev libasound2-dev zip
+
+      - name: Make build script executable
+        working-directory: client
+        run: chmod +x build-linux.sh
+
+      - name: Build Client for Linux
+        working-directory: client
+        run: ./build-linux.sh native
+
+      - name: Create zip archive
+        working-directory: client/build
+        run: zip -r client-linux.zip client shaders
+
+      - name: Upload Linux client artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-linux
+          path: client/build/client-linux.zip
+
+  build-client-linux-arm64:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.23"
+
+      - name: Install arm64 cross toolchain and arm64 dev libraries
+        run: |
+          sudo apt-get install -y gcc-aarch64-linux-gnu zip
+          # Cross-linking needs arm64 versions of libportaudio and libasound
+          # (headers and link stubs). Enable the arm64 Ubuntu ports archive
+          # and restrict the host archive to amd64 so apt fetches exactly
+          # one index per architecture.
+          sudo dpkg --add-architecture arm64
+          sudo sed -i '/^Architectures:/cArchitectures: amd64' /etc/apt/sources.list.d/ubuntu.sources
+          printf 'Types: deb\nURIs: http://ports.ubuntu.com/ubuntu-ports\nSuites: noble noble-updates\nComponents: main universe\nArchitectures: arm64\nSigned-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n' | sudo tee /etc/apt/sources.list.d/arm64.sources >/dev/null
+          sudo apt-get update
+          sudo apt-get install -y portaudio19-dev:arm64 libasound2-dev:arm64
+
+      - name: Make build script executable
+        working-directory: client
+        run: chmod +x build-linux.sh
+
+      - name: Build Client for Raspberry Pi 64-bit
+        working-directory: client
+        run: ./build-linux.sh arm64
+
+      - name: Create zip archive
+        working-directory: client/build
+        run: zip -r client-linux-arm64.zip client shaders
+
+      - name: Upload Pi arm64 client artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-linux-arm64
+          path: client/build/client-linux-arm64.zip
+
   release:
-    needs: [build-server, build-client]
+    needs: [build-server, build-client, build-server-linux, build-client-linux, build-client-linux-arm64]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
@@ -108,5 +220,8 @@ jobs:
           files: |
             artifacts/server/server.zip
             artifacts/client/client.zip
+            artifacts/server-linux/server-linux.zip
+            artifacts/client-linux/client-linux.zip
+            artifacts/client-linux-arm64/client-linux-arm64.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
