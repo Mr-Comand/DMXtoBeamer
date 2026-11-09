@@ -38,6 +38,18 @@ func InitAudioProcessor(bufferSize int, deviceIndex int) {
 	go continuesProcessAudio(audioDataChannel, StopAudioChannel)
 }
 
+func StopAudioProcessor() {
+	// The stop channel is only created by InitAudioProcessor; sending on a
+	// nil channel blocks forever, so guard against a failed init.
+	if StopAudioChannel != nil {
+		StopAudioChannel <- true
+		StopAudioChannel = nil
+	}
+	if audioProcessor != nil {
+		audioProcessor.Stop()
+	}
+}
+
 // AudioProcessor struct to manage audio capture and FFT processing
 type AudioProcessor struct {
 	Stream     *portaudio.Stream

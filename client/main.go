@@ -86,12 +86,19 @@ func adjustWebSocketURL(input, clientId string) (string, string, bool) {
 func main() {
 	config.Load("config.yaml")
 
+	positional, opts, err := parseFlags(os.Args[1:])
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
+	}
+
 	// Check if a config is provided as a command-line argument
 	var valid bool
 	ClientId = ""
 	wsURL := ""
-	if len(os.Args) == 2 {
-		wsURL, ClientId, valid = adjustWebSocketURL(os.Args[1], "")
+	switch len(positional) {
+	case 1:
+		wsURL, ClientId, valid = adjustWebSocketURL(positional[0], "")
 		if !valid {
 			ClientId = wsURL
 			// If not provided, prompt the user for input
@@ -101,13 +108,13 @@ func main() {
 				wsURL, ClientId, valid = adjustWebSocketURL(scanner.Text(), ClientId)
 			}
 		}
-	} else if len(os.Args) > 2 {
-		wsURL, ClientId, valid = adjustWebSocketURL(os.Args[1], os.Args[2])
+	case 2:
+		wsURL, ClientId, valid = adjustWebSocketURL(positional[0], positional[1])
 		if !valid {
-			ClientId = os.Args[1]
-			wsURL, ClientId, valid = adjustWebSocketURL(os.Args[2], ClientId)
+			ClientId = positional[0]
+			wsURL, ClientId, valid = adjustWebSocketURL(positional[1], ClientId)
 		}
-	} else {
+	default:
 		fmt.Print("Please enter the WebSocket URL: ")
 		scanner := bufio.NewScanner(os.Stdin)
 		if scanner.Scan() {
@@ -127,22 +134,50 @@ func main() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
 
-	// Initialize the window
+	// NDI® output: parse the requested sender name and start the manager.
+	// NDI® is a registered trademark of Vizrt NDI AB — https://ndi.video
+	if opts.ndi || opts.ndiOnly {
+		ndiName := opts.ndiName
+		if ndiName == "" {
+			ndiName = "DMXToBeamer-" + ClientId
+		}
+		window.InitNDI(ndiName, opts.ndiGroups, opts.ndiOnly)
+	}
 
 	defer end()
 
-	window.InitWindow(ClientId)
+	setupSignalHandler()
+
+	if opts.ndiOnly {
+		window.InitWindowHeadless(ClientId, int32(opts.ndiWidth), int32(opts.ndiHeight))
+	} else {
+		window.InitWindow(ClientId)
+	}
+
+	// InitWindowHeadless reports failure (e.g. no display) without exiting;
+	// run the render loop only if a window is actually ready.
+	if opts.ndiOnly && !window.IsWindowReady() {
+		return
+	}
 
 	// Start the WebSocket listener in a goroutine
 	go ws.ListenWebSocket(wsURL)
 
 	// Start animation loop
-	for !rl.WindowShouldClose() {
+	for !rl.WindowShouldClose() && !window.ShouldShutdown() {
 		window.Render()
+	}
+
+	// In --ndi-only mode the window is hidden; raylib never receives a close
+	// event, so the loop is exited via SIGINT/SIGTERM (RequestShutdown) or an
+	// NDI error. If the NDI sender failed to start, exit now.
+	if opts.ndiOnly && window.NDIManager() == nil {
+		log.Println("NDI® sender could not be started — exiting headless mode.")
+		return
 	}
 }
 func end() {
-	window.StopAudioChannel <- true
+	window.StopAudioProcessor()
 	config := ws.GetConfig()
 	for _, v := range config.Layers {
 		if v.Animation != nil {
@@ -152,5 +187,6 @@ func end() {
 	}
 	animations.UnloadAnimations()
 	portaudio.Terminate()
+	window.ShutdownNDI()
 	rl.CloseWindow()
 }

@@ -90,6 +90,46 @@ Linux audio devices behave differently from Windows/WASAPI:
 - If the fallback still fails, the device can be selected by name in
   `config.yaml` (`audioDevice`), e.g. `sysdefault` or `hw:0,0`.
 
+## NDI® output
+
+NDI® is a registered trademark of Vizrt NDI AB (https://ndi.video/).
+
+The client can additionally (or exclusively) stream its rendered output
+to the network as an NDI® source. The NDI runtime is **not** bundled:
+install it separately from https://ndi.video/tools/ (the runtime library
+is found automatically as `libndi.so.6`/`.5`/`.4` in the system loader
+path, e.g. `/usr/local/lib` — run `sudo ldconfig` after installing).
+
+NDI options:
+
+```sh
+# Stream to NDI in addition to the normal window:
+./client --ndi ws://<server-host>:8080 <clientName>
+
+# Headless NDI-only mode (no visible window, still GPU-rendered):
+./client --ndi-only ws://<server-host>:8080 <clientName>
+
+# Optional parameters:
+./client --ndi-name="Stage Left" --ndi-groups=GroupA,GroupB \
+         --ndi-width=1920 --ndi-height=1080 --ndi-only ws://host:8080 Name
+```
+
+- `--ndi`: stream the rendered output to NDI in addition to the window.
+- `--ndi-only`: stream to NDI only — no visible window is shown.
+  Rendering still uses the GPU (hardware accelerated OpenGL). The
+  hidden render window requires a running X11/Wayland session, so this
+  mode cannot run on a display-less server; the render resolution can
+  be chosen with `--ndi-width`/`--ndi-height` (default 1280x720).
+- `--ndi-name`: NDI source name (default: `DMXToBeamer-<clientName>`).
+- `--ndi-groups`: comma separated NDI discovery groups.
+- `--ndi-width` / `--ndi-height`: render resolution in `--ndi-only`
+  mode.
+
+Frames are sent uncompressed (UYVY 4:2:2); NDI handles compression and
+transport itself, so no third-party video codec licensing applies.
+Recipients discover the source with any NDI receiver, e.g. NDI Studio
+Monitor (https://ndi.video/tools/).
+
 ## Raspberry Pi specifics
 
 - Raspberry Pi OS 64-bit (Bookworm) uses PipeWire by default; the

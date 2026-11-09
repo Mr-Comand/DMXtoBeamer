@@ -2,6 +2,9 @@ package window
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"sync/atomic"
 	"time"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -24,6 +27,20 @@ var (
 	audioData        []float64
 )
 var previousTime time.Time
+
+// shutdownRequested is set by RequestShutdown (e.g. from the SIGINT/SIGTERM
+// handler) so the render loop can exit cleanly — a hidden --ndi-only window
+// never receives a window-close event from the user.
+var shutdownRequested atomic.Bool
+
+// RequestShutdown asks the main render loop to stop after the current frame.
+func RequestShutdown() { shutdownRequested.Store(true) }
+
+// ShouldShutdown reports whether RequestShutdown was called.
+func ShouldShutdown() bool { return shutdownRequested.Load() }
+
+// IsWindowReady reports whether raylib successfully initialized a window.
+func IsWindowReady() bool { return rl.IsWindowReady() }
 
 func InitWindow(WindowName string) {
 	// Initialize the window with the specified width and height (not fullscreen)
@@ -50,6 +67,56 @@ func InitWindow(WindowName string) {
 	audioDataChannel = make(chan []float64, 1) // Channel with buffer size 1 to hold only the latest data
 	InitAudioProcessor(bufferSize, deviceIndex)
 	shaders.InitShaders(int32(WindowWidth), int32(WindowHeight))
+}
+
+// InitWindowHeadless prepares rendering without showing a window, for
+// --ndi-only mode. The window is created hidden at a fixed NDI resolution so
+// the GPU rendering pipeline (and hardware encoding via the compositor) stays
+// fully active.
+func InitWindowHeadless(WindowName string, width, height int32) {
+	// A hidden GL window still needs a display connection on X11, so we cannot
+	// run on a truly display-less machine. Give a clean error up front.
+	if os.Getenv("DISPLAY") == "" && os.Getenv("WAYLAND_DISPLAY") == "" {
+		log.Println("--ndi-only: No display available (DISPLAY/WAYLAND_DISPLAY unset); a hidden GL window is still needed to render with the GPU and will likely fail.")
+		log.Println("--ndi-only: Run the client on a machine with a running X11/Wayland session.")
+	}
+
+	WindowWidth = int(width)
+	WindowHeight = int(height)
+
+	// The production client does not load config.yaml (configuration comes
+	// from the server via WebSocket), so Cfg may be nil here. Fall back to
+	// the defaults used elsewhere.
+	maxFPS := int32(60)
+	vsync := false
+	if cfg := config.Cfg; cfg != nil {
+		if cfg.Window.MaxFPS > 0 {
+			maxFPS = cfg.Window.MaxFPS
+		}
+		vsync = cfg.Window.Vsync
+	}
+
+	rl.SetConfigFlags(rl.FlagWindowHidden)
+	rl.InitWindow(width, height, WindowName+" Animation Client (NDI)")
+	if !rl.IsWindowReady() {
+		log.Println("--ndi-only: Failed to initialize the rendering window — cannot run headless.")
+		return
+	}
+
+	if vsync {
+		rl.SetConfigFlags(rl.FlagVsyncHint)
+	}
+	rl.SetTargetFPS(maxFPS)
+	rl.ClearBackground(rl.Black)
+
+	animations.InitAnimations()
+
+	// Initialize the microphone audio processor
+	bufferSize := 512 * 8                      // Number of samples per buffer
+	deviceIndex = -1                           // Default device index
+	audioDataChannel = make(chan []float64, 1) // Channel with buffer size 1 to hold only the latest data
+	InitAudioProcessor(bufferSize, deviceIndex)
+	shaders.InitShaders(width, height)
 }
 
 func Render() {
@@ -102,6 +169,10 @@ func Render() {
 
 	// End drawing
 	rl.EndDrawing()
+
+	// Hand the finished framebuffer to the NDI sender (if enabled).
+	enableNDI(int32(WindowWidth), int32(WindowHeight))
+	pushNDIFrame()
 }
 
 // Function to handle animation based on the configuration
