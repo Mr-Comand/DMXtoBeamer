@@ -130,6 +130,26 @@ transport itself, so no third-party video codec licensing applies.
 Recipients discover the source with any NDI receiver, e.g. NDI Studio
 Monitor (https://ndi.video/tools/).
 
+### NDI build parameter
+
+NDI® support is a **build option**: the NDI code is compiled in only when
+the Go build tag `ndi` is set. This is needed because the NDI runtime
+cannot be loaded on Windows (`purego.Dlopen` is not implemented there), so
+Windows builds must exclude the NDI package.
+
+- `./build-linux.sh` (native, `arm64`, `arm`) — NDI **enabled by default**
+  (build tags `production x11 ndi`).
+- Disable it: `./build-linux.sh <target> --without-ndi` or
+  `NDI=0 ./build-linux.sh <target>` (build tags `production x11`).
+- Re-enable after disabling: `./build-linux.sh <target> --with-ndi`.
+- `client/build.sh` (Windows build, used by the CI workflow) always builds
+  **without** NDI. Running the Windows client with `--ndi`/`--ndi-only`
+  logs a hint that this build has no NDI support; headless `--ndi-only`
+  mode then exits, windowed mode keeps running without NDI.
+- Without the tag the whole `client/ndi` package is excluded from the
+  build — a no-op stub (`client/window/ndi_hook_noop.go`) keeps the
+  renderer and CLI flags working unchanged.
+
 ## Raspberry Pi specifics
 
 - Raspberry Pi OS 64-bit (Bookworm) uses PipeWire by default; the

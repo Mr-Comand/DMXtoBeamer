@@ -34,6 +34,28 @@ esac
 
 echo "Target: GOOS=$GOOS GOARCH=$GOARCH ${GOARM:+GOARM=$GOARM}"
 
+# NDI® support (build tag 'ndi') is enabled by default on Linux.
+# Disable with:  ./build-linux.sh <target> --without-ndi
+#   or:          NDI=0 ./build-linux.sh <target>
+NDI_ENABLED=1
+if [ "${NDI:-1}" = "0" ]; then
+    NDI_ENABLED=0
+fi
+for arg in "$@"; do
+    case "$arg" in
+      --without-ndi) NDI_ENABLED=0 ;;
+      --with-ndi)    NDI_ENABLED=1 ;;
+    esac
+done
+
+TAGS="production x11"
+if [ "$NDI_ENABLED" = "1" ]; then
+    TAGS="$TAGS ndi"
+    echo "NDI® support: enabled (build tag 'ndi'; runtime still must be installed separately)"
+else
+    echo "NDI® support: disabled"
+fi
+
 # Create output directory
 mkdir -p "$OUTPUT_DIR"
 
@@ -46,7 +68,7 @@ if [ "$GOARCH" = "amd64" ]; then
     fi
     CGO_ENABLED=1 GOOS=$GOOS GOARCH=$GOARCH \
     CGO_LDFLAGS="$(pkg-config --libs portaudio-2.0 2>/dev/null || printf '%s' '-lportaudio -lasound -lm -lpthread')" \
-    go build -tags "production x11" -o "$OUTPUT_DIR/client" .
+    go build -tags "$TAGS" -o "$OUTPUT_DIR/client" .
 else
     # Cross compile: use the matching cross toolchain.
     case "$GOARCH" in
@@ -64,7 +86,7 @@ else
     fi
     CGO_ENABLED=1 GOOS=$GOOS GOARCH=$GOARCH CC=$CC \
     CGO_LDFLAGS="-lportaudio -lasound -lm -lpthread" \
-    go build -tags "production x11" -o "$OUTPUT_DIR/client" .
+    go build -tags "$TAGS" -o "$OUTPUT_DIR/client" .
 fi
 
 # Copy shaders directory

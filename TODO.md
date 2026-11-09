@@ -86,11 +86,25 @@ OpenGL pipeline) — only the final framebuffer is additionally read back and se
 
 ## Build system
 
+- [x] **NDI® build parameter** — the `client/ndi` package and the window
+  NDI hook are gated behind the `ndi` build tag; a no-op stub
+  (`client/window/ndi_hook_noop.go`, `!ndi`) keeps the rest of the code
+  compiling unchanged. Builds without the tag log a clear hint when
+  `--ndi`/`--ndi-only` is used and continue in normal windowed mode.
+  Rationale: `purego.Dlopen` is not implemented on Windows (upstream purego
+  builds the dlopen wrapper only for darwin/freebsd/linux), so the Windows
+  client must be compiled without the NDI package.
 - [x] `client/build-linux.sh` builds the client binary with NDI support
   (purego/dlopen — no extra build dependencies, no NDI SDK needed at build
-  time).
+  time). NDI is **on by default** and can be turned off with
+  `./build-linux.sh <target> --without-ndi` or `NDI=0 ./build-linux.sh`.
+- [x] `client/build.sh` (Windows): builds **without** the `ndi` tag (NDI
+  unsupported on Windows) and now builds the package (`.`) instead of
+  `main.go` file-form — file-form excluded `cliflags.go` and broke the
+  build with `undefined: parseFlags`.
 - [x] LINUX.md: NDI runtime installation notes (user installs NDI runtime
-  from ndi.video/tools), licensing note, trademark attribution.
+  from ndi.video/tools), licensing note, trademark attribution, plus the
+  build-parameter documentation (with/without NDI, Windows note).
 - [ ] README.md: NDI usage section (no root README.md exists yet — the Linux
   documentation is LINUX.md; skip unless a README is wanted).
 

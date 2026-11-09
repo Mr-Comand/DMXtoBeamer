@@ -1,3 +1,7 @@
+// NDI® is a registered trademark of Vizrt NDI AB, https://ndi.video/
+//
+//go:build ndi
+
 package window
 
 import (
@@ -6,6 +10,9 @@ import (
 	"technikflg.com/dmxToProjector/config"
 	"technikflg.com/dmxToProjector/ndi"
 )
+
+// This file is compiled only in builds that include NDI support (build tag
+// `ndi`). Builds without the tag use ndi_hook_noop.go instead.
 
 // ndiManager is the process-wide NDI output manager. It is created by
 // InitNDI when --ndi or --ndi-only is active and receives one frame per

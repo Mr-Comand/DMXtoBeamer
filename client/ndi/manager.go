@@ -1,3 +1,5 @@
+//go:build ndi
+
 package ndi
 
 import (

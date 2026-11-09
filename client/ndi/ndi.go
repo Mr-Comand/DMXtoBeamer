@@ -10,6 +10,8 @@
 // https://ndi.video/tools/.
 //
 // NDI® is a registered trademark of Vizrt NDI AB.
+//
+//go:build ndi
 package ndi
 
 import (
