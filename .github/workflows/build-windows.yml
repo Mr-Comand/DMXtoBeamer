@@ -127,10 +127,14 @@ jobs:
         with:
           go-version: "1.23"
 
-      - name: Install PortAudio and ALSA development packages
+      - name: Install X11, Wayland and audio development packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y portaudio19-dev libasound2-dev zip
+          sudo apt-get install -y \
+            portaudio19-dev libasound2-dev \
+            libx11-dev libxkbcommon-dev libxcursor-dev libxrandr-dev \
+            libxinerama-dev libxi-dev libgl-dev libglu1-mesa-dev \
+            wayland-protocols libwayland-dev zip
 
       - name: Make build script executable
         working-directory: client
@@ -163,7 +167,7 @@ jobs:
         with:
           go-version: "1.23"
 
-      - name: Install arm64 cross toolchain and arm64 dev libraries
+      - name: Install cross toolchain, X11/Wayland headers and audio libraries
         run: |
           sudo apt-get install -y gcc-aarch64-linux-gnu zip
           # Cross-linking needs arm64 versions of libportaudio and libasound
@@ -174,7 +178,12 @@ jobs:
           sudo sed -i '/^Architectures:/cArchitectures: amd64' /etc/apt/sources.list.d/ubuntu.sources
           printf 'Types: deb\nURIs: http://ports.ubuntu.com/ubuntu-ports\nSuites: noble noble-updates\nComponents: main universe\nArchitectures: arm64\nSigned-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n' | sudo tee /etc/apt/sources.list.d/arm64.sources >/dev/null
           sudo apt-get update
-          sudo apt-get install -y portaudio19-dev:arm64 libasound2-dev:arm64
+          sudo apt-get install -y \
+            portaudio19-dev:arm64 libasound2-dev:arm64 \
+            libx11-dev:arm64 libxkbcommon-dev:arm64 libxcursor-dev:arm64 \
+            libxrandr-dev:arm64 libxinerama-dev:arm64 libxi-dev:arm64 \
+            libgl-dev:arm64 libglu1-mesa-dev:arm64 \
+            wayland-protocols libwayland-dev:arm64
 
       - name: Make build script executable
         working-directory: client

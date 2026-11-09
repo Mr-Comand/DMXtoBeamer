@@ -25,13 +25,18 @@ The server listens on `http://<host>:8080` by default.
 Debian / Raspberry Pi OS (Bookworm or later):
 
 ```sh
-sudo apt install golang portaudio19-dev libasound2-dev
+sudo apt install golang portaudio19-dev libasound2-dev \
+  libx11-dev libxkbcommon-dev libxcursor-dev libxrandr-dev \
+  libxinerama-dev libxi-dev libgl-dev libglu1-mesa-dev
 ```
 
 Fedora / other RPM distributions:
 
 ```sh
-sudo dnf install golang portaudio-devel alsa-lib-devel
+sudo dnf install golang portaudio-devel alsa-lib-devel \
+  libX11-devel libxkbcommon-devel libXcursor-devel libXrandr-devel \
+  libXinerama-devel libXi-devel mesa-libGL-devel \
+  mesa-libGLU-devel wayland-devel
 ```
 
 For audio capture the system needs a working ALSA input device.
@@ -56,6 +61,11 @@ Cross-compiling needs the matching toolchain:
 The result is placed in `client/build/` together with the `shaders/`
 directory, which must be kept next to the binary (it is loaded at
 runtime from the working directory).
+
+The client is built with the raylib `x11` build tag, which compiles
+GLFW with X11 support only. This avoids needing Wayland development
+headers at build time; on a Wayland desktop the binary still runs
+through XWayland.
 
 ## Running the client
 

@@ -46,7 +46,7 @@ if [ "$GOARCH" = "amd64" ]; then
     fi
     CGO_ENABLED=1 GOOS=$GOOS GOARCH=$GOARCH \
     CGO_LDFLAGS="$(pkg-config --libs portaudio-2.0 2>/dev/null || printf '%s' '-lportaudio -lasound -lm -lpthread')" \
-    go build -tags production -o "$OUTPUT_DIR/client" main.go
+    go build -tags "production x11" -o "$OUTPUT_DIR/client" main.go
 else
     # Cross compile: use the matching cross toolchain.
     case "$GOARCH" in
@@ -64,7 +64,7 @@ else
     fi
     CGO_ENABLED=1 GOOS=$GOOS GOARCH=$GOARCH CC=$CC \
     CGO_LDFLAGS="-lportaudio -lasound -lm -lpthread" \
-    go build -tags production -o "$OUTPUT_DIR/client" main.go
+    go build -tags "production x11" -o "$OUTPUT_DIR/client" main.go
 fi
 
 # Copy shaders directory
