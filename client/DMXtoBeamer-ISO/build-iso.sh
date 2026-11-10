@@ -345,7 +345,11 @@ echo "YAML configuration: $CONFIG_FILE"
 echo "Launch arguments: $ARGS_FILE"
 echo "Argument count: ${#DMXTOBEAMER_ARGS[@]}"
 
-exec /usr/bin/cage -- "$APP_DIR/client" "${DMXTOBEAMER_ARGS[@]}"
+# Force the active virtual terminal to TTY1
+/usr/bin/chvt 1
+sleep 1
+
+exec /usr/bin/cage -s -- "$APP_DIR/client" "${DMXTOBEAMER_ARGS[@]}"
 EOF
 
 chmod 0755 "$BIN_DIR/dmxtobeamer-start"
