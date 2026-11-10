@@ -24,9 +24,16 @@ type ndiOptions struct {
 	ndiName string
 	// ndiGroups is the comma-separated NDI discovery group list ("" = default groups).
 	ndiGroups string
-	// ndiWidth/ndiHeight is the fixed render resolution used in --ndi-only mode.
+	// ndiWidth/ndiHeight is the NDI output resolution. In --ndi-only mode it
+	// is also the (hidden) render resolution; in windowed mode the rendered
+	// framebuffer is scaled to it before being sent. When neither flag is
+	// given, --ndi-only renders at defaultNDIResolution and windowed mode
+	// sends the window resolution unchanged (no scaling).
 	ndiWidth  int32
 	ndiHeight int32
+	// ndiResSet records whether --ndi-width/--ndi-height were given
+	// explicitly, so windowed mode only scales when the user asked for it.
+	ndiResSet bool
 }
 
 // defaultNDIResolution is the internal render resolution used in --ndi-only
@@ -67,6 +74,7 @@ func parseFlags(args []string) (positional []string, opts ndiOptions, err error)
 				return
 			}
 			opts.ndiWidth = int32(v)
+			opts.ndiResSet = true
 		case strings.HasPrefix(arg, "--ndi-height="):
 			v, e := strconv.ParseInt(strings.TrimPrefix(arg, "--ndi-height="), 10, 32)
 			if e != nil || v <= 0 {
@@ -74,6 +82,7 @@ func parseFlags(args []string) (positional []string, opts ndiOptions, err error)
 				return
 			}
 			opts.ndiHeight = int32(v)
+			opts.ndiResSet = true
 		case arg == "--help" || arg == "-h":
 			printUsage()
 			os.Exit(0)
@@ -92,6 +101,24 @@ func parseFlags(args []string) (positional []string, opts ndiOptions, err error)
 	return
 }
 
+// ndiTargetWidth/ndiTargetHeight map the parsed flags to the NDI output
+// resolution passed to window.InitNDI: 0 means "no explicit target" (send the
+// window render resolution unchanged in windowed mode). In --ndi-only mode the
+// defaults always apply (the hidden render window needs a fixed size).
+func ndiTargetWidth(opts ndiOptions) int32 {
+	if opts.ndiOnly || opts.ndiResSet {
+		return opts.ndiWidth
+	}
+	return 0
+}
+
+func ndiTargetHeight(opts ndiOptions) int32 {
+	if opts.ndiOnly || opts.ndiResSet {
+		return opts.ndiHeight
+	}
+	return 0
+}
+
 // setupSignalHandler makes Ctrl+C / SIGTERM stop the render loop cleanly so
 // NDI output is properly closed (important for the headless --ndi-only mode,
 // whose hidden window never receives a user close event).
@@ -105,20 +132,6 @@ func setupSignalHandler() {
 	}()
 }
 
-// printUsage prints the client usage including the NDI flags.
-func printUsage() {
-	fmt.Print(`Usage: client [options] [ws://host:port] [ClientName]
+// printUsage is implemented in usage_ndi.go (NDI builds) and
+// usage_noop.go (non-NDI builds) so help text matches the build.
 
-NDI® options (NDI® is a registered trademark of Vizrt NDI AB, https://ndi.video/):
-  --ndi                 Additionally stream the rendered output to NDI.
-  --ndi-only            Stream to NDI only — no window is opened (headless).
-                        Rendering still uses the GPU (hardware accelerated).
-  --ndi-name=NAME       NDI source name (default: DMXToBeamer-<ClientName>).
-  --ndi-groups=LIST     Comma separated NDI discovery groups.
-  --ndi-width=N         Render width in --ndi-only mode (default 1280).
-  --ndi-height=N        Render height in --ndi-only mode (default 720).
-
-The NDI runtime must be installed separately; it is not bundled with this
-application. Get it at https://ndi.video/tools/.
-`)
-}

@@ -122,8 +122,16 @@ NDI options:
   be chosen with `--ndi-width`/`--ndi-height` (default 1280x720).
 - `--ndi-name`: NDI source name (default: `DMXToBeamer-<clientName>`).
 - `--ndi-groups`: comma separated NDI discovery groups.
-- `--ndi-width` / `--ndi-height`: render resolution in `--ndi-only`
-  mode.
+- `--ndi-width` / `--ndi-height`: render resolution in `--ndi-only` mode.
+  In windowed (`--ndi`) mode they scale the framebuffer to the given
+  output resolution before it is sent; when unset, the window
+  resolution is sent unchanged.
+
+Builds compiled with NDI support (build tag `ndi`) print a startup
+notice with the NDI® trademark attribution required by the NDI SDK
+licensing terms: "NDI® is a registered trademark of Vizrt NDI AB".
+Builds without NDI support (e.g. Windows) print no NDI notice and show
+no NDI options in `--help`.
 
 Frames are sent uncompressed (UYVY 4:2:2); NDI handles compression and
 transport itself, so no third-party video codec licensing applies.

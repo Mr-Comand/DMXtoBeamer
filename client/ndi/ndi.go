@@ -16,11 +16,22 @@ package ndi
 
 import (
 	"fmt"
+	"log"
 	"sync"
 	"unsafe"
 
 	"github.com/ebitengine/purego"
 )
+
+// init prints the NDI® startup notice required by the NDI SDK license terms
+// (https://docs.ndi.video/all/developing-with-ndi/sdk/licensing). Because this
+// file is gated behind the `ndi` build tag, the notice is shown exactly on
+// builds that include NDI support, once at program start — regardless of
+// whether --ndi/--ndi-only is used.
+func init() {
+	log.Println("This build includes NDI® support. NDI® is a registered trademark of Vizrt NDI AB — https://ndi.video/. " +
+		"The NDI runtime is not bundled with this application and must be installed separately (https://ndi.video/tools/).")
+}
 
 // FourCC values (little-endian four-character codes from Processing.NDI.Structs.h).
 const (

@@ -20,7 +20,7 @@ var ndiOnlyMode bool
 // InitNDI prepares NDI output in NDI-enabled builds. In builds without the
 // `ndi` tag it only records onlyMode: --ndi-only can never work here, so
 // IsNDIOnly reports it and the caller exits headless mode early.
-func InitNDI(name, groups string, onlyMode bool) {
+func InitNDI(name, groups string, onlyMode bool, outW, outH int32) {
 	ndiOnlyMode = onlyMode
 	if onlyMode {
 		log.Println("This build was compiled without NDI® support — headless --ndi-only mode is not available. Rebuild with the 'ndi' build tag (see LINUX.md).")

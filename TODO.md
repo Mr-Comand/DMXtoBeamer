@@ -25,6 +25,18 @@ OpenGL pipeline) — only the final framebuffer is additionally read back and se
 - [x] **Trademark attribution** "NDI® is a registered trademark of Vizrt NDI AB"
   is printed near the first use of the word NDI (startup log) and included in
   README.md, LINUX.md and this file.
+- [x] **Startup legal notice on every NDI-enabled build.** Builds compiled with
+  the `ndi` build tag print the attribution notice once at program start
+  (`init()` in `client/ndi/ndi.go`): "This build includes NDI® support.
+  NDI® is a registered trademark of Vizrt NDI AB — https://ndi.video/. The NDI
+  runtime is not bundled with this application and must be installed separately
+  (https://ndi.video/tools/)." — regardless of whether `--ndi`/`--ndi-only` is
+  used.
+- [x] **No NDI traces in non-NDI builds.** The client `--help` usage text is
+  split into tag-gated files: `client/usage_ndi.go` (`ndi` tag, NDI® options
+  block with trademark attribution) and `client/usage_noop.go` (`!ndi`, usage
+  text with no NDI mention). `cliflags.go` itself carries no NDI-specific
+  strings, so Windows/non-NDI builds contain no NDI help text or attribution.
 - [x] **No NDI tools distribution.** Documentation points users to
   <https://ndi.video/tools/> to obtain the NDI runtime and NDI tools.
 - [x] **H.264/H.265/AAC caution.** The client sends uncompressed 4:2:2
@@ -62,9 +74,11 @@ OpenGL pipeline) — only the final framebuffer is additionally read back and se
 - [x] Flag parsing: support `--ndi` (stream NDI in addition to the window),
   `--ndi-only` (stream NDI only, no window = headless), `--ndi-name=NAME`
   (NDI source name, default `DMXToBeamer-<ClientId>`), `--ndi-groups=LIST`
-  (NDI discovery groups) and `--ndi-width`/`--ndi-height` (headless render
-  resolution). Unknown flags are warned about so positional URL/name parsing
-  keeps working.
+  (NDI discovery groups) and `--ndi-width`/`--ndi-height` (NDI output
+  resolution: in `--ndi-only` mode the hidden render resolution, default
+  1280×720; in windowed mode the framebuffer is scaled to it before being
+  sent — when unset the window resolution is sent unchanged). Unknown flags
+  are warned about so positional URL/name parsing keeps working.
   In `--ndi-only` mode no visible raylib window is created; the renderer
   still runs with hardware acceleration via a hidden raylib window
   (`rl.SetConfigFlags(rl.FlagWindowHidden)`, fixed 1280×720 default
@@ -75,6 +89,12 @@ OpenGL pipeline) — only the final framebuffer is additionally read back and se
   unchanged (`window.InitWindowHeadless`), framebuffer read back and sent
   after every frame. Warns cleanly when no X11/Wayland display is available
   (a hidden GL window still needs a display connection).
+- [x] Windowed mode (`--ndi`): when `--ndi-width`/`--ndi-height` are given
+  explicitly, the framebuffer readback is scaled (raylib bicubic
+  `ImageCopy`+`ImageResize`) to the requested NDI output resolution before
+  the UYVY conversion; the picture is no longer squeezed when the NDI
+  receiver window aspect ratio differs from the render window. Without the
+  flags the window resolution is sent unchanged (no behavior change).
 - [x] Flag parsing for both `main.go` (dev build) and `prod.go`
   (production build) — shared helper `parseFlags()` in `cliflags.go`
   (build-tag compatible, no build tag) to avoid code duplication.

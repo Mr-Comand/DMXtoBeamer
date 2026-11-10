@@ -22,6 +22,11 @@ type Manager struct {
 	mu      sync.Mutex
 	started bool
 
+	// outW/outH is the requested NDI output resolution. 0 means "use the
+	// window render resolution unchanged" (no scaling).
+	outW int32
+	outH int32
+
 	// Frame scratch buffers (reused; SendVideo copies data before returning).
 	bgraBuf  []byte
 	uyvyBuf  []byte
@@ -43,8 +48,10 @@ func NewManager(name, groups string) *Manager {
 }
 
 // Enable creates the NDI sender once the initial resolution is known.
+// outW/outH is the NDI output resolution; 0 for either dimension means the
+// frame is sent at the window render resolution without scaling.
 // Returns an error when the NDI runtime is not available.
-func (m *Manager) Enable(w, h int32, fps int32) error {
+func (m *Manager) Enable(w, h int32, fps int32, outW, outH int32) error {
 	if m == nil {
 		return fmt.Errorf("ndi manager is nil")
 	}
@@ -53,6 +60,8 @@ func (m *Manager) Enable(w, h int32, fps int32) error {
 	if m.started {
 		return nil
 	}
+	m.outW = even(outW)
+	m.outH = outH
 	lib, err := Load()
 	if err != nil {
 		return err
@@ -65,8 +74,13 @@ func (m *Manager) Enable(w, h int32, fps int32) error {
 	}
 	m.sender = sender
 	m.started = true
-	log.Printf("NDI® sender created: %q (%dx%d @ %d fps) — NDI® is a registered trademark of Vizrt NDI AB; get the NDI runtime and tools at https://ndi.video/tools/",
-		sender.Name(), w, h, fps)
+	if m.outW > 0 && m.outH > 0 {
+		log.Printf("NDI® sender created: %q (window %dx%d, output %dx%d @ %d fps) — NDI® is a registered trademark of Vizrt NDI AB; get the NDI runtime and tools at https://ndi.video/tools/",
+			sender.Name(), w, h, m.outW, m.outH, fps)
+	} else {
+		log.Printf("NDI® sender created: %q (%dx%d @ %d fps) — NDI® is a registered trademark of Vizrt NDI AB; get the NDI runtime and tools at https://ndi.video/tools/",
+			sender.Name(), w, h, fps)
+	}
 	return nil
 }
 
@@ -113,10 +127,31 @@ func (m *Manager) PushFrameBGRA() {
 	if img == nil || img.Data == nil || img.Width <= 0 || img.Height <= 0 {
 		return
 	}
-	defer rl.UnloadImage(img)
 	srcW, srcH := int32(img.Width), int32(img.Height)
 	// NDI UYVY requires an even width; the converter crops odd widths.
 	srcW = even(srcW)
+
+	m.mu.Lock()
+	outW, outH := m.outW, m.outH
+	m.mu.Unlock()
+
+	// Scale the framebuffer to the requested NDI output resolution when one
+	// is configured (windowed --ndi-width/--ndi-height). Scaling happens in
+	// raylib (GPU, bicubic) before the CPU-side UYVY conversion.
+	if outW > 0 && outH > 0 && (outW != srcW || outH != srcH) {
+		scaled := rl.ImageCopy(img)
+		if scaled.Data == nil {
+			return
+		}
+		rl.ImageResize(scaled, outW, outH)
+		if scaled.Data == nil || scaled.Width <= 0 || scaled.Height <= 0 {
+			rl.UnloadImage(scaled)
+			return
+		}
+		rl.UnloadImage(img)
+		img = scaled
+		srcW, srcH = even(int32(img.Width)), int32(img.Height)
+	}
 
 	// LoadImageFromScreen returns R8G8B8A8 format pixels (see raylib
 	// LoadImageFromScreen: format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8).
@@ -133,6 +168,7 @@ func (m *Manager) PushFrameBGRA() {
 	m.mu.Unlock()
 
 	ConvertRGBAtoUYVY(uyvy, srcW*2, unsafe.Slice((*byte)(img.Data), int(img.Height)*int(img.Width)*4), img.Width*4, srcW, srcH)
+	rl.UnloadImage(img)
 
 	fpsN, fpsD := m.fpsN, m.fpsD
 	if fpsN == 0 {

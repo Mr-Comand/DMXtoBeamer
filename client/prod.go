@@ -141,7 +141,7 @@ func main() {
 		if ndiName == "" {
 			ndiName = "DMXToBeamer-" + ClientId
 		}
-		window.InitNDI(ndiName, opts.ndiGroups, opts.ndiOnly)
+		window.InitNDI(ndiName, opts.ndiGroups, opts.ndiOnly, ndiTargetWidth(opts), ndiTargetHeight(opts))
 	}
 
 	defer end()
