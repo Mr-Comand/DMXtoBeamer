@@ -166,14 +166,14 @@ func Render() {
 	}
 	// rl.BeginMode2D(rl.NewCamera2D(rl.Vector2{X: float32(windowWidth / 2), Y: float32(windowHeight / 2)}, rl.Vector2{X: 500, Y: 500}, 0.0, min(scaleX, scaleY)))
 
-	// Retrieve the latest audio data from the channel (non-blocking)
+	// Retrieve the latest audio data from the channel. This must stay
+	// non-blocking: waiting for audio data here would freeze the whole
+	// render loop whenever the audio goroutine is slow, stalled or dead
+	// (e.g. right after launch or after the audio daemon restarted).
+	// Animations handle empty audio data (they fall back to zero values).
 	select {
 	case audioData = <-audioDataChannel: // Get the most recently processed audio data
-		// New audio data is available, update audioData
 	default:
-		if len(audioData) == 0 {
-			audioData = <-audioDataChannel
-		}
 		// No new data available, use the previous data (audioData remains the same)
 	}
 	// Call the function to handle the animation logic based on the configuration
