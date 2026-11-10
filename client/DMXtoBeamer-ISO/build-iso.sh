@@ -579,7 +579,6 @@ TTYVHangup=no
 TTYVTDisallocate=no
 EOF
 
-
 # ============================================================
 # F3 configuration helper
 # ============================================================
@@ -608,7 +607,8 @@ while true; do
     echo "1) Edit YAML configuration"
     echo "2) Edit launch arguments"
     echo "3) Show current configuration"
-    echo "4) Exit"
+    echo "4) Restart DMXtoBeamer Engine"
+    echo "5) Exit"
     echo
 
     read -rp "Select option: " choice
@@ -617,9 +617,11 @@ while true; do
         1)
             sudo nano "$CONFIG_DIR/config.yaml"
             ;;
+
         2)
             sudo nano "$CONFIG_DIR/launch.conf"
             ;;
+
         3)
             echo
             echo "----- config.yaml -----"
@@ -632,9 +634,19 @@ while true; do
             echo
             read -rp "Press Enter to continue..."
             ;;
+
         4)
+            echo
+            echo "Restarting DMXtoBeamer Engine..."
+            sudo systemctl restart dmxtobeamer.service
+            echo "Restart command executed."
+            sleep 2
+            ;;
+
+        5)
             exit 0
             ;;
+
         *)
             echo "Invalid selection."
             sleep 1
