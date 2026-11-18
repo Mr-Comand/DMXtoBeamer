@@ -3,8 +3,6 @@
 package main
 
 import (
-	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
@@ -66,12 +64,13 @@ func startOutput(clientId string, opts clientOpts) bool {
 	if streamName == "" {
 		streamName = "DMXToBeamer-" + clientId
 	}
-	return window.InitNDI(streamName, opts.streamGroups,
-		streamTargetWidth(opts), streamTargetHeight(opts), opts.streamOnly)
+	window.InitOutput(streamName, opts.streamGroups, opts.streamOnly,
+		streamTargetWidth(opts), streamTargetHeight(opts))
+	return window.OutputManager() != nil
 }
 
 // streamStartFailed reports whether streaming output was requested but could
 // not be started (used to abort in headless mode).
 func streamStartFailed() bool {
-	return window.NDIManager() == nil
+	return window.OutputManager() == nil
 }
