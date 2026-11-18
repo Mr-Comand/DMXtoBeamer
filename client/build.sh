@@ -21,16 +21,13 @@ fi
 # Create output directory
 mkdir -p "$OUTPUT_DIR"
 
-# Build the Go executable with explicit CGO flags.
-# NOTE: No NDI® build tag here — the NDI runtime cannot be loaded on
-# Windows (purego.Dlopen is unavailable and the proprietary NDI runtime is
-# not distributed for use this way), so Windows builds are compiled
-# without NDI® support. Package-form build ('.') so all package files
-# (e.g. cliflags.go) are included.
+# Build the Go executable with explicit CGO flags. The NDI runtime must be
+# installed separately; it is loaded from the Windows DLL search path.
+# Package-form build ('.') so all package files (e.g. cliflags.go) are included.
 CGO_ENABLED=1 GOOS=windows GOARCH=amd64 \
 CGO_CFLAGS="-I$PWD/resources" \
 CGO_LDFLAGS="-L$PWD/resources -lportaudio" \
-go build -tags production -o "$OUTPUT_DIR/client.exe" .
+go build -tags production,ndi -o "$OUTPUT_DIR/client.exe" .
 
 # Copy PortAudio DLL if it exists
 if [ -f "$DLL_FILE" ]; then

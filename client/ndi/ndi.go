@@ -1,7 +1,7 @@
 // Package ndi provides NDI® video output for the client without linking or
-// bundling the NDI SDK. The NDI runtime (libndi.so) is loaded dynamically at
-// runtime via dlopen, which keeps the binary open source and usable on
-// machines without NDI installed.
+// bundling the NDI SDK. The NDI runtime is loaded dynamically at runtime,
+// which keeps the binary open source and usable on machines without NDI
+// installed.
 //
 // The handful of C structs and entry points bound here are re-implemented
 // against the documented public NDI C API (see https://docs.ndi.video);
@@ -44,18 +44,6 @@ const (
 const (
 	FrameFormatTypeProgressive = 1
 )
-
-// libraryNames are the candidate shared-library names/paths tried in order,
-// matching the NDI 6/5/4 Linux runtime installs. The runtime is not
-// distributed with this project and is never installed by us — see
-// https://ndi.video/tools/.
-var libraryNames = []string{
-	"libndi.so.6",
-	"libndi.so.5",
-	"libndi.so.4",
-	"libndi.so",
-	"Processing.NDI.Lib.x64.so",
-}
 
 // entryPoints holds the NDI entry points we need.
 type entryPoints struct {
@@ -136,12 +124,12 @@ func Shutdown() {
 	}
 }
 
-// loadLibrary tries each candidate name and resolves the entry points we
-// need directly by symbol name through dlsym — stable across NDI 4/5/6.
+// loadLibrary tries each platform-specific candidate name and resolves the
+// entry points we need directly by symbol name — stable across NDI 4/5/6.
 func loadLibrary() (*Library, error) {
 	var lastErr error
 	for _, name := range libraryNames {
-		h, err := purego.Dlopen(name, purego.RTLD_NOW|purego.RTLD_LOCAL)
+		h, err := openLibrary(name)
 		if err != nil {
 			lastErr = err
 			continue
