@@ -64,9 +64,6 @@ jobs:
           # Download portaudio.h
           Invoke-WebRequest -Uri "https://raw.githubusercontent.com/PortAudio/portaudio/refs/heads/master/include/portaudio.h" -OutFile "$resDir/portaudio.h"
       
-      - name: Install zip
-        run: choco install zip
-      
       - name: Make build script executable
         working-directory: client
         run: chmod +x build.sh

@@ -47,7 +47,14 @@ fi
 
 # Create zip archive
 cd "$OUTPUT_DIR"
-zip -r client.zip ./*
+if command -v zip >/dev/null 2>&1; then
+    zip -r client.zip ./*
+elif command -v powershell.exe >/dev/null 2>&1; then
+    powershell.exe -NoProfile -Command 'Compress-Archive -Path * -DestinationPath client.zip -Force'
+else
+    echo "Error: neither zip nor PowerShell is available to create client.zip."
+    exit 1
+fi
 cd ..
 
 echo "Build complete. Check $OUTPUT_DIR for client.exe, libportaudio.dll, shaders, and client.zip."
