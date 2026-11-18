@@ -8,7 +8,5 @@ import "fmt"
 // intentionally contains no NDI flags, attribution, or links.
 func printUsage() {
 	fmt.Print(`Usage: client [options] [ws://host:port] [ClientName]
-
-This build does not include NDI support.
 `)
 }
