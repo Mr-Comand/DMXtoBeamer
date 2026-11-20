@@ -8,11 +8,44 @@ on:
       - ndi
       - linux-iso
     tags:
-      - 'v*.*.*'  # only trigger on semantic version tags
+      - 'v*.*.*'
+
+  workflow_dispatch:
+    inputs:
+      build_client:
+        description: "Build client"
+        required: true
+        type: boolean
+        default: true
+
+      build_server:
+        description: "Build server"
+        required: true
+        type: boolean
+        default: false
+
+      target_os:
+        description: "OS to build for"
+        required: true
+        type: choice
+        default: both
+        options:
+          - windows
+          - linux
+          - both
+
+      build_iso:
+        description: "Create live ISO"
+        required: true
+        type: boolean
+        default: false
+
 permissions:
   contents: write
+
 jobs:
   build-server:
+    if: ${{ github.event_name != 'workflow_dispatch' || (inputs.build_server && (inputs.target_os == 'windows' || inputs.target_os == 'both')) }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -24,7 +57,7 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: "1.23"
-      
+
       - name: Make build script executable
         working-directory: server
         run: chmod +x build.sh
@@ -46,12 +79,14 @@ jobs:
             server/build/server.zip
 
   build-client:
+    if: ${{ github.event_name != 'workflow_dispatch' || (inputs.build_client && (inputs.target_os == 'windows' || inputs.target_os == 'both')) }}
     runs-on: windows-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           submodules: true
+
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
@@ -62,12 +97,11 @@ jobs:
         run: |
           $resDir = "client/resources"
           if (-Not (Test-Path $resDir)) { New-Item -ItemType Directory -Path $resDir -Force }
-          # Download portaudio.h
           Invoke-WebRequest -Uri "https://raw.githubusercontent.com/PortAudio/portaudio/refs/heads/master/include/portaudio.h" -OutFile "$resDir/portaudio.h"
-      
+
       - name: Install zip
         run: choco install zip
-      
+
       - name: Make build script executable
         working-directory: client
         run: chmod +x build.sh
@@ -75,8 +109,7 @@ jobs:
       - name: Build Client
         working-directory: client
         shell: bash
-        run: |
-          sh build.sh
+        run: sh build.sh
 
       - name: Upload client artifacts
         uses: actions/upload-artifact@v4
@@ -87,6 +120,7 @@ jobs:
             client/build/client.zip
 
   build-server-linux:
+    if: ${{ github.event_name != 'workflow_dispatch' || (inputs.build_server && (inputs.target_os == 'linux' || inputs.target_os == 'both')) }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -117,6 +151,7 @@ jobs:
           path: server/build/server-linux.zip
 
   build-client-linux:
+    if: ${{ github.event_name != 'workflow_dispatch' || (inputs.build_client && (inputs.target_os == 'linux' || inputs.target_os == 'both')) }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -156,12 +191,9 @@ jobs:
           name: client-linux
           path: client/build/client-linux.zip
 
-  # Built natively on the free arm64 hosted runner (ubuntu-24.04-arm,
-  # available for public repos). This replaces fragile cross-compilation,
-  # which needs multiarch apt (arm64 indexes are only on ports.ubuntu.com,
-  # not on the amd64-only host archives) plus a cross toolchain. The binary
-  # runs directly on Raspberry Pi OS 64-bit (Bookworm/Bullseye).
+  # Built natively on the free arm64 hosted runner.
   build-client-linux-arm64:
+    if: ${{ github.event_name != 'workflow_dispatch' || (inputs.build_client && (inputs.target_os == 'linux' || inputs.target_os == 'both')) }}
     runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout code
@@ -177,9 +209,9 @@ jobs:
       - name: Install X11 and audio development packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            portaudio19-dev libasound2-dev \
-            libx11-dev libxkbcommon-dev libxcursor-dev libxrandr-dev \
+          sudo apt-get install -y \u005c
+            portaudio19-dev libasound2-dev \u005c
+            libx11-dev libxkbcommon-dev libxcursor-dev libxrandr-dev \u005c
             libxinerama-dev libxi-dev libgl-dev libglu1-mesa-dev zip
 
       - name: Make build script executable
@@ -201,6 +233,7 @@ jobs:
           path: client/build/client-linux-arm64.zip
 
   build-iso:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.build_iso }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -216,14 +249,14 @@ jobs:
       - name: Install ISO build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            gcc g++ make pkg-config \
-            libasound2-dev portaudio19-dev \
-            libusb-1.0-0-dev libudev-dev \
-            libx11-dev libxrandr-dev libxcursor-dev \
-            libxinerama-dev libxi-dev libxext-dev libxfixes-dev \
-            libxxf86vm-dev libxkbcommon-dev libgl-dev \
-            live-build debootstrap squashfs-tools xorriso dosfstools parted rsync \
+          sudo apt-get install -y --no-install-recommends \u005c
+            gcc g++ make pkg-config \u005c
+            libasound2-dev portaudio19-dev \u005c
+            libusb-1.0-0-dev libudev-dev \u005c
+            libx11-dev libxrandr-dev libxcursor-dev \u005c
+            libxinerama-dev libxi-dev libxext-dev libxfixes-dev \u005c
+            libxxf86vm-dev libxkbcommon-dev libgl-dev \u005c
+            live-build debootstrap squashfs-tools xorriso dosfstools parted rsync \u005c
             git ca-certificates curl file binutils
 
       - name: Make ISO build script executable
@@ -242,7 +275,13 @@ jobs:
           if-no-files-found: error
 
   release:
-    needs: [build-server, build-client, build-server-linux, build-client-linux, build-client-linux-arm64, build-iso]
+    needs:
+      - build-server
+      - build-client
+      - build-server-linux
+      - build-client-linux
+      - build-client-linux-arm64
+      - build-iso
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
