@@ -57,7 +57,6 @@ if [[ "$INSIDE_CONTAINER" != "--inside-container" ]]; then
             -w /workspace \
             -e ISO_DIR_NAME="$ISO_DIR_NAME" \
             -e DEBIAN_FRONTEND="noninteractive" \
-            -e PODMAN_USERNS="keep-id" \
             docker.io/library/debian:13 \
             bash -c '
                 set -Eeuo pipefail
@@ -685,11 +684,14 @@ echo "=========================================="
 echo " Building Debian 13 Live ISO"
 echo "=========================================="
 
-cd "$WORK_DIR"
+cd "$WORK_DIR" || exit 1
 
+# Clean Live Build artifacts and rebuild ISO to ensure consistency
 lb bootstrap
-
-lb build
+lb build || {
+    echo "ERROR: Live Build failed. See logs above."
+    exit 1
+}
 
 # ============================================================
 # Copy ISO
