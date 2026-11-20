@@ -169,7 +169,6 @@ lb config \
     --archive-areas "main contrib non-free non-free-firmware" \
     --debian-installer none \
     --apt-recommends false \
-    --chroot-filesystems ext4 \
     --bootappend-live "boot=live components quiet username=kiosk hostname=dmxtobeamer locales=de_DE.UTF-8 keyboard-layouts=de keyboard-model=pc105" \
     --iso-volume "DMXTOBEAMER"
 
