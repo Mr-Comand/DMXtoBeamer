@@ -56,6 +56,8 @@ if [[ -f /etc/fedora-release && "$INSIDE_CONTAINER" != "--inside-container" ]]; 
                 libasound2-dev \
                 portaudio19-dev \
                 libusb-1.0-0-dev \
+                debootstrap \
+                live-build \
                 libudev-dev \
                 libx11-dev \
                 libxrandr-dev \
@@ -159,8 +161,9 @@ mkdir -p "$WORK_DIR"
 
 cd "$WORK_DIR"
 
+IMAGE_VARIANT="bookworm"  # Debian 12 (Stable)
 lb config \
-    --distribution trixie \
+    --distribution "$IMAGE_VARIANT" \
     --architectures amd64 \
     --binary-images iso-hybrid \
     --archive-areas "main contrib non-free non-free-firmware" \
