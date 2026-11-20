@@ -35,7 +35,7 @@ on:
           - both
 
       build_iso:
-        description: "Create live ISO"
+        description: "Create live ISO (AMD64 + ARM64)"
         required: true
         type: boolean
         default: false
@@ -107,7 +107,9 @@ jobs:
         shell: pwsh
         run: |
           $resDir = "client/resources"
-          if (-Not (Test-Path $resDir)) { New-Item -ItemType Directory -Path $resDir -Force }
+          if (-Not (Test-Path $resDir)) {
+            New-Item -ItemType Directory -Path $resDir -Force
+          }
           Invoke-WebRequest -Uri "https://raw.githubusercontent.com/PortAudio/portaudio/refs/heads/master/include/portaudio.h" -OutFile "$resDir/portaudio.h"
 
       - name: Install zip
@@ -199,12 +201,17 @@ jobs:
         working-directory: client
         run: chmod +x build-linux.sh
 
-      - name: Build Client for Linux
+      - name: Build Client for Linux AMD64
         working-directory: client
         run: ./build-linux.sh native
 
-      # This artifact is consumed by the ISO job.
-      - name: Upload Linux client build for ISO
+      - name: Verify AMD64 client
+        run: |
+          set -e
+          file client/build/client | grep -Eqi 'x86-64|x86_64'
+          test -d client/build/shaders
+
+      - name: Upload Linux AMD64 client build for ISO
         uses: actions/upload-artifact@v4
         with:
           name: linux-client-build
@@ -225,11 +232,11 @@ jobs:
           path: client/build/client-linux.zip
 
   # ============================================================
-  # Linux Client (ARM64 / Raspberry Pi)
+  # Linux Client (ARM64)
   # ============================================================
 
   build-client-linux-arm64:
-    if: ${{ github.event_name != 'workflow_dispatch' || (inputs.build_client && (inputs.target_os == 'linux' || inputs.target_os == 'both')) }}
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.build_iso || (inputs.build_client && (inputs.target_os == 'linux' || inputs.target_os == 'both')) }}
     runs-on: ubuntu-24.04-arm
 
     steps:
@@ -243,44 +250,69 @@ jobs:
         with:
           go-version: "1.23"
 
-      - name: Install X11 and audio development packages
+      - name: Install X11, Wayland and audio development packages
         run: |
           sudo apt-get update
 
           sudo apt-get install -y \
             portaudio19-dev libasound2-dev \
             libx11-dev libxkbcommon-dev libxcursor-dev libxrandr-dev \
-            libxinerama-dev libxi-dev libgl-dev libglu1-mesa-dev zip
+            libxinerama-dev libxi-dev libgl-dev libglu1-mesa-dev \
+            wayland-protocols libwayland-dev zip
 
       - name: Make build script executable
         working-directory: client
         run: chmod +x build-linux.sh
 
-      - name: Build Client for Raspberry Pi 64-bit
+      - name: Build Client for Linux ARM64
         working-directory: client
         run: ./build-linux.sh native
+
+      - name: Verify ARM64 client
+        run: |
+          set -e
+          file client/build/client | grep -Eqi 'ARM aarch64|ARM64|aarch64'
+          test -d client/build/shaders
+
+      - name: Upload Linux ARM64 client build for ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-client-arm64-build
+          path: |
+            client/build/client
+            client/build/shaders
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Create zip archive
         working-directory: client/build
         run: zip -r client-linux-arm64.zip client shaders
 
-      - name: Upload Pi arm64 client artifacts
+      - name: Upload Linux ARM64 client artifacts
         uses: actions/upload-artifact@v4
         with:
           name: client-linux-arm64
           path: client/build/client-linux-arm64.zip
 
   # ============================================================
-  # Debian 13 Live ISO
+  # Debian 13 Live ISO (AMD64 + ARM64)
   # ============================================================
 
   build-iso:
     needs:
       - build-client-linux
+      - build-client-linux-arm64
 
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.build_iso }}
 
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - amd64
+          - arm64
 
     steps:
       - name: Checkout code
@@ -288,18 +320,18 @@ jobs:
         with:
           submodules: true
 
-      # Download the already compiled Linux client.
+      # Download the client binary matching the ISO architecture.
       - name: Download prebuilt Linux client
         uses: actions/download-artifact@v4
         with:
-          name: linux-client-build
+          name: ${{ matrix.arch == 'amd64' && 'linux-client-build' || 'linux-client-arm64-build' }}
           path: client/build
 
       - name: Verify prebuilt client
         run: |
           set -e
 
-          echo "Checking prebuilt client..."
+          echo "Checking ${{ matrix.arch }} client..."
 
           if [ ! -f client/build/client ]; then
             echo "ERROR: Client binary missing!"
@@ -313,11 +345,13 @@ jobs:
 
           chmod +x client/build/client
 
-          echo "Client binary:"
           file client/build/client
 
-          echo "Shaders:"
-          ls -la client/build/shaders
+          if [ "${{ matrix.arch }}" = "amd64" ]; then
+            file client/build/client | grep -Eqi 'x86-64|x86_64'
+          else
+            file client/build/client | grep -Eqi 'ARM aarch64|ARM64|aarch64'
+          fi
 
           echo "Prebuilt client successfully verified."
 
@@ -325,18 +359,19 @@ jobs:
         working-directory: client/DMXtoBeamer-ISO
         run: chmod +x build-iso.sh
 
-      - name: Build Debian 13 live ISO using Podman
+      - name: Build Debian 13 live ISO
         working-directory: client/DMXtoBeamer-ISO
-        run: sudo bash build-iso.sh --force-container
+        run: sudo bash build-iso.sh --force-container --arch "${{ matrix.arch }}"
         env:
           GITHUB_ACTIONS: "true"
 
       - name: Upload ISO artifact
         uses: actions/upload-artifact@v4
         with:
-          name: dmxtobeamer-iso
-          path: client/DMXtoBeamer-ISO/dmxtobeamer-live.iso
+          name: dmxtobeamer-iso-${{ matrix.arch }}
+          path: client/DMXtoBeamer-ISO/DMXtoBeamer-linux-${{ matrix.arch }}.iso
           if-no-files-found: error
+          retention-days: 7
 
   # ============================================================
   # GitHub Release
@@ -356,7 +391,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -380,6 +416,7 @@ jobs:
             artifacts/server-linux/server-linux.zip
             artifacts/client-linux/client-linux.zip
             artifacts/client-linux-arm64/client-linux-arm64.zip
-            artifacts/dmxtobeamer-iso/dmxtobeamer-live.iso
+            artifacts/dmxtobeamer-iso-amd64/DMXtoBeamer-linux-amd64.iso
+            artifacts/dmxtobeamer-iso-arm64/DMXtoBeamer-linux-arm64.iso
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

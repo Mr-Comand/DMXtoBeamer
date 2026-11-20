@@ -15,10 +15,44 @@ BUILD_DIR="$PROJECT_DIR/build"
 APP_BINARY="$BUILD_DIR/client"
 SHADER_DIR="$BUILD_DIR/shaders"
 
-WORK_DIR="$SCRIPT_DIR/live-build"
-ISO_OUTPUT="$SCRIPT_DIR/dmxtobeamer-live.iso"
+ISO_ARCH="${ISO_ARCH:-amd64}"
+FORCE_CONTAINER=false
+INSIDE_CONTAINER=false
 
-INSIDE_CONTAINER="${1:-}"
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --arch)
+            ISO_ARCH="${2:?Missing architecture after --arch}"
+            shift 2
+            ;;
+        --force-container)
+            FORCE_CONTAINER=true
+            shift
+            ;;
+        --inside-container)
+            INSIDE_CONTAINER=true
+            shift
+            ;;
+        *)
+            echo "ERROR: Unknown argument: $1"
+            echo "Usage: $0 [--arch amd64|arm64] [--force-container] [--inside-container]"
+            exit 1
+            ;;
+    esac
+done
+
+case "$ISO_ARCH" in
+    amd64|arm64)
+        ;;
+    *)
+        echo "ERROR: Unsupported architecture: $ISO_ARCH"
+        echo "Supported architectures: amd64, arm64"
+        exit 1
+        ;;
+esac
+
+WORK_DIR="$SCRIPT_DIR/live-build-$ISO_ARCH"
+ISO_OUTPUT="$SCRIPT_DIR/DMXtoBeamer-linux-$ISO_ARCH.iso"
 
 # ============================================================
 # Prebuilt client detection
@@ -26,6 +60,30 @@ INSIDE_CONTAINER="${1:-}"
 
 has_prebuilt_client() {
     [[ -f "$APP_BINARY" && -d "$SHADER_DIR" ]]
+}
+
+validate_client_architecture() {
+    local binary_info
+
+    binary_info="$(file "$APP_BINARY")"
+
+    echo "Detected client binary:"
+    echo "$binary_info"
+
+    case "$ISO_ARCH" in
+        amd64)
+            if ! grep -Eqi 'x86-64|x86_64' <<< "$binary_info"; then
+                echo "ERROR: The client binary is not an AMD64 executable."
+                exit 1
+            fi
+            ;;
+        arm64)
+            if ! grep -Eqi 'ARM aarch64|ARM64|aarch64' <<< "$binary_info"; then
+                echo "ERROR: The client binary is not an ARM64 executable."
+                exit 1
+            fi
+            ;;
+    esac
 }
 
 USE_PREBUILT_CLIENT=false
@@ -41,39 +99,38 @@ fi
 # Build inside Debian 13 container
 # ============================================================
 
-if [[ "$INSIDE_CONTAINER" != "--inside-container" ]]; then
+if [[ "$INSIDE_CONTAINER" != true ]]; then
 
     IS_GITHUB_CI="${GITHUB_ACTIONS:-}"
 
-    if [[ -f /etc/fedora-release ]] || [[ -n "$IS_GITHUB_CI" ]] || [[ "$INSIDE_CONTAINER" == "--force-container" ]]; then
+    if [[ -f /etc/fedora-release ]] || [[ -n "$IS_GITHUB_CI" ]] || [[ "$FORCE_CONTAINER" == true ]]; then
 
         echo "Detected container-compatible environment."
-        echo "Starting Debian 13 build container."
+        echo "Starting Debian 13 container for $ISO_ARCH."
 
         # ----------------------------------------------------
         # Detect container runtime
         # ----------------------------------------------------
 
-        if ! command -v podman >/dev/null 2>&1; then
+        if command -v podman >/dev/null 2>&1; then
+            CONTAINER_RUNTIME="podman"
 
-            if command -v docker >/dev/null 2>&1; then
-                echo "Using Docker as Podman is not available."
-                CONTAINER_RUNTIME="docker"
-
-            else
-                echo "Installing Podman..."
-
-                sudo dnf install -y podman || {
-                    echo "Podman installation failed, trying apt."
-
-                    sudo apt-get update
-                    sudo apt-get install -y podman
-                }
-
-                CONTAINER_RUNTIME="podman"
-            fi
+        elif command -v docker >/dev/null 2>&1; then
+            CONTAINER_RUNTIME="docker"
 
         else
+            echo "Installing Podman..."
+
+            if command -v dnf >/dev/null 2>&1; then
+                sudo dnf install -y podman
+            elif command -v apt-get >/dev/null 2>&1; then
+                sudo apt-get update
+                sudo apt-get install -y podman
+            else
+                echo "ERROR: Cannot install Podman on this system."
+                exit 1
+            fi
+
             CONTAINER_RUNTIME="podman"
         fi
 
@@ -82,10 +139,12 @@ if [[ "$INSIDE_CONTAINER" != "--inside-container" ]]; then
         # ----------------------------------------------------
 
         "$CONTAINER_RUNTIME" run --rm --privileged --network host \
+            --platform "linux/$ISO_ARCH" \
             --security-opt label=disable \
             -v "$PROJECT_DIR:/workspace:Z" \
             -w /workspace \
             -e ISO_DIR_NAME="$ISO_DIR_NAME" \
+            -e ISO_ARCH="$ISO_ARCH" \
             -e DEBIAN_FRONTEND="noninteractive" \
             docker.io/library/debian:13 \
             bash -c '
@@ -94,6 +153,7 @@ if [[ "$INSIDE_CONTAINER" != "--inside-container" ]]; then
 
                 echo "=========================================="
                 echo " Debian 13 ISO Build Container"
+                echo " Architecture: $ISO_ARCH"
                 echo "=========================================="
 
                 # ------------------------------------------------
@@ -139,21 +199,15 @@ if [[ "$INSIDE_CONTAINER" != "--inside-container" ]]; then
                 # ------------------------------------------------
 
                 if [[ ! -f /workspace/client/build/client || ! -d /workspace/client/build/shaders ]]; then
-
                     echo "No prebuilt client found."
                     echo "Installing Go for local client compilation."
-
                     packages+=(golang-go)
-
                 else
-
                     echo "Prebuilt client found."
                     echo "Skipping Go installation."
-
                 fi
 
                 apt-get update -qq
-
                 apt-get install -y --no-install-recommends "${packages[@]}"
 
                 # ------------------------------------------------
@@ -162,8 +216,7 @@ if [[ "$INSIDE_CONTAINER" != "--inside-container" ]]; then
 
                 cd "/workspace/$ISO_DIR_NAME"
 
-                bash ./build-iso.sh --inside-container
-
+                bash ./build-iso.sh --inside-container --arch "$ISO_ARCH"
             '
 
         exit $?
@@ -176,12 +229,9 @@ fi
 # ============================================================
 
 if [[ "$EUID" -ne 0 ]]; then
-
     echo "Run this script with:"
-    echo "sudo bash build-iso.sh"
-
+    echo "sudo bash build-iso.sh --arch $ISO_ARCH"
     exit 1
-
 fi
 
 # ============================================================
@@ -191,17 +241,27 @@ fi
 echo
 echo "Project directory: $PROJECT_DIR"
 echo "ISO directory:     $SCRIPT_DIR"
+echo "Architecture:      $ISO_ARCH"
 
-for command_name in lb pkg-config; do
-
+for command_name in lb pkg-config file; do
     if ! command -v "$command_name" >/dev/null 2>&1; then
-
         echo "ERROR: Missing command: $command_name"
         exit 1
-
     fi
-
 done
+
+# ------------------------------------------------------------
+# Validate container architecture
+# ------------------------------------------------------------
+
+CONTAINER_ARCH="$(dpkg --print-architecture)"
+
+if [[ "$CONTAINER_ARCH" != "$ISO_ARCH" ]]; then
+    echo "ERROR: Container architecture mismatch."
+    echo "Requested: $ISO_ARCH"
+    echo "Container: $CONTAINER_ARCH"
+    exit 1
+fi
 
 # ------------------------------------------------------------
 # Recheck prebuilt client inside the container
@@ -209,8 +269,7 @@ done
 
 USE_PREBUILT_CLIENT=false
 
-if [[ -f "$APP_BINARY" && -d "$SHADER_DIR" ]]; then
-
+if has_prebuilt_client; then
     USE_PREBUILT_CLIENT=true
 
     echo
@@ -221,8 +280,9 @@ if [[ -f "$APP_BINARY" && -d "$SHADER_DIR" ]]; then
     echo "Binary:  $APP_BINARY"
     echo "Shaders: $SHADER_DIR"
 
-else
+    validate_client_architecture
 
+else
     echo
     echo "No prebuilt client available."
 
@@ -235,7 +295,6 @@ else
         echo "ERROR: Build script not found: $BUILD_SCRIPT"
         exit 1
     fi
-
 fi
 
 # ============================================================
@@ -250,16 +309,11 @@ echo "=========================================="
 cd "$PROJECT_DIR"
 
 if [[ "$USE_PREBUILT_CLIENT" == true ]]; then
-
     echo "Using existing prebuilt Linux client."
     echo "Skipping Go installation and client compilation."
-
 else
-
     echo "Building Linux client from source."
-
     bash "$BUILD_SCRIPT" native
-
 fi
 
 # ------------------------------------------------------------
@@ -267,40 +321,32 @@ fi
 # ------------------------------------------------------------
 
 if [[ ! -f "$APP_BINARY" ]]; then
-
     echo "ERROR: Application binary not found:"
     echo "$APP_BINARY"
-
     exit 1
-
 fi
 
 if [[ ! -d "$SHADER_DIR" ]]; then
-
     echo "ERROR: Shader directory not found:"
     echo "$SHADER_DIR"
-
     exit 1
-
 fi
 
+validate_client_architecture
 chmod +x "$APP_BINARY"
-
-echo
-echo "Application binary:"
-file "$APP_BINARY"
 
 echo
 echo "Shaders:"
 ls -la "$SHADER_DIR"
 
 # ============================================================
-# Prepare Debian Live build
+# Prepare Debian 13 Live build
 # ============================================================
 
 echo
 echo "=========================================="
 echo " Preparing Debian 13 Live"
+echo " Architecture: $ISO_ARCH"
 echo "=========================================="
 
 rm -rf "$WORK_DIR"
@@ -308,11 +354,11 @@ mkdir -p "$WORK_DIR"
 
 cd "$WORK_DIR"
 
-IMAGE_VARIANT="bookworm"
+IMAGE_VARIANT="trixie"
 
 lb config \
     --distribution "$IMAGE_VARIANT" \
-    --architectures amd64 \
+    --architectures "$ISO_ARCH" \
     --binary-images iso-hybrid \
     --archive-areas "main contrib non-free non-free-firmware" \
     --debian-installer none \
@@ -403,7 +449,6 @@ fonts-dejavu-core
 # Editors
 nano
 vim-tiny
-
 EOF
 
 # ============================================================
@@ -415,7 +460,6 @@ APP_DEST="config/includes.chroot/opt/dmxtobeamer"
 mkdir -p "$APP_DEST"
 
 install -m 0755 "$APP_BINARY" "$APP_DEST/client"
-
 cp -a "$SHADER_DIR" "$APP_DEST/shaders"
 
 # ============================================================
@@ -770,11 +814,9 @@ while true; do
         1)
             sudo nano "$CONFIG_DIR/config.yaml"
             ;;
-
         2)
             sudo nano "$CONFIG_DIR/launch.conf"
             ;;
-
         3)
             echo
             echo "----- config.yaml -----"
@@ -787,7 +829,6 @@ while true; do
             echo
             read -rp "Press Enter to continue..."
             ;;
-
         4)
             echo
             echo "Restarting DMXtoBeamer Engine..."
@@ -795,11 +836,9 @@ while true; do
             echo "Restart command executed."
             sleep 2
             ;;
-
         5)
             exit 0
             ;;
-
         *)
             echo "Invalid selection."
             sleep 1
@@ -817,6 +856,7 @@ chmod 0755 "$BIN_DIR/dmx-config"
 echo
 echo "=========================================="
 echo " Building Debian 13 Live ISO"
+echo " Architecture: $ISO_ARCH"
 echo "=========================================="
 
 cd "$WORK_DIR"
@@ -829,18 +869,26 @@ lb build || {
 }
 
 # ============================================================
-# Copy ISO
+# Locate generated ISO
 # ============================================================
 
-BUILT_ISO="$WORK_DIR/live-image-amd64.hybrid.iso"
+BUILT_ISO=""
 
-if [[ ! -f "$BUILT_ISO" ]]; then
+for candidate in \
+    "$WORK_DIR/live-image-${ISO_ARCH}.hybrid.iso" \
+    "$WORK_DIR/live-image-${ISO_ARCH}.iso"; do
 
-    echo "ERROR: ISO was not generated:"
-    echo "$BUILT_ISO"
+    if [[ -f "$candidate" ]]; then
+        BUILT_ISO="$candidate"
+        break
+    fi
+done
 
+if [[ -z "$BUILT_ISO" ]]; then
+    echo "ERROR: ISO was not generated for architecture $ISO_ARCH."
+    echo "Generated ISO files:"
+    find "$WORK_DIR" -maxdepth 1 -type f -name '*.iso' -print
     exit 1
-
 fi
 
 cp "$BUILT_ISO" "$ISO_OUTPUT"
@@ -854,5 +902,6 @@ echo "=========================================="
 echo " BUILD COMPLETE"
 echo "=========================================="
 
-echo "ISO:  $ISO_OUTPUT"
-echo "Size: $(du -h "$ISO_OUTPUT" | cut -f1)"
+echo "Architecture: $ISO_ARCH"
+echo "ISO:          $ISO_OUTPUT"
+echo "Size:         $(du -h "$ISO_OUTPUT" | cut -f1)"
