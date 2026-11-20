@@ -199,8 +199,49 @@ jobs:
           name: client-linux-arm64
           path: client/build/client-linux-arm64.zip
 
+  build-iso:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.23"
+
+      - name: Install ISO build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            gcc g++ make pkg-config \
+            libasound2-dev portaudio19-dev \
+            libusb-1.0-0-dev libudev-dev \
+            libx11-dev libxrandr-dev libxcursor-dev \
+            libxinerama-dev libxi-dev libxext-dev libxfixes-dev \
+            libxxf86vm-dev libxkbcommon-dev libgl-dev \
+            live-build debootstrap squashfs-tools xorriso dosfstools parted rsync \
+            git ca-certificates curl file binutils
+
+      - name: Make ISO build script executable
+        working-directory: client/DMXtoBeamer-ISO
+        run: chmod +x build-iso.sh
+
+      - name: Build Debian 13 live ISO
+        working-directory: client/DMXtoBeamer-ISO
+        run: sudo bash build-iso.sh
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dmxtobeamer-iso
+          path: client/DMXtoBeamer-ISO/dmxtobeamer-live.iso
+          if-no-files-found: error
+
   release:
-    needs: [build-server, build-client, build-server-linux, build-client-linux, build-client-linux-arm64]
+    needs: [build-server, build-client, build-server-linux, build-client-linux, build-client-linux-arm64, build-iso]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
@@ -228,5 +269,6 @@ jobs:
             artifacts/server-linux/server-linux.zip
             artifacts/client-linux/client-linux.zip
             artifacts/client-linux-arm64/client-linux-arm64.zip
+            artifacts/dmxtobeamer-iso/dmxtobeamer-live.iso
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
