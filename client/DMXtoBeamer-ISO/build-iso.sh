@@ -30,7 +30,7 @@ if [[ "$INSIDE_CONTAINER" != "--inside-container" ]]; then
     # Auto-detect container runtime environment
     IS_GITHUB_CI="${GITHUB_ACTIONS:-}"
     
-    if [[ -f /etc/fedora-release ]] || [[ -n "$IS_GITHUB_CI" ]]; then
+    if [[ -f /etc/fedora-release ]] || [[ -n "$IS_GITHUB_CI" ]] || [[ "$INSIDE_CONTAINER" == "--force-container" ]]; then
         echo "Detected container-compatible environment (Fedora or GitHub CI)."
         echo "Starting Debian 13 build container."
 

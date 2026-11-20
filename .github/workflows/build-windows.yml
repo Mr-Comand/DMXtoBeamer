@@ -247,7 +247,7 @@ jobs:
 
       - name: Build Debian 13 live ISO using Podman
         working-directory: client/DMXtoBeamer-ISO
-        run: sudo bash build-iso.sh
+        run: sudo bash build-iso.sh --force-container
         env:
           GITHUB_ACTIONS: "true"
 
