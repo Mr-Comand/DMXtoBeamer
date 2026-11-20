@@ -239,6 +239,10 @@ jobs:
       image: debian:12
       options: --privileged
     steps:
+      - name: Install Git (≥ 2.18)
+        run: |
+          apt-get update && apt-get install -y git
+
       - name: Checkout code
         uses: actions/checkout@v3
         with:
