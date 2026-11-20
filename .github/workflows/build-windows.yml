@@ -6,6 +6,7 @@ on:
       - main
       - linux
       - ndi
+      - linux-iso
     tags:
       - 'v*.*.*'  # only trigger on semantic version tags
 permissions:
