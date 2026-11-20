@@ -1,7 +1,7 @@
 // Package ndi provides NDI® video output for the client without linking or
-// bundling the NDI SDK. The NDI runtime (libndi.so) is loaded dynamically at
-// runtime via dlopen, which keeps the binary open source and usable on
-// machines without NDI installed.
+// bundling the NDI SDK. The NDI runtime is loaded dynamically at runtime,
+// which keeps the binary open source and usable on machines without NDI
+// installed.
 //
 // The handful of C structs and entry points bound here are re-implemented
 // against the documented public NDI C API (see https://docs.ndi.video);
@@ -10,15 +10,28 @@
 // https://ndi.video/tools/.
 //
 // NDI® is a registered trademark of Vizrt NDI AB.
+//
+//go:build ndi
 package ndi
 
 import (
 	"fmt"
+	"log"
 	"sync"
 	"unsafe"
 
 	"github.com/ebitengine/purego"
 )
+
+// init prints the NDI® startup notice required by the NDI SDK license terms
+// (https://docs.ndi.video/all/developing-with-ndi/sdk/licensing). Because this
+// file is gated behind the `ndi` build tag, the notice is shown exactly on
+// builds that include NDI support, once at program start — regardless of
+// whether --ndi/--ndi-only is used.
+func init() {
+	log.Println("This build includes NDI® support. NDI® is a registered trademark of Vizrt NDI AB — https://ndi.video/. " +
+		"The NDI runtime is not bundled with this application and must be installed separately (https://ndi.video/tools/).")
+}
 
 // FourCC values (little-endian four-character codes from Processing.NDI.Structs.h).
 const (
@@ -31,18 +44,6 @@ const (
 const (
 	FrameFormatTypeProgressive = 1
 )
-
-// libraryNames are the candidate shared-library names/paths tried in order,
-// matching the NDI 6/5/4 Linux runtime installs. The runtime is not
-// distributed with this project and is never installed by us — see
-// https://ndi.video/tools/.
-var libraryNames = []string{
-	"libndi.so.6",
-	"libndi.so.5",
-	"libndi.so.4",
-	"libndi.so",
-	"Processing.NDI.Lib.x64.so",
-}
 
 // entryPoints holds the NDI entry points we need.
 type entryPoints struct {
@@ -123,12 +124,12 @@ func Shutdown() {
 	}
 }
 
-// loadLibrary tries each candidate name and resolves the entry points we
-// need directly by symbol name through dlsym — stable across NDI 4/5/6.
+// loadLibrary tries each platform-specific candidate name and resolves the
+// entry points we need directly by symbol name — stable across NDI 4/5/6.
 func loadLibrary() (*Library, error) {
 	var lastErr error
 	for _, name := range libraryNames {
-		h, err := purego.Dlopen(name, purego.RTLD_NOW|purego.RTLD_LOCAL)
+		h, err := openLibrary(name)
 		if err != nil {
 			lastErr = err
 			continue

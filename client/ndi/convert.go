@@ -1,3 +1,5 @@
+//go:build ndi
+
 package ndi
 
 // raylib's screen readback (glReadPixels with GL_RGBA) yields one byte per

@@ -122,13 +122,41 @@ NDI options:
   be chosen with `--ndi-width`/`--ndi-height` (default 1280x720).
 - `--ndi-name`: NDI source name (default: `DMXToBeamer-<clientName>`).
 - `--ndi-groups`: comma separated NDI discovery groups.
-- `--ndi-width` / `--ndi-height`: render resolution in `--ndi-only`
-  mode.
+- `--ndi-width` / `--ndi-height`: render resolution in `--ndi-only` mode.
+  In windowed (`--ndi`) mode they scale the framebuffer to the given
+  output resolution before it is sent; when unset, the window
+  resolution is sent unchanged.
+
+Builds compiled with NDI support (build tag `ndi`) print a startup
+notice with the NDI® trademark attribution required by the NDI SDK
+licensing terms: "NDI® is a registered trademark of Vizrt NDI AB".
+Builds without NDI support (e.g. Windows) print no NDI notice and show
+no NDI options in `--help`.
 
 Frames are sent uncompressed (UYVY 4:2:2); NDI handles compression and
 transport itself, so no third-party video codec licensing applies.
 Recipients discover the source with any NDI receiver, e.g. NDI Studio
 Monitor (https://ndi.video/tools/).
+
+### NDI build parameter
+
+NDI® support is a **build option**: the NDI code is compiled in only when
+the Go build tag `ndi` is set. This is needed because the NDI runtime
+cannot be loaded on Windows (`purego.Dlopen` is not implemented there), so
+Windows builds must exclude the NDI package.
+
+- `./build-linux.sh` (native, `arm64`, `arm`) — NDI **enabled by default**
+  (build tags `production x11 ndi`).
+- Disable it: `./build-linux.sh <target> --without-ndi` or
+  `NDI=0 ./build-linux.sh <target>` (build tags `production x11`).
+- Re-enable after disabling: `./build-linux.sh <target> --with-ndi`.
+- `client/build.sh` (Windows build, used by the CI workflow) always builds
+  **without** NDI. Running the Windows client with `--ndi`/`--ndi-only`
+  logs a hint that this build has no NDI support; headless `--ndi-only`
+  mode then exits, windowed mode keeps running without NDI.
+- Without the tag the whole `client/ndi` package is excluded from the
+  build — a no-op stub (`client/window/ndi_hook_noop.go`) keeps the
+  renderer and CLI flags working unchanged.
 
 ## Raspberry Pi specifics
 

@@ -134,29 +134,23 @@ func main() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
 
-	// NDI® output: parse the requested sender name and start the manager.
-	// NDI® is a registered trademark of Vizrt NDI AB — https://ndi.video
-	if opts.ndi || opts.ndiOnly {
-		ndiName := opts.ndiName
-		if ndiName == "" {
-			ndiName = "DMXToBeamer-" + ClientId
-		}
-		window.InitNDI(ndiName, opts.ndiGroups, opts.ndiOnly)
-	}
+	// Streaming output: parse the requested sender name and start the manager
+	// in builds compiled with streaming support.
+	startOutput(ClientId, opts)
 
 	defer end()
 
 	setupSignalHandler()
 
-	if opts.ndiOnly {
-		window.InitWindowHeadless(ClientId, int32(opts.ndiWidth), int32(opts.ndiHeight))
+	if opts.streamOnly {
+		window.InitWindowHidden(ClientId, int32(opts.streamWidth), int32(opts.streamHeight))
 	} else {
 		window.InitWindow(ClientId)
 	}
 
-	// InitWindowHeadless reports failure (e.g. no display) without exiting;
+	// InitWindowHidden reports failure (e.g. no display) without exiting;
 	// run the render loop only if a window is actually ready.
-	if opts.ndiOnly && !window.IsWindowReady() {
+	if opts.streamOnly && !window.IsWindowReady() {
 		return
 	}
 
@@ -168,11 +162,11 @@ func main() {
 		window.Render()
 	}
 
-	// In --ndi-only mode the window is hidden; raylib never receives a close
-	// event, so the loop is exited via SIGINT/SIGTERM (RequestShutdown) or an
-	// NDI error. If the NDI sender failed to start, exit now.
-	if opts.ndiOnly && window.NDIManager() == nil {
-		log.Println("NDI® sender could not be started — exiting headless mode.")
+	// In headless streaming mode the window is hidden; raylib never receives
+	// a close event, so the loop is exited via SIGINT/SIGTERM
+	// (RequestShutdown) or a streaming error. If the sender failed to start,
+	// exit now.
+	if opts.streamOnly && streamStartFailed() {
 		return
 	}
 }
@@ -187,6 +181,6 @@ func end() {
 	}
 	animations.UnloadAnimations()
 	portaudio.Terminate()
-	window.ShutdownNDI()
+	window.ShutdownOutput()
 	rl.CloseWindow()
 }
