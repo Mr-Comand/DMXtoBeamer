@@ -84,7 +84,13 @@ func adjustWebSocketURL(input, clientId string) (string, string, bool) {
 	return matches[1] + matches[2] + matches[3] + matches[4] + "?" + query, clientId, true
 }
 func main() {
-	config.Load("config.yaml")
+	configPath := os.Getenv("DMXTOBEAMER_CONFIG")
+
+	if configPath == "" {
+		configPath = "config.yaml"
+	}
+
+	config.Load(configPath)
 
 	positional, opts, err := parseFlags(os.Args[1:])
 	if err != nil {
