@@ -169,6 +169,7 @@ lb config \
     --archive-areas "main contrib non-free non-free-firmware" \
     --debian-installer none \
     --apt-recommends false \
+    --chroot-filesystems ext4 \
     --bootappend-live "boot=live components quiet username=kiosk hostname=dmxtobeamer locales=de_DE.UTF-8 keyboard-layouts=de keyboard-model=pc105" \
     --iso-volume "DMXTOBEAMER"
 
@@ -670,6 +671,11 @@ echo " Building Debian 13 Live ISO"
 echo "=========================================="
 
 cd "$WORK_DIR"
+
+# Ensure debootstrap chroot has a minimal env and /usr/bin/env for live-build
+lb bootstrap --purge
+debootstrap --variant=minbase --arch=amd64 bookworm "$WORK_DIR/chroot" http://deb.debian.org/debian
+lb bootstrap
 
 lb build
 
