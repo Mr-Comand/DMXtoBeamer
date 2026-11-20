@@ -249,14 +249,14 @@ jobs:
       - name: Install ISO build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \u005c
-            gcc g++ make pkg-config \u005c
-            libasound2-dev portaudio19-dev \u005c
-            libusb-1.0-0-dev libudev-dev \u005c
-            libx11-dev libxrandr-dev libxcursor-dev \u005c
-            libxinerama-dev libxi-dev libxext-dev libxfixes-dev \u005c
-            libxxf86vm-dev libxkbcommon-dev libgl-dev \u005c
-            live-build debootstrap squashfs-tools xorriso dosfstools parted rsync \u005c
+          sudo apt-get install -y --no-install-recommends \
+            gcc g++ make pkg-config \
+            libasound2-dev portaudio19-dev \
+            libusb-1.0-0-dev libudev-dev \
+            libx11-dev libxrandr-dev libxcursor-dev \
+            libxinerama-dev libxi-dev libxext-dev libxfixes-dev \
+            libxxf86vm-dev libxkbcommon-dev libgl-dev \
+            live-build debootstrap squashfs-tools xorriso dosfstools parted rsync \
             git ca-certificates curl file binutils
 
       - name: Make ISO build script executable
