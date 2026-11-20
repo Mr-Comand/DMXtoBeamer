@@ -21,11 +21,13 @@ fi
 # Create output directory
 mkdir -p "$OUTPUT_DIR"
 
-# Build the Go executable with explicit CGO flags
+# Build the Go executable with explicit CGO flags. The NDI runtime must be
+# installed separately; it is loaded from the Windows DLL search path.
+# Package-form build ('.') so all package files (e.g. cliflags.go) are included.
 CGO_ENABLED=1 GOOS=windows GOARCH=amd64 \
 CGO_CFLAGS="-I$PWD/resources" \
 CGO_LDFLAGS="-L$PWD/resources -lportaudio" \
-go build -tags production -o "$OUTPUT_DIR/client.exe" main.go
+go build -tags production,ndi -o "$OUTPUT_DIR/client.exe" .
 
 # Copy PortAudio DLL if it exists
 if [ -f "$DLL_FILE" ]; then
@@ -42,7 +44,14 @@ fi
 
 # Create zip archive
 cd "$OUTPUT_DIR"
-zip -r client.zip ./*
+if command -v zip >/dev/null 2>&1; then
+    zip -r client.zip ./*
+elif command -v powershell.exe >/dev/null 2>&1; then
+    powershell.exe -NoProfile -Command 'Compress-Archive -Path * -DestinationPath client.zip -Force'
+else
+    echo "Error: neither zip nor PowerShell is available to create client.zip."
+    exit 1
+fi
 cd ..
 
 echo "Build complete. Check $OUTPUT_DIR for client.exe, libportaudio.dll, shaders, and client.zip."
