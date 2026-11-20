@@ -104,7 +104,6 @@ if [[ "$INSIDE_CONTAINER" != "--inside-container" ]]; then
         exit $?
     fi
 fi
-fi
 
 # ============================================================
 # Root check
