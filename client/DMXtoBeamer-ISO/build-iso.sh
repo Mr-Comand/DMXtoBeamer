@@ -671,9 +671,6 @@ echo "=========================================="
 
 cd "$WORK_DIR"
 
-# Ensure debootstrap chroot has a minimal env and /usr/bin/env for live-build
-lb bootstrap --purge
-debootstrap --variant=minbase --arch=amd64 bookworm "$WORK_DIR/chroot" http://deb.debian.org/debian
 lb bootstrap
 
 lb build

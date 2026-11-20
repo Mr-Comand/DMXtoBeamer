@@ -235,6 +235,9 @@ jobs:
   build-iso:
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.build_iso }}
     runs-on: ubuntu-latest
+    container:
+      image: debian:12
+      options: --privileged
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
