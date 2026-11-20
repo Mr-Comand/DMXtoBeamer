@@ -22,71 +22,88 @@ ISO_OUTPUT="$SCRIPT_DIR/dmxtobeamer-live.iso"
 INSIDE_CONTAINER="${1:-}"
 
 # ============================================================
-# Fedora host: build inside Debian 13
+# Build inside Debian 13 container (works with Fedora host or CI)
 # ============================================================
 
-if [[ -f /etc/fedora-release && "$INSIDE_CONTAINER" != "--inside-container" ]]; then
+if [[ "$INSIDE_CONTAINER" != "--inside-container" ]]; then
 
-    echo "Fedora detected."
-    echo "Starting Debian 13 build container."
+    # Auto-detect container runtime environment
+    IS_GITHUB_CI="${GITHUB_ACTIONS:-}"
+    
+    if [[ -f /etc/fedora-release ]] || [[ -n "$IS_GITHUB_CI" ]]; then
+        echo "Detected container-compatible environment (Fedora or GitHub CI)."
+        echo "Starting Debian 13 build container."
 
-    if ! command -v podman >/dev/null 2>&1; then
-        sudo dnf install -y podman
+        # Use Podman or Docker as container runtime
+        if ! command -v podman >/dev/null 2>&1; then
+            if command -v docker >/dev/null 2>&1; then
+                echo "Using Docker as Podman not available"
+                CONTAINER_RUNTIME="docker"
+            else
+                echo "Installing Podman..."
+                sudo dnf install -y podman || {
+                    echo "Podman/Docker installation failed, trying fallback..."
+                    sudo apt-get update && sudo apt-get install -y podman || exit 1
+                }
+                CONTAINER_RUNTIME="podman"
+            fi
+        else
+            CONTAINER_RUNTIME="podman"
+        fi
+
+        $CONTAINER_RUNTIME run --rm --privileged --network host \
+            --security-opt label=disable \
+            -v "$PROJECT_DIR:/workspace:Z" \
+            -w /workspace \
+            -e ISO_DIR_NAME="$ISO_DIR_NAME" \
+            -e DEBIAN_FRONTEND="noninteractive" \
+            -e PODMAN_USERNS="keep-id" \
+            docker.io/library/debian:13 \
+            bash -c '
+                set -Eeuo pipefail
+                apt-get update -qq
+
+                apt-get install -y --no-install-recommends \
+                    bash \
+                    golang-go \
+                    gcc \
+                    g++ \
+                    make \
+                    pkg-config \
+                    libasound2-dev \
+                    portaudio19-dev \
+                    libusb-1.0-0-dev \
+                    debootstrap \
+                    live-build \
+                    libudev-dev \
+                    libx11-dev \
+                    libxrandr-dev \
+                    libxcursor-dev \
+                    libxinerama-dev \
+                    libxi-dev \
+                    libxext-dev \
+                    libxfixes-dev \
+                    libxxf86vm-dev \
+                    squashfs-tools \
+                    xorriso \
+                    dosfstools \
+                    parted \
+                    rsync \
+                    git \
+                    ca-certificates \
+                    curl \
+                    file \
+                    binutils \
+                    libxkbcommon-dev \
+                    libgl-dev
+
+                cd "/workspace/$ISO_DIR_NAME"
+                bash ./build-iso.sh --inside-container
+            '
+
+        exit $?
     fi
-
-    podman run --rm --privileged --network host \
-        --security-opt label=disable \
-        -v "$PROJECT_DIR:/workspace:Z" \
-        -w /workspace \
-        -e ISO_DIR_NAME="$ISO_DIR_NAME" \
-        docker.io/library/debian:13 \
-        bash -c '
-            set -Eeuo pipefail
-            export DEBIAN_FRONTEND=noninteractive
-
-            apt-get update
-
-            apt-get install -y --no-install-recommends \
-                bash \
-                golang-go \
-                gcc \
-                g++ \
-                make \
-                pkg-config \
-                libasound2-dev \
-                portaudio19-dev \
-                libusb-1.0-0-dev \
-                debootstrap \
-                live-build \
-                libudev-dev \
-                libx11-dev \
-                libxrandr-dev \
-                libxcursor-dev \
-                libxinerama-dev \
-                libxi-dev \
-                libxext-dev \
-                libxfixes-dev \
-                libxxf86vm-dev \
-                live-build \
-                debootstrap \
-                squashfs-tools \
-                xorriso \
-                dosfstools \
-                parted \
-                rsync \
-                git \
-                ca-certificates \
-                curl \
-                file \
-                binutils \
-                libxkbcommon-dev \
-                libgl-dev
-
-            cd "/workspace/$ISO_DIR_NAME"
-            bash ./build-iso.sh --inside-container
-        '
-
-    exit $?
+fi
 fi
 
 # ============================================================

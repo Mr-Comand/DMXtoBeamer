@@ -235,44 +235,21 @@ jobs:
   build-iso:
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.build_iso }}
     runs-on: ubuntu-latest
-    container:
-      image: debian:12
-      options: --privileged
     steps:
-      - name: Install Git (≥ 2.18)
-        run: |
-          apt-get update && apt-get install -y git
-
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
-
-      - name: Setup Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: "1.23"
-
-      - name: Install ISO build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            gcc g++ make pkg-config \
-            libasound2-dev portaudio19-dev \
-            libusb-1.0-0-dev libudev-dev \
-            libx11-dev libxrandr-dev libxcursor-dev \
-            libxinerama-dev libxi-dev libxext-dev libxfixes-dev \
-            libxxf86vm-dev libxkbcommon-dev libgl-dev \
-            live-build debootstrap squashfs-tools xorriso dosfstools parted rsync \
-            git ca-certificates curl file binutils
 
       - name: Make ISO build script executable
         working-directory: client/DMXtoBeamer-ISO
         run: chmod +x build-iso.sh
 
-      - name: Build Debian 13 live ISO
+      - name: Build Debian 13 live ISO using Podman
         working-directory: client/DMXtoBeamer-ISO
         run: sudo bash build-iso.sh
+        env:
+          GITHUB_ACTIONS: "true"
 
       - name: Upload ISO artifact
         uses: actions/upload-artifact@v4
