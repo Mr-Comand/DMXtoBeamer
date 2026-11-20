@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
@@ -22,36 +21,67 @@ ISO_OUTPUT="$SCRIPT_DIR/dmxtobeamer-live.iso"
 INSIDE_CONTAINER="${1:-}"
 
 # ============================================================
-# Build inside Debian 13 container (works with Fedora host or CI)
+# Prebuilt client detection
+# ============================================================
+
+has_prebuilt_client() {
+    [[ -f "$APP_BINARY" && -d "$SHADER_DIR" ]]
+}
+
+USE_PREBUILT_CLIENT=false
+
+if has_prebuilt_client; then
+    USE_PREBUILT_CLIENT=true
+    echo "Prebuilt Linux client detected."
+else
+    echo "No prebuilt Linux client found."
+fi
+
+# ============================================================
+# Build inside Debian 13 container
 # ============================================================
 
 if [[ "$INSIDE_CONTAINER" != "--inside-container" ]]; then
 
-    # Auto-detect container runtime environment
     IS_GITHUB_CI="${GITHUB_ACTIONS:-}"
-    
+
     if [[ -f /etc/fedora-release ]] || [[ -n "$IS_GITHUB_CI" ]] || [[ "$INSIDE_CONTAINER" == "--force-container" ]]; then
-        echo "Detected container-compatible environment (Fedora or GitHub CI)."
+
+        echo "Detected container-compatible environment."
         echo "Starting Debian 13 build container."
 
-        # Use Podman or Docker as container runtime
+        # ----------------------------------------------------
+        # Detect container runtime
+        # ----------------------------------------------------
+
         if ! command -v podman >/dev/null 2>&1; then
+
             if command -v docker >/dev/null 2>&1; then
-                echo "Using Docker as Podman not available"
+                echo "Using Docker as Podman is not available."
                 CONTAINER_RUNTIME="docker"
+
             else
                 echo "Installing Podman..."
+
                 sudo dnf install -y podman || {
-                    echo "Podman/Docker installation failed, trying fallback..."
-                    sudo apt-get update && sudo apt-get install -y podman || exit 1
+                    echo "Podman installation failed, trying apt."
+
+                    sudo apt-get update
+                    sudo apt-get install -y podman
                 }
+
                 CONTAINER_RUNTIME="podman"
             fi
+
         else
             CONTAINER_RUNTIME="podman"
         fi
 
-        $CONTAINER_RUNTIME run --rm --privileged --network host \
+        # ----------------------------------------------------
+        # Start Debian container
+        # ----------------------------------------------------
+
+        "$CONTAINER_RUNTIME" run --rm --privileged --network host \
             --security-opt label=disable \
             -v "$PROJECT_DIR:/workspace:Z" \
             -w /workspace \
@@ -59,48 +89,85 @@ if [[ "$INSIDE_CONTAINER" != "--inside-container" ]]; then
             -e DEBIAN_FRONTEND="noninteractive" \
             docker.io/library/debian:13 \
             bash -c '
+
                 set -Eeuo pipefail
+
+                echo "=========================================="
+                echo " Debian 13 ISO Build Container"
+                echo "=========================================="
+
+                # ------------------------------------------------
+                # Install build dependencies
+                # ------------------------------------------------
+
+                packages=(
+                    bash
+                    gcc
+                    g++
+                    make
+                    pkg-config
+                    libasound2-dev
+                    portaudio19-dev
+                    libusb-1.0-0-dev
+                    debootstrap
+                    live-build
+                    libudev-dev
+                    libx11-dev
+                    libxrandr-dev
+                    libxcursor-dev
+                    libxinerama-dev
+                    libxi-dev
+                    libxext-dev
+                    libxfixes-dev
+                    libxxf86vm-dev
+                    squashfs-tools
+                    xorriso
+                    dosfstools
+                    parted
+                    rsync
+                    git
+                    ca-certificates
+                    curl
+                    file
+                    binutils
+                    libxkbcommon-dev
+                    libgl-dev
+                )
+
+                # ------------------------------------------------
+                # Install Go only when necessary
+                # ------------------------------------------------
+
+                if [[ ! -f /workspace/client/build/client || ! -d /workspace/client/build/shaders ]]; then
+
+                    echo "No prebuilt client found."
+                    echo "Installing Go for local client compilation."
+
+                    packages+=(golang-go)
+
+                else
+
+                    echo "Prebuilt client found."
+                    echo "Skipping Go installation."
+
+                fi
+
                 apt-get update -qq
 
-                apt-get install -y --no-install-recommends \
-                    bash \
-                    golang-go \
-                    gcc \
-                    g++ \
-                    make \
-                    pkg-config \
-                    libasound2-dev \
-                    portaudio19-dev \
-                    libusb-1.0-0-dev \
-                    debootstrap \
-                    live-build \
-                    libudev-dev \
-                    libx11-dev \
-                    libxrandr-dev \
-                    libxcursor-dev \
-                    libxinerama-dev \
-                    libxi-dev \
-                    libxext-dev \
-                    libxfixes-dev \
-                    libxxf86vm-dev \
-                    squashfs-tools \
-                    xorriso \
-                    dosfstools \
-                    parted \
-                    rsync \
-                    git \
-                    ca-certificates \
-                    curl \
-                    file \
-                    binutils \
-                    libxkbcommon-dev \
-                    libgl-dev
+                apt-get install -y --no-install-recommends "${packages[@]}"
+
+                # ------------------------------------------------
+                # Start ISO build
+                # ------------------------------------------------
 
                 cd "/workspace/$ISO_DIR_NAME"
+
                 bash ./build-iso.sh --inside-container
+
             '
 
         exit $?
+
     fi
 fi
 
@@ -109,9 +176,12 @@ fi
 # ============================================================
 
 if [[ "$EUID" -ne 0 ]]; then
+
     echo "Run this script with:"
     echo "sudo bash build-iso.sh"
+
     exit 1
+
 fi
 
 # ============================================================
@@ -122,16 +192,50 @@ echo
 echo "Project directory: $PROJECT_DIR"
 echo "ISO directory:     $SCRIPT_DIR"
 
-for command_name in go lb pkg-config; do
+for command_name in lb pkg-config; do
+
     if ! command -v "$command_name" >/dev/null 2>&1; then
+
         echo "ERROR: Missing command: $command_name"
         exit 1
+
     fi
+
 done
 
-if [[ ! -f "$BUILD_SCRIPT" ]]; then
-    echo "ERROR: Build script not found: $BUILD_SCRIPT"
-    exit 1
+# ------------------------------------------------------------
+# Recheck prebuilt client inside the container
+# ------------------------------------------------------------
+
+USE_PREBUILT_CLIENT=false
+
+if [[ -f "$APP_BINARY" && -d "$SHADER_DIR" ]]; then
+
+    USE_PREBUILT_CLIENT=true
+
+    echo
+    echo "=========================================="
+    echo " Prebuilt Linux Client Detected"
+    echo "=========================================="
+
+    echo "Binary:  $APP_BINARY"
+    echo "Shaders: $SHADER_DIR"
+
+else
+
+    echo
+    echo "No prebuilt client available."
+
+    if ! command -v go >/dev/null 2>&1; then
+        echo "ERROR: Go is not installed."
+        exit 1
+    fi
+
+    if [[ ! -f "$BUILD_SCRIPT" ]]; then
+        echo "ERROR: Build script not found: $BUILD_SCRIPT"
+        exit 1
+    fi
+
 fi
 
 # ============================================================
@@ -140,27 +244,55 @@ fi
 
 echo
 echo "=========================================="
-echo " Building DMXtoBeamer"
+echo " Preparing DMXtoBeamer"
 echo "=========================================="
 
 cd "$PROJECT_DIR"
 
-bash "$BUILD_SCRIPT" native
+if [[ "$USE_PREBUILT_CLIENT" == true ]]; then
+
+    echo "Using existing prebuilt Linux client."
+    echo "Skipping Go installation and client compilation."
+
+else
+
+    echo "Building Linux client from source."
+
+    bash "$BUILD_SCRIPT" native
+
+fi
+
+# ------------------------------------------------------------
+# Validate application
+# ------------------------------------------------------------
 
 if [[ ! -f "$APP_BINARY" ]]; then
-    echo "ERROR: Application binary not found: $APP_BINARY"
+
+    echo "ERROR: Application binary not found:"
+    echo "$APP_BINARY"
+
     exit 1
+
 fi
 
 if [[ ! -d "$SHADER_DIR" ]]; then
-    echo "ERROR: Shader directory not found: $SHADER_DIR"
+
+    echo "ERROR: Shader directory not found:"
+    echo "$SHADER_DIR"
+
     exit 1
+
 fi
 
 chmod +x "$APP_BINARY"
 
+echo
 echo "Application binary:"
 file "$APP_BINARY"
+
+echo
+echo "Shaders:"
+ls -la "$SHADER_DIR"
 
 # ============================================================
 # Prepare Debian Live build
@@ -176,7 +308,8 @@ mkdir -p "$WORK_DIR"
 
 cd "$WORK_DIR"
 
-IMAGE_VARIANT="bookworm"  # Debian 12 (Stable)
+IMAGE_VARIANT="bookworm"
+
 lb config \
     --distribution "$IMAGE_VARIANT" \
     --architectures amd64 \
@@ -363,7 +496,7 @@ echo "YAML configuration: $CONFIG_FILE"
 echo "Launch arguments: $ARGS_FILE"
 echo "Argument count: ${#DMXTOBEAMER_ARGS[@]}"
 
-# Force the active virtual terminal to TTY1
+# Force the active virtual terminal to TTY1.
 /usr/bin/chvt 1
 sleep 1
 
@@ -386,12 +519,14 @@ set -e
 if ! getent group kiosk >/dev/null 2>&1; then
     groupadd --gid 1000 kiosk
 fi
+
 # Ensure all groups required by the kiosk service exist.
 for group in video input render audio dialout seat; do
     if ! getent group "$group" >/dev/null 2>&1; then
         groupadd --system "$group"
     fi
 done
+
 if ! id kiosk >/dev/null 2>&1; then
     useradd \
         --uid 1000 \
@@ -684,10 +819,10 @@ echo "=========================================="
 echo " Building Debian 13 Live ISO"
 echo "=========================================="
 
-cd "$WORK_DIR" || exit 1
+cd "$WORK_DIR"
 
-# Clean Live Build artifacts and rebuild ISO to ensure consistency
 lb bootstrap
+
 lb build || {
     echo "ERROR: Live Build failed. See logs above."
     exit 1
@@ -700,9 +835,12 @@ lb build || {
 BUILT_ISO="$WORK_DIR/live-image-amd64.hybrid.iso"
 
 if [[ ! -f "$BUILT_ISO" ]]; then
+
     echo "ERROR: ISO was not generated:"
     echo "$BUILT_ISO"
+
     exit 1
+
 fi
 
 cp "$BUILT_ISO" "$ISO_OUTPUT"
