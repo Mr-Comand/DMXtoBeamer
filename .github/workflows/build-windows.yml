@@ -209,9 +209,9 @@ jobs:
       - name: Install X11 and audio development packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y \u005c
-            portaudio19-dev libasound2-dev \u005c
-            libx11-dev libxkbcommon-dev libxcursor-dev libxrandr-dev \u005c
+          sudo apt-get install -y \
+            portaudio19-dev libasound2-dev \
+            libx11-dev libxkbcommon-dev libxcursor-dev libxrandr-dev \
             libxinerama-dev libxi-dev libgl-dev libglu1-mesa-dev zip
 
       - name: Make build script executable
